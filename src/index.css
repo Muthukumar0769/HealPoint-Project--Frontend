@@ -44,22 +44,18 @@ body,
   animation: slideInLeft 0.3s ease-out forwards;
 }
 
-/* Always show horizontal scrollbar on table */
-div[style*="overflow-x"] {
-  scrollbar-width: thin;
-  scrollbar-color: #93c5fd #f1f5f9;
-}
-
-div[style*="overflow-x"]::-webkit-scrollbar {
+/* Table horizontal scrollbar */
+.table-scroll::-webkit-scrollbar {
   height: 6px;
 }
-
-div[style*="overflow-x"]::-webkit-scrollbar-track {
+.table-scroll::-webkit-scrollbar-track {
   background: #f1f5f9;
   border-radius: 999px;
 }
-
-div[style*="overflow-x"]::-webkit-scrollbar-thumb {
+.table-scroll::-webkit-scrollbar-thumb {
   background: #93c5fd;
   border-radius: 999px;
+}
+.table-scroll::-webkit-scrollbar-thumb:hover {
+  background: #3b82f6;
 }

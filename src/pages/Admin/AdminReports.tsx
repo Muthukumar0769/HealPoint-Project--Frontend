@@ -259,9 +259,9 @@ export const AdminReports = () => {
 
             {!loading && !error && (
               <>
-                <div ref={tableWrapperRef} style={{ overflowX: "auto", maxWidth: "100%" }}>
+                <div ref={tableWrapperRef} className="table-scroll" style={{ overflowX: "auto", maxWidth: "100%", scrollbarWidth: "thin", scrollbarColor: "#93c5fd #f1f5f9", }}>
                   <div key={`${activeTab}-${page}`} className={getAnimClass()}>
-                    <table className="border-collapse text-sm" style={{ minWidth: 700, width: "100%" }}>
+                    <table className="border-collapse text-sm" style={{ minWidth: 800, width: "100%" }}>
                       <thead>
                         <tr className="bg-slate-50 text-left text-xs text-slate-500">
                           <th className="px-4 py-3 font-semibold">Doctor</th>
@@ -329,7 +329,7 @@ export const AdminReports = () => {
                               <td className="px-4 py-3">
                                 <div className="flex items-center gap-2 min-w-[140px]">
                                   <img src={getImageUrl(doc.profile_picture)} alt={doc.doctor_name} onError={(e) => { (e.target as HTMLImageElement).src = fallback(doc.doctor_name); }}
-                                    className="h-9 w-9 shrink-0 rounded-full object-cover"/>
+                                    className="h-9 w-9 shrink-0 rounded-full object-cover" />
                                   <p className="text-xs font-extrabold text-slate-900 whitespace-nowrap">{doc.doctor_name}</p>
                                 </div>
                               </td>

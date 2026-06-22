@@ -31,7 +31,7 @@ const fallback = (name: string) =>
   `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=dbeafe&color=1d4ed8`;
 
 export const AdminReports = () => {
-  usePageTitle("Reports");
+  usePageTitle("Leave Reports");
   const dispatch = useAppDispatch();
   const { data, loading, error, selectedDate, activeTab, page } = useAppSelector((s) => s.adminReports);
   const [slideDir, setSlideDir] = useState<"left" | "right" | null>(null);

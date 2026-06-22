@@ -250,9 +250,9 @@ export const AdminReports = () => {
 
             {!loading && !error && (
               <>
-                <div ref={tableWrapperRef} className="overflow-x-auto scrollbar scrollbar-h-1.5 scrollbar-thumb-blue-300 scrollbar-track-slate-100 rounded-b-xl">
+                <div ref={tableWrapperRef} style={{ overflowX: "auto", maxWidth: "100%" }}>
                   <div key={`${activeTab}-${page}`} className={getAnimClass()}>
-                    <table className="w-full border-collapse text-sm" style={{ minWidth: 700 }}>
+                    <table className="border-collapse text-sm" style={{ minWidth: 700, width: "100%" }}>
                       <thead>
                         <tr className="bg-slate-50 text-left text-xs text-slate-500">
                           <th className="px-4 py-3 font-semibold">Doctor</th>
@@ -321,7 +321,7 @@ export const AdminReports = () => {
                                 <div className="flex items-center gap-2">
                                   <img src={getImageUrl(doc.profile_picture)} alt={doc.doctor_name} onError={(e) => { (e.target as HTMLImageElement).src = fallback(doc.doctor_name); }}
                                     className="h-9 w-9 rounded-full object-cover" />
-                                  <p className="text-xs font-extrabold text-slate-900">{doc.doctor_name}</p>
+                                  <p className="text-xs font-extrabold text-slate-900 whitespace-nowrap">{doc.doctor_name}</p> <p className="text-xs font-extrabold text-slate-900">{doc.doctor_name}</p>
                                 </div>
                               </td>
                               <td className="px-4 py-4 text-xs font-semibold text-slate-600">{doc.specialization}</td>
@@ -334,7 +334,7 @@ export const AdminReports = () => {
                               <td className="px-4 py-4 text-xs font-semibold text-slate-600 whitespace-nowrap">
                                 {doc.is_full_day ? "Full Day" : `Half Day (${doc.start_time ?? ""} – ${doc.end_time ?? ""})`}
                               </td>
-                              <td className="px-4 py-4 text-xs font-semibold text-slate-600 max-w-[140px] truncate" title={doc.reason ?? "-"}>
+                              <td className="px-4 py-4 text-xs font-semibold text-slate-600 whitespace-nowrap max-w-[160px] truncate" title={doc.reason ?? "-"}>
                                 {doc.reason ?? "-"}
                               </td>
                             </tr>

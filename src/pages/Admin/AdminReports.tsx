@@ -181,8 +181,7 @@ export const AdminReports = () => {
           </div>
           <div className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 shadow-md shadow-blue-100">
             <FaCalendarAlt className="text-sm text-blue-600" />
-            <input type="date" value={selectedDate}
-              onChange={(e) => dispatch(setSelectedDate(e.target.value || TODAY))}
+            <input type="date" value={selectedDate} onChange={(e) => dispatch(setSelectedDate(e.target.value || TODAY))}
               className="cursor-pointer bg-transparent text-xs font-bold text-slate-600 outline-none" />
             {selectedDate !== TODAY && (
               <button onClick={() => dispatch(setSelectedDate(TODAY))} className="cursor-pointer text-xs font-bold text-red-500">Today</button>
@@ -272,8 +271,7 @@ export const AdminReports = () => {
                             <tr key={doc.doctor_id} className="border-b border-slate-100 transition hover:bg-blue-50/40">
                               <td className="px-4 py-4">
                                 <div className="flex items-center gap-2">
-                                  <img src={getImageUrl(doc.profile_picture)} alt={doc.doctor_name}
-                                    onError={(e) => { (e.target as HTMLImageElement).src = fallback(doc.doctor_name); }}
+                                  <img src={getImageUrl(doc.profile_picture)} alt={doc.doctor_name} onError={(e) => { (e.target as HTMLImageElement).src = fallback(doc.doctor_name); }}
                                     className="h-9 w-9 rounded-full object-cover" />
                                   <p className="text-xs font-extrabold text-slate-900">{doc.doctor_name}</p>
                                 </div>
@@ -299,8 +297,7 @@ export const AdminReports = () => {
                             <tr key={doc.doctor_id} className="border-b border-slate-100 transition hover:bg-blue-50/40">
                               <td className="px-4 py-4">
                                 <div className="flex items-center gap-2">
-                                  <img src={getImageUrl(doc.profile_picture)} alt={doc.doctor_name}
-                                    onError={(e) => { (e.target as HTMLImageElement).src = fallback(doc.doctor_name); }}
+                                  <img src={getImageUrl(doc.profile_picture)} alt={doc.doctor_name} onError={(e) => { (e.target as HTMLImageElement).src = fallback(doc.doctor_name); }}
                                     className="h-9 w-9 rounded-full object-cover" />
                                   <p className="text-xs font-extrabold text-slate-900">{doc.doctor_name}</p>
                                 </div>
@@ -320,8 +317,7 @@ export const AdminReports = () => {
                             <tr key={doc.doctor_id} className="border-b border-slate-100 transition hover:bg-blue-50/40">
                               <td className="px-4 py-4">
                                 <div className="flex items-center gap-2">
-                                  <img src={getImageUrl(doc.profile_picture)} alt={doc.doctor_name}
-                                    onError={(e) => { (e.target as HTMLImageElement).src = fallback(doc.doctor_name); }}
+                                  <img src={getImageUrl(doc.profile_picture)} alt={doc.doctor_name} onError={(e) => { (e.target as HTMLImageElement).src = fallback(doc.doctor_name); }}
                                     className="h-9 w-9 rounded-full object-cover" />
                                   <p className="text-xs font-extrabold text-slate-900">{doc.doctor_name}</p>
                                 </div>
@@ -359,8 +355,7 @@ export const AdminReports = () => {
                         <FaChevronLeft />
                       </PageBtn>
                       {Array.from({ length: activeRows?.totalPages ?? 0 }, (_, i) => i + 1).map((p) => (
-                        <button key={p} onClick={() => goToPage(p)}
-                          className={`h-8 w-8 cursor-pointer rounded-xl text-xs font-bold transition-all duration-200 ${p === page ? "bg-blue-600 text-white" : "border border-slate-200 text-slate-600 hover:bg-slate-50"}`}>
+                        <button key={p} onClick={() => goToPage(p)} className={`h-8 w-8 cursor-pointer rounded-xl text-xs font-bold transition-all duration-200 ${p === page ? "bg-blue-600 text-white" : "border border-slate-200 text-slate-600 hover:bg-slate-50"}`}>
                           {p}
                         </button>
                       ))}

@@ -324,17 +324,17 @@ export const AdminReports = () => {
                                   <p className="text-xs font-extrabold text-slate-900 whitespace-nowrap">{doc.doctor_name}</p>
                                 </div>
                               </td>
-                              <td className="px-4 py-4 text-xs font-semibold text-slate-600">{doc.specialization}</td>
-                              <td className="px-4 py-4 text-xs font-semibold text-slate-600">{formatDate(doc.unavailable_date)}</td>
-                              <td className="px-4 py-4">
-                                <span className="rounded-full bg-yellow-400 px-5 py-1 text-xs font-extrabold text-white">
+                              <td className="px-5 py-4 text-xs font-semibold text-slate-600">{doc.specialization}</td>
+                              <td className="px-5 w-15 py-4 text-xs font-semibold text-slate-600">{formatDate(doc.unavailable_date)}</td>
+                              <td className="px-6 py-4">
+                                <span className="rounded-full w-15 bg-yellow-400 px-5 py-1 text-xs font-extrabold text-white">
                                   On Leave
                                 </span>
                               </td>
-                              <td className="px-4 py-4 text-xs font-semibold text-slate-600 whitespace-nowrap">
+                              <td className="px-4 w-15 py-4 text-xs font-semibold text-slate-600 whitespace-nowrap">
                                 {doc.is_full_day ? "Full Day" : `Half Day (${doc.start_time ?? ""} – ${doc.end_time ?? ""})`}
                               </td>
-                              <td className="px-4 py-4 text-xs font-semibold text-slate-600 whitespace-nowrap max-w-[160px] truncate" title={doc.reason ?? "-"}>
+                              <td className="px-4 py-4 w-20 text-xs font-semibold text-slate-600 whitespace-nowrap max-w-[160px] truncate" title={doc.reason ?? "-"}>
                                 {doc.reason ?? "-"}
                               </td>
                             </tr>

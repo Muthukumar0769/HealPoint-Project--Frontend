@@ -1,450 +1,346 @@
-🏥 HealPoint – Smart Healthcare Appointment & Consultation Platform
+﻿# HealPoint
 
-📖 Overview
-----------------
-HealPoint is a modern full-stack healthcare management platform designed to simplify the interaction between patients, doctors, and administrators. The system provides a seamless experience for booking appointments, managing schedules, conducting video consultations, tracking payments, and monitoring healthcare operations through dedicated dashboards.
-Built with a scalable architecture and role-based access control, HealPoint offers separate interfaces for Patients, Doctors, and Administrators, ensuring secure and efficient healthcare management.
+## Overview
 
-🎯 Project Goals
-------------------------------------------
-Simplify doctor appointment booking and management.
-Reduce waiting time through online scheduling.
-Enable secure video consultations for remote healthcare.
-Provide doctors with powerful tools to manage patients and schedules.
-Offer administrators complete control over doctors, patients, appointments, and reports.
-Deliver a responsive and user-friendly healthcare experience across all devices.
------
-✨ Core Features
-👤 Patient Portal
--------------------
-Secure registration and login
-Browse doctors by specialization
-Advanced search and filtering
-View doctor profiles and availability
-Book appointments online
-Track appointment status
-Manage profile information
-View transaction history
-Join scheduled video consultations
-----------
-👨‍⚕️ Doctor Dashboard
------------------
-Personalized dashboard with statistics
-Manage appointment requests
-Accept or reject appointments
-View patient information
-Manage availability schedules
-Track earnings and revenue
-Conduct live video consultations
-Update professional profile
------------------------------------
-🛠️ Admin Dashboard
----------------------------------
-Manage doctors and patients
-Add, update, and remove doctors
-Manage medical specializations
-Monitor appointments
-Generate reports and analytics
-Track platform performance
-Manage healthcare operations efficiently
--------------------------------------
-🎥 Video Consultation System
-----------------------------------------
-Real-time online consultations
-Meeting link generation
-Automatic consultation tracking
-Join availability before scheduled time
-Consultation status monitoring
--------------------------------------------
-🔐 Security & Authentication
----------------------------------------------
-JWT-based authentication
-Role-based authorization
-Protected routes
-Secure API communication
-Session management
-Token refresh mechanism
----
+HealPoint is a modern healthcare appointment and consultation frontend built with React, TypeScript, Redux Toolkit, and Vite. It supports three user roles—Patient, Doctor, and Admin—and provides interfaces for browsing doctors, booking appointments, tracking payments, managing schedules, and running video consultations.
 
-## 🛠 Tech Stack
-
-| Category | Technology |
-|----------|-----------|
-| **Framework** | React 19 + TypeScript |
-| **Build Tool** | Vite 8 |
-| **Styling** | Tailwind CSS 4 |
-| **State Management** | Redux Toolkit + React-Redux |
-| **Routing** | React Router DOM 7 |
-| **HTTP Client** | Axios 1 |
-| **UI/UX** | Framer Motion, React Hot Toast, React Icons |
-| **Date Handling** | date-fns 4 |
-| **Charts** | Recharts 3 |
-| **Date Picker** | react-datepicker 9 |
-| **PDF Export** | jsPDF 4 |
-| **Linting** | ESLint 10 + TypeScript ESLint |
+This repository contains the frontend application only. A backend API is required to power authentication, appointment management, doctor data, patient records, and reports.
 
 ---
 
-## 📁 Project Structure
+## Features
+
+### Patient
+- Secure login and registration
+- Browse doctors by specialty
+- Search and filter doctors
+- View detailed doctor profiles
+- Book appointments online
+- View appointment history and transaction details
+- Join video consultations
+
+### Doctor
+- Personalized doctor dashboard
+- Manage appointments and patient details
+- Update availability schedule
+- Monitor earnings and revenue
+- Run video consultation sessions
+- Edit doctor profile
+
+### Admin
+- Manage doctors and patients
+- Add or update doctor details
+- Control medical specializations
+- Monitor appointment workflows
+- Generate reports and earnings analytics
+- View platform performance metrics
+
+### Platform
+- Role-based routing and authorization
+- JWT token handling with automatic refresh
+- Lazy-loaded routes for performance
+- Global notifications with react-hot-toast
+- Responsive UI powered by Tailwind CSS
+
+---
+
+## Tech Stack
+
+- React 19
+- TypeScript 6
+- Vite 8
+- Redux Toolkit
+- React Router DOM 7
+- Axios 1
+- Tailwind CSS 4
+- Framer Motion
+- React Hot Toast
+- React Icons
+- date-fns 4
+- Recharts 3
+- react-datepicker 9
+- jsPDF 4
+- ESLint 10
+
+---
+
+## Project Structure
 
 ```
 healpoint/
-├── public/                      # Static assets
+├── public/                      # Static assets and favicons served at runtime
 ├── src/
-│   ├── api/
-│   │   └── axios.ts            # HTTP client with auth interceptors & token refresh
-│   ├── assets/
-│   │   └── images/             # Image assets
-│   ├── components/
-│   │   ├── Header/             # Header components (Banner, Footer, Header, SeniorDoctors, SpecialityMenu)
-│   │   ├── Navbar/             # Navigation bar
-│   │   ├── SelectBox.tsx       # Reusable select component
-│   │   └── TimeInput.tsx       # Time picker component
-│   ├── pages/
-│   │   ├── Admin/              # Admin dashboard & management pages
-│   │   │   ├── AdminDashboard.tsx
-│   │   │   ├── AdminAppointments.tsx
-│   │   │   ├── AdminPatients.tsx
-│   │   │   ├── AdminSpecialization.tsx
-│   │   │   ├── Doctors.tsx
-│   │   │   ├── AddDoctor.tsx
-│   │   │   ├── DoctorAppointmentSummary.tsx
-│   │   │   ├── AdminReports.tsx
-│   │   │   └── AdminSidebar.tsx
-│   │   ├── Auth/               # Authentication pages
-│   │   │   ├── Login.tsx
-│   │   │   ├── Register.tsx
-│   │   │   ├── ForgotPassword.tsx
-│   │   │   └── ProtectedRoute.tsx
-│   │   ├── Doctor/             # Doctor dashboard & management pages
-│   │   │   ├── DoctorDashboard.tsx
-│   │   │   ├── DoctorAppointments.tsx
-│   │   │   ├── DoctorProfile.tsx
-│   │   │   ├── DoctorSchedule.tsx
-│   │   │   ├── DoctorPatients.tsx
-│   │   │   ├── DoctorEarnings.tsx
-│   │   │   ├── DoctorVideoConsultation.tsx
-│   │   │   └── DoctorSidebar.tsx
-│   │   └── Patient/            # Patient pages & public pages
-│   │       ├── Home.tsx
-│   │       ├── DoctorListing.tsx
-│   │       ├── DoctorDetails.tsx
-│   │       ├── BookAppointment.tsx
-│   │       ├── MyAppointments.tsx
-│   │       ├── MyProfile.tsx
-│   │       ├── TransactionDetails.tsx
-│   │       ├── About.tsx
-│   │       └── Contact.tsx
-│   ├── store/                  # Redux state management
-│   │   ├── store.ts            # Redux store configuration
-│   │   ├── hooks.ts            # Custom Redux hooks
-│   │   └── slices/             # Redux slices
-│   │       ├── DoctorListingSlice.ts
-│   │       ├── AdminDoctorSlice.ts
-│   │       ├── AdminPatientSlice.ts
-│   │       ├── AdminSpecializationSlice.ts
-│   │       ├── BookAppointmentSlice.ts
-│   │       ├── DoctorScheduleSlice.ts
-│   │       └── DoctorAppointmentSlice.ts
-│   ├── types/                  # TypeScript type definitions
-│   │   ├── admin.ts            # Admin-related types
-│   │   ├── doctor.ts           # Doctor-related types
-│   │   ├── patient.ts          # Patient-related types
-│   │   └── common.ts           # Common/shared types
-│   ├── utils/                  # Utility functions and components
-│   │   ├── AvailabilityBadge.tsx
-│   │   └── slotHelpers.ts      # Appointment slot helper functions
-│   ├── App.tsx                 # Main app component with routes
-│   ├── App.css                 # Global app styles
-│   ├── main.tsx                # React DOM entry point
-│   └── index.css               # Global styles
-├── eslint.config.js            # ESLint configuration
-├── vite.config.ts              # Vite build configuration
-├── tsconfig.json               # TypeScript configuration
-├── tsconfig.app.json           # App-specific TypeScript config
-├── tsconfig.node.json          # Node-specific TypeScript config
-├── package.json                # Project dependencies and scripts
-├── index.html                  # HTML entry point
-└── README.md                   # This file
-
-3. **Configure environment variables:**
-   - Edit the API baseURL in `src/api/axios.ts` to match your backend server
-   - Default configured for: `https://retinal-lark-phony.ngrok-free.dev/api`
-
-4. **Start the development server:**
-   ```bash
-   npm run dev
-   ```
-   The app will be available at `http://localhost:5173/`
-
----
-
-## 📜 Available Scripts
-
-
-## 🔐 Authentication & Authorization
-
-### Authentication Flow
-
-1. **Login/Register**: Users authenticate via `/auth/login` or `/auth/register`
-2. **Token Storage**: Upon success, `accessToken` and `user` data stored in `localStorage`
-3. **Request Interceptor**: Axios automatically attaches `Authorization: Bearer <token>` header
-4. **Token Refresh**: 401 responses trigger automatic token refresh via `/auth/refresh`
-5. **Protected Routes**: `ProtectedRoute` component validates roles before access
-
-### User Roles
-
-| Role | Access | Dashboard |
-|------|--------|-----------|
-| **patient** | Patient portal, doctor search, booking | `/my-profile`, `/my-appointments` |
-| **doctor** | Doctor dashboard, appointment mgmt | `/doctor/dashboard`, `/doctor/appointments` |
-| **admin** | Full admin control | `/admin/dashboard`, all admin pages |
-
-### Protected Route Implementation
-
-```tsx
-<Route element={<ProtectedRoute allowedRoles={["patient", "Patient"]} />}>
-  <Route path="/my-profile" element={<MyProfile />} />
-</Route>
+│   ├── api/                     # Network layer and Axios instances
+│   │   └── axios.ts             # Main HTTP client, auth interceptors, and token refresh flow
+│   ├── assets/                  # Static image files used by UI
+│   │   └── images/              # Doctor icons, illustrations, banners
+│   ├── components/              # Shared reusable UI components
+│   │   ├── Header/              # Hero banner, site header, footer, featured doctors, specialties
+│   │   ├── Navbar/              # Top navigation, login/logout, role menu
+│   │   ├── SelectBox.tsx        # Customized dropdown select component
+│   │   └── TimeInput.tsx        # Time picker input for scheduling
+│   ├── hooks/                   # Custom React hooks
+│   │   └── usePageTitle.ts      # Set document title per page
+│   ├── pages/                   # Route-based page components
+│   │   ├── Admin/               # Admin dashboard, doctors, patients, reports, specialties
+│   │   ├── Auth/                # Authentication pages and protected route logic
+│   │   ├── Doctor/              # Doctor dashboard, schedule, earnings, video consultation
+│   │   └── Patient/             # Patient home, doctor listing, booking, profile, appointments
+│   ├── store/                   # Redux store and application state
+│   │   ├── slices/              # Domain-specific Redux slices
+│   │   └── hooks.ts             # Typed `useAppDispatch` and `useAppSelector`
+│   ├── types/                   # TypeScript interfaces and shared types
+│   ├── utils/                   # Utility helpers and small components
+│   │   ├── AvailabilityBadge.tsx # Displays slot availability status
+│   │   └── slotHelpers.ts       # Appointment slot formatting and selection helpers
+│   ├── App.tsx                  # Defines routing, layout, and lazy loading
+│   ├── main.tsx                 # App entry point, provider setup, and router
+│   ├── index.css                # Global style resets and theme styles
+│   └── App.css                  # App-specific styles
+├── eslint.config.js             # ESLint configuration for linting rules
+├── package.json                 # Project scripts and dependencies
+├── tsconfig.json                # TypeScript base configuration
+├── tsconfig.app.json            # Vite app TypeScript configuration
+├── tsconfig.node.json           # Node tooling TypeScript config
+├── vite.config.ts               # Vite build and plugin configuration
+├── vercel.json                  # Vercel SPA rewrite configuration
+├── index.html                   # HTML template for Vite build
+└── README.md                    # Project documentation
 ```
 
 ---
 
-## 🗺️ Routes & Pages
+## File Summary
+
+- `src/api/axios.ts` — Configures Axios, attaches auth headers, refreshes tokens, and handles failed request queuing.
+- `src/main.tsx` — Initializes React app, wraps with Redux provider, router, and toast notifications.
+- `src/App.tsx` — Defines public and protected routes, lazy loads page components, and renders shared layout.
+- `src/pages/Auth/ProtectedRoute.tsx` — Protects pages by user role and redirects unauthorized visitors.
+- `src/store/store.ts` — Combines Redux slices and creates the app store.
+- `src/store/hooks.ts` — Typed hooks for dispatch and selector access.
+- `src/pages/Admin/` — Admin interface for doctors, patients, appointments, reports, and specialties.
+- `src/pages/Doctor/` — Doctor workflows including appointments, schedule, earnings, profile, and video consultation.
+- `src/pages/Patient/` — Patient-facing pages for home, doctor discovery, booking, profile, appointments, and transactions.
+- `src/components/Navbar/Navbar.tsx` — Global navigation, login/logout actions, and role-aware menu items.
+- `src/components/Header/` — Shared landing page header elements, featured doctors, and specialty cards.
+- `src/utils/slotHelpers.ts` — Time slot utilities used by booking and schedule pages.
+- `src/types/` — Shared type definitions for users, doctors, patients, appointments, and common data.
+- `vercel.json` — Ensures single-page app routing works correctly on Vercel.
+
+---
+
+## Dashboard Files Overview
+
+### Admin Dashboard Pages
+- `AdminDashboard.tsx` — Main admin overview with platform metrics, appointment summaries, and quick navigation.
+- `AdminAppointments.tsx` — Full appointment management page for viewing, filtering, and updating appointment status.
+- `AdminPatients.tsx` — Admin patient management panel for viewing and managing patient records.
+- `Doctors.tsx` — Admin view of all registered doctors with edit and delete actions.
+- `AddDoctor.tsx` — Admin form for adding or updating doctor profiles and specialization data.
+- `AdminSpecialization.tsx` — Manage medical specialties used for doctor filtering and registration.
+- `AdminReports.tsx` — Reporting dashboard for platform analytics and admin insights.
+- `AdminEarningsReport.tsx` — Site-wide earnings report and financial overview for admin review.
+- `AdminDoctorEarnings.tsx` — Detailed earnings breakdown for individual doctors.
+- `DoctorAppointmentSummary.tsx` — Doctor-centric appointment analytics and summary view.
+- `AdminSidebar.tsx` — Sidebar navigation used across admin pages.
+
+### Doctor Dashboard Pages
+- `DoctorDashboard.tsx` — Doctor home screen with appointment summaries, notifications, and performance stats.
+- `DoctorAppointments.tsx` — Doctor appointment management and approval workflow.
+- `DoctorSchedule.tsx` — Doctor availability scheduling interface with slot management.
+- `DoctorProfile.tsx` — Doctor profile editor for updating qualifications, services, and personal details.
+- `DoctorEarnings.tsx` — Doctor earnings overview page showing revenue history and payouts.
+- `DoctorVideoConsultation.tsx` — Doctor video consultation interface to manage live telehealth sessions.
+- `DoctorSidebar.tsx` — Sidebar navigation used across doctor pages.
+
+### Patient Dashboard / Experience Pages
+- `Home.tsx` — Landing page that introduces the platform and highlights doctors and services.
+- `DoctorListing.tsx` — Doctor discovery page with search, filters, and specialization browsing.
+- `DoctorDetails.tsx` — Detailed doctor profile page with booking preview and service details.
+- `BookAppointment.tsx` — Appointment booking flow with date, time, and payment options.
+- `MyAppointments.tsx` — Patient appointment history and appointment status management.
+- `MyProfile.tsx` — Patient profile management page for personal details and settings.
+- `TransactionDetails.tsx` — Payment details and transaction record page for appointments.
+- `About.tsx` — Informational page about the platform.
+- `Contact.tsx` — Contact form and support information page.
+
+---
+
+## Setup
+
+### Prerequisites
+- Node.js 22.x
+- npm 10.x or newer
+- Backend API server to support the application
+
+### Installation
+
+```bash
+npm install
+```
+
+### Environment Variables
+
+Create a `.env` file at the root of the project.
+
+Example `.env`:
+
+```env
+VITE_API_URL=http://localhost:5000/api
+VITE_IMAGE_BASE_URL=http://localhost:5000
+```
+
+### Run Development Server
+
+```bash
+npm run dev
+```
+
+Open `http://localhost:5173` in the browser.
+
+### Build for Production
+
+```bash
+npm run build
+```
+
+### Preview Production Build
+
+```bash
+npm run preview
+```
+
+### Deployment
+
+This project includes a Vercel configuration file (`vercel.json`) to support SPA routing.
+
+For deployment on Vercel:
+1. Connect the repository in Vercel.
+2. Set the project root to the repository root.
+3. Add the following environment variables in Vercel:
+   - `VITE_API_URL`
+   - `VITE_IMAGE_BASE_URL`
+4. Build command: `npm run build`
+5. Output directory: `dist`
+
+The `vercel.json` file rewrites all routes to `index.html`, enabling client-side routing for React Router.
+
+### Linting
+
+```bash
+npm run lint
+```
+
+---
+
+## Environment Variables
+
+| Variable | Description | Default |
+|---|---|---|
+| `VITE_API_URL` | Base URL for backend API requests | `http://localhost:5000/api` |
+| `VITE_IMAGE_BASE_URL` | Base URL for image resources | `http://localhost:5000` |
+
+---
+
+## Application Architecture
+
+- `src/main.tsx` bootstraps React with `BrowserRouter`, Redux store provider and `react-hot-toast`.
+- `src/App.tsx` sets up all routes, public and protected, and lazy-loads many page components.
+- `src/api/axios.ts` configures Axios with authentication headers, refresh token handling, and queueing for concurrent requests.
+- `src/pages/Auth/ProtectedRoute.tsx` protects routes based on roles stored in localStorage.
+- `src/store/` contains Redux slices and store configuration for patient, doctor, admin, and notifications.
+- `src/types/` defines common data structures used across the app.
+- `src/utils/` contains helper utilities such as appointment slot transformations.
+
+---
+
+## Authentication & Authorization
+
+The frontend uses localStorage to store:
+- `accessToken`
+- `user`
+
+`src/pages/Auth/ProtectedRoute.tsx` allows only authorized roles to access protected routes. Unauthorized access automatically redirects users to login or their dashboard.
+
+`src/api/axios.ts` attaches a bearer token to outbound requests and handles 401 responses by refreshing the token via `/auth/refresh`. If refresh fails, the user is logged out and redirected to `/login`.
+
+---
+
+## Routes
 
 ### Public Routes
-- `GET /` → Home page (landing, hero, specialties, senior doctors)
-- `GET /about` → About page
-- `GET /contact` → Contact page
-- `GET /login` → Login page
-- `GET /register` → Registration page
-- `GET /forgot-password` → Password recovery
-- `GET /doctors` → Browse all doctors
-- `GET /doctors/speciality/:speciality` → Filter doctors by specialization
-- `GET /doctor-details/:id` → View doctor profile & booking info
+- `/` – Home
+- `/login` – Login page
+- `/register` – Register page
+- `/forgot-password` – Forgot password
+- `/reset-password` – Reset password page
+- `/doctors` – Doctor listing
+- `/doctors/speciality/:speciality` – Filter doctor list by specialty
+- `/doctor-details/:id` – Doctor profile details
+- `/doctors/doctor-details/book-appointment/:doctorId` – Book appointment
+- `/about` – About page
+- `/contact` – Contact page
 
 ### Patient Routes (Protected)
-- `GET /my-profile` → Patient profile & settings
-- `GET /my-appointments` → View booked appointments
-- `GET /doctors/doctor-details/book-appointment/:doctorId` → Book new appointment
-- `GET /transactions/:appointmentId` → View payment details
+- `/my-profile` – Patient profile
+- `/my-appointments` – Appointment list
+- `/transactions/:appointmentId` – Transaction and payment details
 
 ### Doctor Routes (Protected)
-- `GET /doctor/dashboard` → Doctor overview & stats
-- `GET /doctor/appointments` → Manage appointments
-- `GET /doctor/my-profile` → Edit profile
-- `GET /doctor/schedule` → Manage availability slots
-- `GET /doctor/patients` → List of assigned patients
-- `GET /doctor/earnings` → View earnings & revenue
-- `GET /doctor/video-consultation` → Video consultation interface
+- `/doctor/dashboard` – Doctor dashboard
+- `/doctor/appointments` – Appointment management
+- `/doctor/my-profile` – Doctor profile
+- `/doctor/schedule` – Schedule management
+- `/doctor/consultations` – Video consultations
+- `/doctor/earnings` – Earnings overview
 
 ### Admin Routes (Protected)
-- `GET /admin/dashboard` → Admin overview & statistics
-- `GET /admin/doctors` → Manage doctors (view, edit, delete)
-- `GET /admin/add-doctor` → Add new doctor
-- `GET /admin/update-doctor/:id` → Edit doctor details
-- `GET /admin/patients` → Manage patients
-- `GET /admin/specializations` → Manage medical specializations
-- `GET /admin/appointments` → View all appointments
-- `GET /admin/appointments/doctor-summary` → Doctor appointment analytics
-- `GET /admin/reports` → Generate and view reports
+- `/admin/dashboard` – Admin dashboard
+- `/admin/add-doctor` – Add doctor
+- `/admin/doctors` – Doctor management
+- `/admin/update-doctor/:id` – Update doctor details
+- `/admin/specializations` – Manage medical specialties
+- `/admin/appointments` – All appointments
+- `/admin/appointments/doctor-summary` – Doctor appointment summary
+- `/admin/patients` – Patient management
+- `/admin/reports` – Admin reports
+- `/admin/earnings` – Earnings report
+- `/admin/earnings/doctors` – Doctor earnings details
 
 ---
 
-## 📊 State Management (Redux)
+## Key Files
 
-### Redux Store Structure
-
-```typescript
-// store.ts
-{
-  doctorListing: {/* Doctor search/filter state */},
-  adminDoctors: {/* Admin doctor management */},
-  adminPatients: {/* Admin patient management */},
-  adminSpecializations: {/* Specialization data */},
-  doctorSchedule: {/* Doctor availability slots */},
-  bookAppointment: {/* Booking form state */},
-  doctorAppointments: {/* Doctor appointments list */}
-}
-```
-
-### Redux Slices
-
-| Slice | Purpose |
-|-------|---------|
-| **DoctorListingSlice** | Handle doctor search, filters, and listing data |
-| **AdminDoctorSlice** | Manage doctor CRUD operations for admins |
-| **AdminPatientSlice** | Manage patient records for admins |
-| **AdminSpecializationSlice** | Manage medical specializations |
-| **BookAppointmentSlice** | Store booking form data during appointment creation |
-| **DoctorScheduleSlice** | Handle doctor availability and time slots |
-| **DoctorAppointmentSlice** | Manage doctor's appointments list |
-
-### Custom Hooks
-
-Access Redux store via custom hooks in `src/store/hooks.ts`:
-```typescript
-import { useAppDispatch, useAppSelector } from './store/hooks';
-```
-
----
-
-## 🔌 API Integration
-
-### HTTP Client Configuration
-
-**File**: `src/api/axios.ts`
-
-- **Base URL**: Configured to connect to backend API
-- **Request Interceptor**: Automatically adds auth token to headers
-- **Response Interceptor**: Handles token refresh on 401 errors
-- **Queue System**: Prevents multiple simultaneous token refresh calls
-
-### Key API Endpoints
-
-```
-POST   /auth/login              # User login
-POST   /auth/register           # User registration
-POST   /auth/refresh            # Refresh access token
-POST   /auth/logout             # User logout
-
-GET    /doctors                 # List all doctors
-POST   /doctors                 # Create doctor (admin)
-GET    /doctors/:id             # Get doctor details
-PUT    /doctors/:id             # Update doctor (admin)
-DELETE /doctors/:id             # Delete doctor (admin)
-
-GET    /appointments            # List appointments
-POST   /appointments            # Create appointment
-PUT    /appointments/:id        # Update appointment
-GET    /appointments/:id        # Get appointment details
-
-GET    /specializations         # List specializations
-POST   /specializations         # Create specialization
-PUT    /specializations/:id     # Update specialization
-DELETE /specializations/:id     # Delete specialization
-
-GET    /patients                # List patients (admin)
-GET    /patients/:id            # Get patient details
-
-GET    /reports                 # Generate reports (admin)
-```
-
----
-
-## 📝 Type Definitions
-
-### Type Files
-
-| File | Contains |
-|------|----------|
-| **admin.ts** | Admin-specific types (AdminDashboard, AdminStats, etc.) |
-| **doctor.ts** | Doctor-related types (DoctorProfile, Schedule, Earnings) |
-| **patient.ts** | Patient-related types (PatientProfile, Appointment) |
-| **common.ts** | Shared types (User, Appointment, Specialization) |
-
----
-
-## 🎨 Component Architecture
-
-### Layout Components
-- **Navbar**: Global navigation bar (responsive, role-aware)
-- **Footer**: Footer section
-- **Header**: Page header with banner
-- **Sidebar**: Admin and Doctor sidebars for navigation
-
-### Feature Components
-- **SelectBox**: Dropdown select component
-- **TimeInput**: Time picker for scheduling
-- **AvailabilityBadge**: Display slot availability status
-- **SeniorDoctors**: Featured doctors carousel
-- **SpecialityMenu**: Medical specialization menu
-
----
-
-## 🎯 Feature Highlights
-
-### Patient Features
-✅ Browse and search doctors by specialization, experience, gender, fees
-✅ View detailed doctor profiles with services and ratings
-✅ Book appointments with date/time slot selection
-✅ Make payments during booking
-✅ View all booked appointments with status
-✅ Manage personal profile
-✅ View transaction history
-✅ Join Video Consultations
-
-### Doctor Features
-✅ Dashboard with today's appointments and stats
-✅ Manage appointment schedule and availability
-✅ View list of assigned patients
-✅ Track earnings and revenue
-✅ Update personal profile
-✅ Conduct video consultations
-✅ View patient details and history
-
-### Admin Features
-✅ Dashboard with comprehensive statistics
-✅ Doctor management (add, edit, delete)
-✅ Patient management and filtering
-✅ Specialization management
-✅ Appointment overview and filtering
-✅ Doctor-wise appointment summary
-✅ Revenue tracking and reports
-✅ Responsive table and card views
-
----
-
-## 🧪 Utility Functions
-
-### Slot Helpers (`src/utils/slotHelpers.ts`)
-- Helper functions for appointment slot management
-- Availability calculations and slot formatting
-
-### Availability Badge (`src/utils/AvailabilityBadge.tsx`)
-- Component to display slot availability status
-- Visual indicators for open/booked slots
-
----
-
-## 📱 Responsive Design
-
-The application is fully responsive and optimized for:
-- 📱 Mobile (320px and up)
-- 📱 Tablet (768px and up)
-- 💻 Desktop (1024px and up)
-
-All dashboards use adaptive layouts with:
-- Sidebar → Drawer on mobile
-- Tables → Card views on mobile
-- Grid → Stack on smaller screens
-
----
-
-## 🔒 Security Features
-
-✅ JWT-based authentication
-✅ Secure token storage
-✅ Automatic token refresh
-✅ Role-based access control (RBAC)
-✅ Protected routes validation
-✅ Request interceptor with auth header
-✅ Logout clears all sensitive data
-✅ CORS with credentials support
-
-## 👥 Team
-
-HealPoint Development Team
+- `src/App.tsx` – Route definitions, shared layout, role redirects
+- `src/api/axios.ts` – HTTP client and auth handling
+- `src/main.tsx` – App bootstrapping
+- `src/pages/Auth/ProtectedRoute.tsx` – Role-based route protection
+- `src/store/store.ts` – Redux store setup
+- `src/store/slices/` – Application state slices
+- `src/components/Navbar/Navbar.tsx` – Navigation and logout flows
 
 ---
 
 ## Notes
 
-- The frontend is structured around role-based pages and route protection.
-- It expects a backend API that supports auth, doctor/patient/appointment data, department/specialization data, notifications, and logout.
-- The current `Navbar` also supports notifications for patients.
+- This repository is frontend-only. The backend service is required for full app functionality.
+- The axios client uses `withCredentials: true` and expects refresh endpoints at `/auth/refresh`.
+- Routes are protected by role; a valid `accessToken` and `user` object must exist in localStorage.
+- The app uses lazy loading for many pages to reduce initial bundle size.
 
-## Recommended next improvements
+---
 
-- Next I am working the Admin Reports Page for available and unavailable doctors.
-- Also working in Admin dashboard for Manage all doctors and patients reports and appointments.
+## Contribution
+
+1. Fork the repository
+2. Create a new branch: `git checkout -b feature/your-feature`
+3. Install dependencies: `npm install`
+4. Make your changes
+5. Commit: `git commit -m "Add <feature>"
+6. Push: `git push origin feature/your-feature`
+
+---
+
+## License
+
+This README may be adapted for your own project documentation.

@@ -1,18 +1,20 @@
 import { useEffect, useRef, useState } from "react";
-import {FaCalendarAlt, FaCheckCircle, FaChevronLeft, FaChevronRight, FaDownload,
-  FaExclamationTriangle, FaSpinner, FaTimesCircle, FaUserMd, FaBed,} from "react-icons/fa";
+import {
+  FaCalendarAlt, FaCheckCircle, FaChevronLeft, FaChevronRight, FaDownload,
+  FaExclamationTriangle, FaSpinner, FaTimesCircle, FaUserMd, FaBed,
+} from "react-icons/fa";
 import { Cell, PieChart, Pie, ResponsiveContainer, Tooltip } from "recharts";
 import { AdminSidebar } from "./AdminSidebar";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import {fetchAvailabilityDashboard, setActiveTab, setPage, setSelectedDate} from '../../store/slices/AdminReportsSlice'
-import type {AvailableDoctor,UnavailableDoctor, LeaveDoctor} from "../../types/admin";
+import { fetchAvailabilityDashboard, setActiveTab, setPage, setSelectedDate } from '../../store/slices/AdminReportsSlice'
+import type { AvailableDoctor, UnavailableDoctor, LeaveDoctor } from "../../types/admin";
 import usePageTitle from "../../hooks/usePageTitle";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 const COLORS = ["#1ab854", "#d73205", "#f59e0b"];
 const TODAY = new Date().toISOString().split("T")[0];
 
-const formatDate = (date: string) =>new Date(date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+const formatDate = (date: string) => new Date(date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
 const getImageUrl = (pic: string) =>
   pic?.startsWith("http") ? pic : `${BASE_URL}/uploads/${pic}`;
 
@@ -248,9 +250,9 @@ export const AdminReports = () => {
 
             {!loading && !error && (
               <>
-                <div ref={tableWrapperRef} className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
+                <div ref={tableWrapperRef} className="overflow-x-auto scrollbar scrollbar-h-1.5 scrollbar-thumb-blue-300 scrollbar-track-slate-100 rounded-b-xl">
                   <div key={`${activeTab}-${page}`} className={getAnimClass()}>
-                    <table className="w-full border-collapse text-sm" style={{ minWidth: 580 }}>
+                    <table className="w-full border-collapse text-sm" style={{ minWidth: 700 }}>
                       <thead>
                         <tr className="bg-slate-50 text-left text-xs text-slate-500">
                           <th className="px-4 py-3 font-semibold">Doctor</th>
@@ -325,14 +327,16 @@ export const AdminReports = () => {
                               <td className="px-4 py-4 text-xs font-semibold text-slate-600">{doc.specialization}</td>
                               <td className="px-4 py-4 text-xs font-semibold text-slate-600">{formatDate(doc.unavailable_date)}</td>
                               <td className="px-4 py-4">
-                                <span className="rounded-full bg-yellow-100 px-3 py-1 text-xs font-extrabold text-yellow-700">
+                                <span className="rounded-full bg-yellow-400 px-3 py-1 text-xs font-extrabold text-white">
                                   On Leave
                                 </span>
                               </td>
-                              <td className="px-4 py-4 text-xs font-semibold text-slate-600">
+                              <td className="px-4 py-4 text-xs font-semibold text-slate-600 whitespace-nowrap">
                                 {doc.is_full_day ? "Full Day" : `Half Day (${doc.start_time ?? ""} – ${doc.end_time ?? ""})`}
                               </td>
-                              <td className="px-4 py-4 text-xs font-semibold text-slate-600">{doc.reason ?? "-"}</td>
+                              <td className="px-4 py-4 text-xs font-semibold text-slate-600 max-w-[140px] truncate" title={doc.reason ?? "-"}>
+                                {doc.reason ?? "-"}
+                              </td>
                             </tr>
                           ))}
                       </tbody>

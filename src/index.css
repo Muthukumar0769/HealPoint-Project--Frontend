@@ -43,3 +43,19 @@ body,
 .slide-in-left {
   animation: slideInLeft 0.3s ease-out forwards;
 }
+
+/* Horizontal scrollbar always visible on table */
+.overflow-x-auto::-webkit-scrollbar {
+  height: 6px;
+}
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 999px;
+}
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: #93c5fd;
+  border-radius: 999px;
+}
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: #3b82f6;
+}

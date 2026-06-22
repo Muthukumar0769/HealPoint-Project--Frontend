@@ -15,8 +15,17 @@ const COLORS = ["#1ab854", "#d73205", "#f59e0b"];
 const TODAY = new Date().toISOString().split("T")[0];
 
 const formatDate = (date: string) => new Date(date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+const formatTime = (time: string) => {
+  if (!time) return "";
+  const [h, m] = time.split(":").map(Number);
+  const ampm = h >= 12 ? "PM" : "AM";
+  const hour = h % 12 || 12;
+  return `${hour}:${String(m).padStart(2, "0")} ${ampm}`;
+};
 const getImageUrl = (pic: string) =>
   pic?.startsWith("http") ? pic : `${BASE_URL}/uploads/${pic}`;
+
+
 
 const fallback = (name: string) =>
   `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=dbeafe&color=1d4ed8`;
@@ -317,25 +326,31 @@ export const AdminReports = () => {
                         {activeTab === "leave" &&
                           (data?.onLeaveDoctors.rows ?? []).map((doc: LeaveDoctor) => (
                             <tr key={doc.doctor_id} className="border-b border-slate-100 transition hover:bg-blue-50/40">
-                              <td className="px-4 py-4">
-                                <div className="flex items-center gap-2">
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-2 min-w-[140px]">
                                   <img src={getImageUrl(doc.profile_picture)} alt={doc.doctor_name} onError={(e) => { (e.target as HTMLImageElement).src = fallback(doc.doctor_name); }}
-                                    className="h-9 w-9 rounded-full object-cover" />
+                                    className="h-9 w-9 shrink-0 rounded-full object-cover"/>
                                   <p className="text-xs font-extrabold text-slate-900 whitespace-nowrap">{doc.doctor_name}</p>
                                 </div>
                               </td>
-                              <td className="px-5 py-4 text-xs font-semibold text-slate-600">{doc.specialization}</td>
-                              <td className="px-5 w-15 py-4 text-xs font-semibold text-slate-600">{formatDate(doc.unavailable_date)}</td>
-                              <td className="px-6 py-4">
-                                <span className="rounded-full w-15 bg-yellow-400 px-5 py-1 text-xs font-extrabold text-white">
+                              <td className="px-4 py-3 text-xs font-semibold text-slate-600 whitespace-nowrap min-w-[120px]">
+                                {doc.specialization}
+                              </td>
+                              <td className="px-4 py-3 text-xs font-semibold text-slate-600 whitespace-nowrap min-w-[100px]">
+                                {formatDate(doc.unavailable_date)}
+                              </td>
+                              <td className="px-4 py-3 min-w-[100px]">
+                                <span className="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-xs font-extrabold text-yellow-700 whitespace-nowrap">
                                   On Leave
                                 </span>
                               </td>
-                              <td className="px-4 w-15 py-4 text-xs font-semibold text-slate-600 whitespace-nowrap">
-                                {doc.is_full_day ? "Full Day" : `Half Day (${doc.start_time ?? ""} – ${doc.end_time ?? ""})`}
+                              <td className="px-4 py-3 text-xs font-semibold text-slate-600 whitespace-nowrap min-w-[180px]">
+                                {doc.is_full_day ? "Full Day" : `Half Day (${formatTime(doc.start_time ?? "")} – ${formatTime(doc.end_time ?? "")})`}
                               </td>
-                              <td className="px-4 py-4 w-20 text-xs font-semibold text-slate-600 whitespace-nowrap max-w-[160px] truncate" title={doc.reason ?? "-"}>
-                                {doc.reason ?? "-"}
+                              <td className="px-4 py-3 min-w-[160px]">
+                                <span className="block max-w-[180px] truncate text-xs font-semibold text-slate-600" title={doc.reason ?? "-"}>
+                                  {doc.reason ?? "-"}
+                                </span>
                               </td>
                             </tr>
                           ))}

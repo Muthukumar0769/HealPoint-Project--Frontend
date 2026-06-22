@@ -321,13 +321,13 @@ export const AdminReports = () => {
                                 <div className="flex items-center gap-2">
                                   <img src={getImageUrl(doc.profile_picture)} alt={doc.doctor_name} onError={(e) => { (e.target as HTMLImageElement).src = fallback(doc.doctor_name); }}
                                     className="h-9 w-9 rounded-full object-cover" />
-                                  <p className="text-xs font-extrabold text-slate-900 whitespace-nowrap">{doc.doctor_name}</p> <p className="text-xs font-extrabold text-slate-900">{doc.doctor_name}</p>
+                                  <p className="text-xs font-extrabold text-slate-900 whitespace-nowrap">{doc.doctor_name}</p>
                                 </div>
                               </td>
                               <td className="px-4 py-4 text-xs font-semibold text-slate-600">{doc.specialization}</td>
                               <td className="px-4 py-4 text-xs font-semibold text-slate-600">{formatDate(doc.unavailable_date)}</td>
                               <td className="px-4 py-4">
-                                <span className="rounded-full bg-yellow-400 px-3 py-1 text-xs font-extrabold text-white">
+                                <span className="rounded-full bg-yellow-400 px-5 py-1 text-xs font-extrabold text-white">
                                   On Leave
                                 </span>
                               </td>

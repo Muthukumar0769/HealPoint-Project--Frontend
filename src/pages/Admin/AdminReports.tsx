@@ -348,7 +348,7 @@ export const AdminReports = () => {
                                 {doc.is_full_day ? "Full Day" : `Half Day (${formatTime(doc.start_time ?? "")} – ${formatTime(doc.end_time ?? "")})`}
                               </td>
                               <td className="px-4 py-3 min-w-[160px]">
-                                <span className="block max-w-[180px] truncate text-xs font-semibold text-slate-600" title={doc.reason ?? "-"}>
+                                <span className="block max-w-[250px] truncate text-xs font-semibold text-slate-600" title={doc.reason ?? "-"}>
                                   {doc.reason ?? "-"}
                                 </span>
                               </td>

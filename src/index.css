@@ -59,3 +59,7 @@ body,
 .table-scroll::-webkit-scrollbar-thumb:hover {
   background: #3b82f6;
 }
+.table-scroll {
+  display: block;
+  width: 100%;
+}

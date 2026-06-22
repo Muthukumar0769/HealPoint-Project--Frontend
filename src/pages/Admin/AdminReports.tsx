@@ -181,7 +181,7 @@ export const AdminReports = () => {
   return (
     <div className="flex min-h-screen bg-[#f0f4fb]">
       <AdminSidebar />
-      <main className="min-w-0 flex-1 overflow-hidden px-4 pb-10 pt-24 sm:px-6 lg:px-8">
+      <main className="min-w-0 flex-1 overflow-x-hidden px-4 pb-10 pt-24 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="flex items-center gap-2 text-2xl font-extrabold text-slate-900">
@@ -206,8 +206,8 @@ export const AdminReports = () => {
           <StatCard title="On Leave" value={summary?.onLeaveDoctors ?? 0} icon={<FaBed />} color="yellow" />
         </div>
 
-        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_300px]">
-          <section className="rounded-2xl bg-white p-4 shadow-lg shadow-blue-100">
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_300px] min-w-0">
+          <section className="rounded-2xl bg-white p-4 shadow-lg shadow-blue-100 min-w-0 overflow-hidden">
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-wrap gap-2">
                 <TabBtn active={activeTab === "available"} onClick={() => dispatch(setActiveTab("available"))}>
@@ -259,7 +259,7 @@ export const AdminReports = () => {
 
             {!loading && !error && (
               <>
-                <div ref={tableWrapperRef} className="table-scroll" style={{ overflowX: "auto", maxWidth: "100%", scrollbarWidth: "thin", scrollbarColor: "#93c5fd #f1f5f9", }}>
+                <div ref={tableWrapperRef} className="table-scroll" style={{overflowX: "auto",width: "100%",maxWidth: "100%",scrollbarWidth: "thin",scrollbarColor: "#93c5fd #f1f5f9"}}>
                   <div key={`${activeTab}-${page}`} className={getAnimClass()}>
                     <table className="border-collapse text-sm" style={{ minWidth: 800, width: "100%" }}>
                       <thead>

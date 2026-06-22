@@ -30,7 +30,7 @@ export const JitsiMeetRoom = ({
   avatarName,
   onClose,
   onHangup,
-}: JitsiMeetRoomProps) => {
+}: JitsiMeetRoomProps) => {   
   const containerRef = useRef<HTMLDivElement>(null);
   const apiRef = useRef<any>(null);
   const [ready, setReady] = useState(false);

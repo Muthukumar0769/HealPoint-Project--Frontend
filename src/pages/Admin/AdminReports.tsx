@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  FaCalendarAlt, FaCheckCircle, FaChevronLeft, FaChevronRight, FaDownload,
-  FaExclamationTriangle, FaSpinner, FaTimesCircle, FaUserMd, FaBed,
-} from "react-icons/fa";
+import {FaCalendarAlt, FaCheckCircle, FaChevronLeft, FaChevronRight, FaDownload,
+  FaExclamationTriangle, FaSpinner, FaTimesCircle, FaUserMd, FaBed,} from "react-icons/fa";
 import { Cell, PieChart, Pie, ResponsiveContainer, Tooltip } from "recharts";
 import { AdminSidebar } from "./AdminSidebar";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
@@ -22,11 +20,7 @@ const formatTime = (time: string) => {
   const hour = h % 12 || 12;
   return `${hour}:${String(m).padStart(2, "0")} ${ampm}`;
 };
-const getImageUrl = (pic: string) =>
-  pic?.startsWith("http") ? pic : `${BASE_URL}/uploads/${pic}`;
-
-
-
+const getImageUrl = (pic: string) => pic?.startsWith("http") ? pic : `${BASE_URL}/uploads/${pic}`;
 const fallback = (name: string) =>
   `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=dbeafe&color=1d4ed8`;
 
@@ -42,10 +36,8 @@ export const AdminReports = () => {
   }, [dispatch, selectedDate]);
 
   const summary = data?.summary;
-
   const activeRows = activeTab === "available" ? data?.availableDoctors :
     activeTab === "unavailable" ? data?.unavailableDoctors : data?.onLeaveDoctors;
-
   const chartData = [
     { name: "Available", value: data?.chartData.available ?? 0 },
     { name: "Unavailable", value: data?.chartData.unavailable ?? 0 },

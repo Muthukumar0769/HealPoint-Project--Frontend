@@ -97,20 +97,53 @@ export const Testimonials = () => {
     const fetchReviews = async () => {
       try {
         setLoading(true);
-        const res = await API.get("/reviews");
-        if (res.data.success) {
-          setReviews(res.data.data.rows);
+        const doctorsRes = await API.get("/doctors");
+        const doctors: { id: number }[] =
+          doctorsRes.data?.data?.rows ||
+          doctorsRes.data?.data ||
+          doctorsRes.data?.rows ||
+          [];
+
+        if (doctors.length === 0) {
+          setReviews([]);
+          return;
         }
+        const topDoctorIds = doctors.slice(0, 5).map((d) => d.id);
+        const results = await Promise.allSettled(
+          topDoctorIds.map((id) => API.get(`/reviews/${id}`))
+        );
+        const allReviews: Review[] = [];
+        results.forEach((result) => {
+          if (result.status === "fulfilled" && result.value.data.success) {
+            const rows: Review[] = result.value.data.data.rows || [];
+            allReviews.push(...rows);
+          }
+        });
+        const seen = new Set<number>();
+        const unique = allReviews.filter((r) => {
+            if (seen.has(r.id)) return false;
+            seen.add(r.id);
+            return true;
+          })
+          .sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+
+        setReviews(unique);
       } catch {
         setReviews([]);
       } finally {
         setLoading(false);
       }
     };
+
     fetchReviews();
   }, []);
+  const displayReviews = reviews
+    .filter((r) => r.review && r.review.trim() !== "")
+    .slice(0, 6);
 
-  const displayReviews = reviews.filter((r) => r.review && r.review.trim() !== "").slice(0, 6);
   const avgRating = reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
   if (!loading && displayReviews.length === 0) return null;
 
@@ -154,6 +187,7 @@ export const Testimonials = () => {
                 <TestimonialCard key={review.id} review={review} />
               ))}
         </div>
+
       </div>
     </section>
   );

@@ -23,12 +23,11 @@ const processQueue = (error: any, token: string | null = null) => {
 
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem("accessToken");
-  if (token) {
+  if (token && !config.url?.includes("/auth/logout")) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
-
 API.interceptors.response.use((response) => response,
 
   async (error) => {

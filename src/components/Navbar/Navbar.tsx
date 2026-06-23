@@ -98,6 +98,7 @@ export const Navbar = () => {
       window.removeEventListener("notificationCreated", fetchNotifications);
     };
   }, [user, isAdminOrDoctor]);
+  
   const logoutHandler = async () => {
     localStorage.removeItem("user");
     localStorage.removeItem("accessToken");
@@ -110,6 +111,7 @@ export const Navbar = () => {
       await API.post("/auth/logout");
     } catch {
     }
+
     navigate("/login", { replace: true });
   };
 

@@ -17,7 +17,7 @@ const faqs = [
       "Please bring a valid ID proof, previous medical records, prescription slips, insurance documents (if applicable), and any prior test reports.",
   },
   {
-    question: "What Support Services Does KMCH Provide for Patients and Families?",
+    question: "What Support Services Does HealPoint Provide for Patients and Families?",
     answer:
       "We offer counseling services, patient assistance desks, ambulance facilities, pharmacy, cafeteria, and 24/7 emergency support for patients and their families.",
   },

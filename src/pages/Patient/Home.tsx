@@ -1,8 +1,10 @@
 import { Banner } from "../../components/Header/Banner";
 import { FAQ } from "../../components/Header/Faq";
 import { Header } from "../../components/Header/Header";
+import { HealthBlog } from "../../components/Header/HealthBlog";
 import { SeniorDoctors } from "../../components/Header/SeniorDoctors";
 import { SpecialityMenu } from "../../components/Header/SpecialityMenu";
+import { Testimonials } from "../../components/Header/Testimonials";
 import usePageTitle from "../../hooks/usePageTitle";
 
 export const Home = () => {
@@ -14,6 +16,8 @@ export const Home = () => {
       <Banner />
       <SeniorDoctors />
       <FAQ/>
+      <HealthBlog/>
+      <Testimonials/>
     </main>
   );
 };

@@ -98,7 +98,6 @@ export const Navbar = () => {
       window.removeEventListener("notificationCreated", fetchNotifications);
     };
   }, [user, isAdminOrDoctor]);
-
   const logoutHandler = async () => {
     localStorage.removeItem("user");
     localStorage.removeItem("accessToken");
@@ -109,11 +108,8 @@ export const Navbar = () => {
 
     try {
       await API.post("/auth/logout");
-    } catch (error: any) {
-      console.log("Logout API error (ignored):", error);
+    } catch {
     }
-
-    window.scrollTo({ top: 0, behavior: "smooth" });
     navigate("/login", { replace: true });
   };
 

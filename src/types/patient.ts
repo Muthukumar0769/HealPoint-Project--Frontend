@@ -360,3 +360,18 @@ export interface Review {
   patientName?: string;
 }
 
+//Home blog section types
+
+
+export interface BlogPost {
+  id: number;
+  category: string;
+  categoryColor: string;
+  title: string;
+  excerpt: string;
+  readTime: string;
+  date: string;
+  emoji: string;
+  bgColor: string;
+}
+

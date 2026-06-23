@@ -1,17 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { FaArrowRight } from "react-icons/fa6";
-
-interface BlogPost {
-  id: number;
-  category: string;
-  categoryColor: string;
-  title: string;
-  excerpt: string;
-  readTime: string;
-  date: string;
-  emoji: string;
-  bgColor: string;
-}
+import type { BlogPost } from "../../types/patient";
 
 const blogPosts: BlogPost[] = [
   {
@@ -76,9 +64,6 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
 
         <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
           <span className="text-xs text-slate-400">{post.date}</span>
-          <button className="flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:gap-2.5 transition-all">
-            Read more <FaArrowRight className="text-[10px]" />
-          </button>
         </div>
       </div>
     </div>
@@ -103,10 +88,6 @@ export const HealthBlog = () => {
               Expert-written articles to help you and your family live better.
             </p>
           </div>
-
-          <button onClick={() => navigate("/blog")} className="flex items-center gap-2 text-sm font-semibold text-blue-600 border border-blue-200 rounded-xl px-5 py-2.5 hover:bg-blue-50 transition-colors w-fit">
-            View all articles <FaArrowRight className="text-xs" />
-          </button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {blogPosts.map((post) => (

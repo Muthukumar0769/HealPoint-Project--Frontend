@@ -1,4 +1,5 @@
 import { Banner } from "../../components/Header/Banner";
+import { FAQ } from "../../components/Header/Faq";
 import { Header } from "../../components/Header/Header";
 import { SeniorDoctors } from "../../components/Header/SeniorDoctors";
 import { SpecialityMenu } from "../../components/Header/SpecialityMenu";
@@ -12,6 +13,7 @@ export const Home = () => {
       <SpecialityMenu />
       <Banner />
       <SeniorDoctors />
+      <FAQ/>
     </main>
   );
 };

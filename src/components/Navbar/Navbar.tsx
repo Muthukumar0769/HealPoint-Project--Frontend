@@ -100,21 +100,22 @@ export const Navbar = () => {
   }, [user, isAdminOrDoctor]);
 
   const logoutHandler = async () => {
-  try {
-    await API.post("/auth/logout");
-  } catch (error: any) {
-    console.log("Logout error:", error.response?.data || error);
-  } finally {
     localStorage.removeItem("user");
     localStorage.removeItem("accessToken");
     delete API.defaults.headers.common.Authorization;
     setUser(null);
     window.dispatchEvent(new Event("authChanged"));
-    window.scrollTo({ top: 0, behavior: "smooth" });
     closeMenus();
+
+    try {
+      await API.post("/auth/logout");
+    } catch (error: any) {
+      console.log("Logout API error (ignored):", error);
+    }
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
     navigate("/login", { replace: true });
-  }
-};
+  };
 
   const handleNotificationClick = async () => {
     setOpenNotification(!openNotification);
@@ -232,10 +233,10 @@ export const Navbar = () => {
             )}
             {user ? (
               <div className="relative hidden md:block" onMouseEnter={() => {
-                  if (dropdownTimeout.current) clearTimeout(dropdownTimeout.current);
-                  setOpenDropdown(true);
-                }}
-                onMouseLeave={() => { dropdownTimeout.current = setTimeout(() => setOpenDropdown(false), 150);}}>
+                if (dropdownTimeout.current) clearTimeout(dropdownTimeout.current);
+                setOpenDropdown(true);
+              }}
+                onMouseLeave={() => { dropdownTimeout.current = setTimeout(() => setOpenDropdown(false), 150); }}>
                 <button className="flex items-center gap-3 rounded-2xl cursor-pointer px-2 py-2 transition hover:bg-blue-50">
                   <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border-2 border-gray-100 bg-blue-50 shadow-lg shadow-gray-300 sm:h-12 sm:w-12">
                     {user.profile_picture ? (

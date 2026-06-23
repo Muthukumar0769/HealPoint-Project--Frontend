@@ -7,7 +7,7 @@ const API = axios.create({
 
 const refreshAPI = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
-  withCredentials: true, 
+  withCredentials: true,
 });
 
 let isRefreshing = false;
@@ -37,7 +37,7 @@ API.interceptors.response.use((response) => response,
       error.response?.status === 401 &&
       !originalRequest._retry &&
       !originalRequest.url?.includes("/auth/refresh") &&
-      !originalRequest.url?.includes("/auth/login")  &&
+      !originalRequest.url?.includes("/auth/login") &&
       !originalRequest.url?.includes("/auth/logout")
     ) {
       if (isRefreshing) {
@@ -69,8 +69,10 @@ API.interceptors.response.use((response) => response,
         localStorage.removeItem("accessToken");
         localStorage.removeItem("user");
         window.dispatchEvent(new Event("authChanged"));
-        window.location.href = "/login";
 
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        }
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

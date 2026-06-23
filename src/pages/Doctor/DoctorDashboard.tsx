@@ -1,14 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DoctorSidebar } from './DoctorSidebar';
-import {
-  FaCalendarCheck, FaStar, FaUsers, FaRupeeSign, FaCalendarAlt,
-  FaVideo, FaHospital, FaChevronRight, FaUserPlus, FaUserCheck
-} from "react-icons/fa";
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  AreaChart, Area, PieChart, Pie, Cell, Legend
-} from "recharts";
+import {FaCalendarCheck, FaStar, FaUsers, FaRupeeSign, FaCalendarAlt,
+  FaVideo, FaHospital, FaChevronRight, FaUserPlus, FaUserCheck} from "react-icons/fa";
+import {BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  AreaChart, Area, PieChart, Pie, Cell, Legend} from "recharts";
 import API from "../../api/axios";
 import type { DashboardSummary, TodayAppointment, MonthlyOverview } from "../../types/doctor";
 import usePageTitle from "../../hooks/usePageTitle";
@@ -284,8 +280,6 @@ export const DoctorDashboard = () => {
             <button onClick={() => navigate("/doctor/consultations")} className="mt-4 flex cursor-pointer w-full items-center justify-center gap-1.5 rounded-xl border border-blue-100 bg-blue-50 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-100 transition-colors">
               View All Appointments <FaChevronRight className="text-[10px]" />
             </button>
-
-            {/* Weekly bar chart */}
             <div className="mt-5">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs font-bold text-slate-700">This Week's Load</p>
@@ -303,10 +297,7 @@ export const DoctorDashboard = () => {
                   )} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
                   <Tooltip content={<CustomTooltipBar />} cursor={{ fill: "#eff6ff" }} />
-                  <Bar dataKey="appointments" radius={[6, 6, 0, 0]}
-                    fill="#3b82f6"
-                    label={false}
-                  >
+                  <Bar dataKey="appointments" radius={[6, 6, 0, 0]} fill="#3b82f6" label={false}>
                     {weeklyData.map((entry, index) => (
                       <Cell key={index} fill={entry.isToday ? "#1d4ed8" : "#3b82f6"} />
                     ))}
@@ -325,8 +316,6 @@ export const DoctorDashboard = () => {
               </div>
             </div>
           </div>
-
-          {/* Monthly Overview */}
           <div className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm sm:p-5 flex flex-col">
             <div className="flex items-center justify-between mb-1">
               <div>
@@ -395,9 +384,7 @@ export const DoctorDashboard = () => {
               <div>
                 <p className="text-xs font-bold text-slate-700">Peak Month</p>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  {peakMonth.month !== "N/A"
-                    ? `${peakMonth.month} ${selectedYear} · ${peakMonth.appointments} appointments`
-                    : "No data yet"}
+                  {peakMonth.month !== "N/A" ? `${peakMonth.month} ${selectedYear} · ${peakMonth.appointments} appointments` : "No data yet"}
                 </p>
               </div>
               {peakMonth.month !== "N/A" && (
@@ -437,9 +424,7 @@ export const DoctorDashboard = () => {
                   const barWidth = count > 0 ? Math.max((count / maxCount) * 100, 8) : 0;
 
                   return (
-                    <div key={fullDay}
-                      className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors ${isToday ? "bg-blue-50 border border-blue-200" : "bg-slate-50 border border-transparent"
-                        }`}>
+                    <div key={fullDay} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors ${isToday ? "bg-blue-50 border border-blue-200" : "bg-slate-50 border border-transparent"}`}>
                       <div className="w-8 shrink-0 text-center">
                         <p className={`text-xs font-bold ${isToday ? "text-blue-600" : "text-slate-400"}`}>
                           {short}
@@ -450,10 +435,7 @@ export const DoctorDashboard = () => {
                       </div>
                       <div className="flex-1">
                         <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
-                          <div
-                            className={`h-full rounded-full transition-all duration-500 ${isToday ? "bg-blue-500" : "bg-blue-300"}`}
-                            style={{ width: `${barWidth}%` }}
-                          />
+                          <div className={`h-full rounded-full transition-all duration-500 ${isToday ? "bg-blue-500" : "bg-blue-300"}`} style={{ width: `${barWidth}%` }}/>
                         </div>
                       </div>
                       <div className="w-16 shrink-0 flex items-center justify-end gap-1.5">
@@ -468,13 +450,10 @@ export const DoctorDashboard = () => {
                           <span className="text-[10px] text-slate-300">—</span>
                         )}
                       </div>
-
-                      {/* Show today's patients inline */}
                       {isToday && todayAppointments.length > 0 && (
                         <div className="flex -space-x-1.5 shrink-0">
                           {todayAppointments.slice(0, 3).map((appt, i) => (
-                            <div key={i}
-                              className="w-6 h-6 rounded-full bg-blue-600 border-2 border-white flex items-center justify-center text-[8px] font-bold text-white">
+                            <div key={i} className="w-6 h-6 rounded-full bg-blue-600 border-2 border-white flex items-center justify-center text-[8px] font-bold text-white">
                               {getInitials(appt.patient_name)}
                             </div>
                           ))}
@@ -490,8 +469,6 @@ export const DoctorDashboard = () => {
                 })}
               </div>
             )}
-
-            {/* Week summary */}
             <div className="mt-4 grid grid-cols-3 gap-2">
               <div className="rounded-xl bg-blue-50 border border-blue-100 px-2 py-2.5 text-center">
                 <p className="text-sm font-bold text-blue-600">{weekTotal}</p>
@@ -507,13 +484,10 @@ export const DoctorDashboard = () => {
               </div>
             </div>
 
-            <button onClick={() => navigate("/doctor/consultations")}
-              className="mt-3 flex cursor-pointer w-full items-center justify-center gap-1.5 rounded-xl border border-blue-100 bg-blue-50 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-100 transition-colors">
+            <button onClick={() => navigate("/doctor/consultations")} className="mt-3 flex cursor-pointer w-full items-center justify-center gap-1.5 rounded-xl border border-blue-100 bg-blue-50 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-100 transition-colors">
               View All Appointments <FaChevronRight className="text-[10px]" />
             </button>
           </div>
-
-          {/* Section 4 — Patient Return Rate */}
           <div className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm sm:p-5 flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -569,8 +543,7 @@ export const DoctorDashboard = () => {
                         ))}
                       </Pie>
                       <Tooltip content={<CustomTooltipPie />} />
-                      <Legend iconType="circle" iconSize={8}
-                        formatter={(value) => <span style={{ fontSize: "11px", color: "#64748b" }}>{value}</span>} />
+                      <Legend iconType="circle" iconSize={8} formatter={(value) => <span style={{ fontSize: "11px", color: "#64748b" }}>{value}</span>} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -594,21 +567,17 @@ export const DoctorDashboard = () => {
                       <span className="text-xs font-bold text-sky-500">{returnRate}%</span>
                     </div>
                     <div className="h-1.5 w-full rounded-full bg-sky-50 overflow-hidden">
-                      <div className="h-full rounded-full bg-sky-400 transition-all duration-700"
-                        style={{ width: `${returnRate}%` }} />
+                      <div className="h-full rounded-full bg-sky-400 transition-all duration-700" style={{ width: `${returnRate}%` }} />
                     </div>
                   </div>
                 </div>
 
                 <div className="mt-4 rounded-xl border border-dashed border-blue-200 bg-blue-50/50 px-4 py-2.5 flex items-center justify-between">
                   <p className="text-xs text-slate-500">
-                    {returnRate >= 40 ? "Strong patient loyalty — keep it up!"
-                      : returnRate >= 20 ? "Good retention, room to grow further."
-                        : "Focus on follow-ups to improve retention."}
+                    {returnRate >= 40 ? "Strong patient loyalty — keep it up!" : returnRate >= 20 ? "Good retention, room to grow further." : "Focus on follow-ups to improve retention."}
                   </p>
                   <span className={`ml-3 shrink-0 rounded-lg px-2.5 py-1 text-xs font-semibold ${returnRate >= 40 ? "bg-emerald-100 text-emerald-700"
-                      : returnRate >= 20 ? "bg-amber-100 text-amber-700"
-                        : "bg-red-100 text-red-600"}`}>
+                      : returnRate >= 20 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-600"}`}>
                     {returnRate >= 40 ? "Excellent" : returnRate >= 20 ? "Good" : "Low"}
                   </span>
                 </div>

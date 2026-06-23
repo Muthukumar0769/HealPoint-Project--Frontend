@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
-import { FaEnvelope, FaLock, FaPhone, FaUser, FaEye, FaEyeSlash, } from "react-icons/fa";
+import { FaEnvelope, FaLock, FaPhone, FaUser, FaEye, FaEyeSlash } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import API from "../../api/axios";
 import type { InputBoxProps, PasswordBoxProps } from "../../types/common.ts";
@@ -44,6 +44,11 @@ export const Register = () => {
       return;
     }
 
+    if (form.password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
     if (form.password !== form.confirm_password) {
       toast.error("Password and confirm password do not match");
       return;
@@ -83,20 +88,19 @@ export const Register = () => {
         <form onSubmit={handleRegister} className="space-y-5">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <InputBox label="Full Name" icon={<FaUser />} type="text" name="name" value={form.name}
-              placeholder="Enter full name"
-              onChange={handleChange} />
+              placeholder="Enter full name" onChange={handleChange}/>
             <InputBox label="Email" icon={<FaEnvelope />} type="email" name="email" value={form.email}
-              placeholder="Enter email"
-              onChange={handleChange} />
+              placeholder="Enter email" onChange={handleChange}/>
             <div>
-              <InputBox label="Phone" icon={<FaPhone />} type="text" name="phone_number"
-                value={form.phone_number} placeholder="Enter phone number" onChange={handleChange}/>
+              <InputBox label="Phone" icon={<FaPhone />} type="text" name="phone_number"value={form.phone_number}
+                placeholder="Enter phone number" onChange={handleChange}/>
               {form.phone_number.length > 0 && form.phone_number.length !== 10 && (
                 <p className="mt-1 text-xs font-semibold text-red-500">
                   Phone number must be exactly 10 digits ({form.phone_number.length}/10)
                 </p>
               )}
             </div>
+
             <div>
               <label className="mb-1 block text-sm font-bold text-slate-700">
                 Gender
@@ -104,20 +108,43 @@ export const Register = () => {
               <div className="flex min-h-11 flex-wrap items-center gap-3 rounded-xl border border-gray-100 bg-slate-50 px-4 py-3 transition focus-within:border-blue-500">
                 {["Male", "Female", "Others"].map((gender) => (
                   <label key={gender} className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
-                    <input type="radio" name="gender" value={gender} checked={form.gender === gender} onChange={handleChange} required
-                      className="accent-sky-500" />
+                    <input type="radio" name="gender" value={gender} checked={form.gender === gender}
+                      onChange={handleChange} required className="accent-sky-500"/>
                     {gender}
                   </label>
                 ))}
               </div>
             </div>
-            <PasswordBox label="Password" name="password" value={form.password} placeholder="Enter password" showPassword={showPassword}
-              setShowPassword={setShowPassword}
-              onChange={handleChange} />
-            <PasswordBox label="Confirm Password" name="confirm_password" value={form.confirm_password} placeholder="Confirm password"
-              showPassword={showConfirmPassword}
-              setShowPassword={setShowConfirmPassword}
-              onChange={handleChange} />
+
+            <div>
+              <PasswordBox label="Password" name="password" value={form.password} placeholder="Enter password"
+                showPassword={showPassword} setShowPassword={setShowPassword} onChange={handleChange}/>
+              {form.password.length > 0 && form.password.length < 6 && (
+                <p className="mt-1 text-xs font-semibold text-red-500">
+                  Password must be at least 6 characters ({form.password.length}/6)
+                </p>
+              )}
+              {form.password.length >= 6 && (
+                <p className="mt-1 text-xs font-semibold text-green-500">
+                  ✓ Password looks good
+                </p>
+              )}
+            </div>
+
+            <div>
+              <PasswordBox label="Confirm Password" name="confirm_password" value={form.confirm_password} placeholder="Confirm password"
+                showPassword={showConfirmPassword} setShowPassword={setShowConfirmPassword} onChange={handleChange} />
+              {form.confirm_password.length > 0 && form.password !== form.confirm_password && (
+                <p className="mt-1 text-xs font-semibold text-red-500">
+                  Passwords do not match
+                </p>
+              )}
+              {form.confirm_password.length > 0 && form.password === form.confirm_password && (
+                <p className="mt-1 text-xs font-semibold text-green-500">
+                  ✓ Passwords match
+                </p>
+              )}
+            </div>
           </div>
           <button type="submit" disabled={loading} className="h-12 w-full cursor-pointer rounded-xl bg-blue-500 text-base font-bold text-white shadow-lg shadow-gray-100 transition hover:scale-[1.01] hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-60">
             {loading ? "Registering..." : "Register"}
@@ -134,33 +161,27 @@ export const Register = () => {
   );
 };
 
-const InputBox = ({ label, icon, type, name, value, placeholder, onChange, }: InputBoxProps) => {
+const InputBox = ({ label, icon, type, name, value, placeholder, onChange }: InputBoxProps) => {
   return (
     <div>
-      <label className="mb-1 block text-sm font-bold text-slate-700">
-        {label}
-      </label>
+      <label className="mb-1 block text-sm font-bold text-slate-700">{label}</label>
       <div className="flex h-11 items-center rounded-xl border border-gray-100 bg-slate-50 px-4 transition focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
         <span className="shrink-0 text-sm text-slate-400">{icon}</span>
-        <input type={type} name={name} value={value} onChange={onChange} placeholder={placeholder}
-          required
-          className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-slate-400" />
+        <input type={type} name={name} value={value} onChange={onChange}
+          placeholder={placeholder} required className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-slate-400"/>
       </div>
     </div>
   );
 };
 
-const PasswordBox = ({ label, name, value, placeholder, showPassword, setShowPassword, onChange, }: PasswordBoxProps) => {
+const PasswordBox = ({ label, name, value, placeholder, showPassword, setShowPassword, onChange }: PasswordBoxProps) => {
   return (
     <div>
-      <label className="mb-1 block text-sm font-bold text-slate-700">
-        {label}
-      </label>
+      <label className="mb-1 block text-sm font-bold text-slate-700">{label}</label>
       <div className="flex h-11 items-center rounded-xl border border-gray-100 bg-slate-50 px-4 transition focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
         <FaLock className="shrink-0 text-sm text-slate-400" />
-        <input type={showPassword ? "text" : "password"} name={name} value={value} onChange={onChange} placeholder={placeholder}
-          required
-          className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-slate-400" />
+        <input type={showPassword ? "text" : "password"} name={name} value={value} onChange={onChange}
+          placeholder={placeholder} required className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-slate-400"/>
         <button type="button" onClick={() => setShowPassword(!showPassword)} className="shrink-0 text-slate-400 hover:text-sky-600">
           {showPassword ? <FaEyeSlash /> : <FaEye />}
         </button>

@@ -53,30 +53,8 @@ const normalizeStatus = (status?: string): AppointmentStatus => {
   return "Pending";
 };
 
-const normalizeType = (item: any): AppointmentType => {
-  const rawType =
-    item.consultation_type ||
-    item.consultationType ||
-    item.appointment_type ||
-    item.appointmentType ||
-    item.type ||
-    "";
-
-  const type = String(rawType)
-    .toLowerCase()
-    .replace(/[_-]/g, " ")
-    .trim();
-
-  if (
-    type.includes("video") ||
-    type.includes("online") ||
-    type.includes("virtual") ||
-    !!item.meeting_room
-  ) {
-    return "Video Call";
-  }
-
-  return "Clinic Visit";
+const normalizeType = (_item: any): AppointmentType => {
+  return "Video Call";
 };
 
 const getPatientName = (item: any): string => {

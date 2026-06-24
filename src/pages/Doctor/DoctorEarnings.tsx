@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { FaRupeeSign, FaCalendarCheck, FaCheckCircle, FaWallet, FaDownload, FaVideo, FaHospital, FaChevronLeft, FaChevronRight, FaCalendarAlt } from "react-icons/fa";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { DoctorSidebar } from "./DoctorSidebar";
 import API from "../../api/axios";
 import type { Summary, Payment, MonthlyData } from "../../types/doctor";
@@ -9,8 +8,6 @@ import { clearEarningNotification, setEarningNotification } from "../../store/sl
 import usePageTitle from "../../hooks/usePageTitle";
 
 const SEEN_KEY = "doctor_seen_earning_ids";
-const PIE_COLOR_VIDEO = "#2563EB";
-const PIE_COLOR_CLINIC = "#38BDF8";
 const PAGE_LIMIT = 5;
 
 const extractArray = (res: any, key: string): any[] => {
@@ -27,16 +24,6 @@ const extractSummary = (res: any): Summary | null => {
   return d?.data ?? d ?? null;
 };
 
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="rounded-xl bg-slate-900 px-4 py-3 text-sm font-bold text-white shadow-xl">
-      {label && <p className="mb-1 text-xs font-semibold text-slate-400">{label}</p>}
-      <p>₹{Number(payload[0].value).toLocaleString("en-IN")}</p>
-    </div>
-  );
-};
-
 export const DoctorEarnings = () => {
   usePageTitle("My Earnings");
   const [summary, setSummary] = useState<Summary | null>(null);
@@ -49,6 +36,7 @@ export const DoctorEarnings = () => {
   const [paymentsLoading, setPaymentsLoading] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hoveredBar, setHoveredBar] = useState<number | null>(null);
   const dispatch = useAppDispatch();
   const isOnPage = useRef(false);
   const totalPages = Math.ceil(totalPayments / PAGE_LIMIT);
@@ -100,10 +88,8 @@ export const DoctorEarnings = () => {
         const params: any = { page: currentPage, limit: PAGE_LIMIT };
         if (dateFilter) params.date = dateFilter;
         const payRes = await API.get("/doctor/earnings/payments", { params });
-
         const rawPayments: Payment[] = payRes.data?.data?.payments ?? [];
         const total = payRes.data?.data?.totalItems ?? 0;
-
         setPayments(rawPayments);
         setTotalPayments(total);
       } catch (err) {
@@ -149,13 +135,6 @@ export const DoctorEarnings = () => {
     setCurrentPage(1);
   };
 
-  const pieData = summary && (summary.video_earnings > 0 || summary.clinic_earnings > 0)
-    ? [
-      { name: "Video Call", value: summary.video_earnings },
-      { name: "Clinic Visit", value: summary.clinic_earnings },
-    ]
-    : [];
-
   const transactionTotal = payments.reduce((sum, p) => sum + p.amount, 0);
 
   const statCards = [
@@ -185,19 +164,15 @@ export const DoctorEarnings = () => {
   const handleExportPDF = async () => {
     if (exportLoading) return;
     setExportLoading(true);
-
     let allPayments: Payment[] = [];
     try {
-      const res = await API.get("/doctor/earnings/payments", {
-        params: { page: 1, limit: 10000 },
-      });
+      const res = await API.get("/doctor/earnings/payments", { params: { page: 1, limit: 10000 } });
       allPayments = res.data?.data?.payments ?? [];
     } catch (err) {
       console.error("Export fetch error:", err);
       setExportLoading(false);
       return;
     }
-
     if (!allPayments.length) { setExportLoading(false); return; }
     const allTransactionTotal = allPayments.reduce((sum, p) => sum + p.amount, 0);
     const { default: jsPDF } = await import("jspdf");
@@ -260,6 +235,19 @@ export const DoctorEarnings = () => {
     setExportLoading(false);
   };
 
+  const maxEarnings = Math.max(...monthly.map(m => m.earnings), 1);
+  const yMax = 500000;
+  const yTicks = [0, 100000, 200000, 300000, 400000, 500000];
+  const chartHeight = 280;
+  const chartPadTop = 20;
+  const barAreaHeight = chartHeight - chartPadTop;
+
+  const formatYLabel = (val: number) => {
+    if (val >= 100000) return `₹${(val / 100000).toFixed(0)}L`;
+    if (val >= 1000) return `₹${(val / 1000).toFixed(0)}k`;
+    return `₹${val}`;
+  };
+
   return (
     <div className="flex min-h-screen bg-[#f0f4fb]">
       <DoctorSidebar />
@@ -272,12 +260,14 @@ export const DoctorEarnings = () => {
           </div>
           <p className="ml-4 text-sm font-medium text-slate-400 pl-4">Track your consultation income and payment history.</p>
         </div>
+
         {error && (
           <div className="mb-6 flex items-center gap-3 rounded-2xl border border-red-100 bg-red-50 px-5 py-4 text-sm font-semibold text-red-600">
             <span className="text-base">⚠</span>
             {error}
           </div>
         )}
+
         <div className="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-3">
           {statCards.map((card) => (
             <div key={card.label} className="relative overflow-hidden rounded-2xl border border-blue-100 bg-white px-6 py-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-blue-100">
@@ -296,75 +286,105 @@ export const DoctorEarnings = () => {
             </div>
           ))}
         </div>
-        <div className="mb-8 grid grid-cols-1 gap-6 xl:grid-cols-5">
-          <div className="xl:col-span-3 rounded-2xl border border-blue-100 bg-white p-6 shadow-sm">
-            <div className="mb-6 flex items-center justify-between">
-              <div>
-                <h2 className="text-base font-extrabold text-slate-900">Monthly Earnings</h2>
-                <p className="mt-0.5 text-xs font-medium text-slate-400">Revenue over the last 6 months</p>
-              </div>
-              <span className="rounded-full border border-blue-200 bg-blue-50 px-4 py-1 text-xs font-bold text-blue-700">2026</span>
+
+        <div className="mb-8 rounded-2xl border border-blue-100 bg-white p-6 shadow-sm">
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-extrabold text-slate-900">Monthly Earnings</h2>
+              <p className="mt-0.5 text-xs font-medium text-slate-400">Revenue overview · up to ₹5,00,000</p>
             </div>
-            <div className="h-[220px]">
-              {loading ? (
-                <div className="flex h-full items-center justify-center">
-                  <div className="h-6 w-6 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
-                </div>
-              ) : monthly.length === 0 ? (
-                <div className="flex h-full items-center justify-center text-sm font-semibold text-slate-400">No monthly data available</div>
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={monthly} margin={{ top: 6, right: 8, left: -20, bottom: 0 }} barSize={28}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
-                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94A3B8", fontWeight: 600 }} axisLine={false} tickLine={false} />
-                    <YAxis
-                      domain={[0, 10000]}
-                      ticks={[0, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000]}
-                      tick={{ fontSize: 11, fill: "#94A3B8" }}
-                      axisLine={false}
-                      tickLine={false}
-                      tickFormatter={(v) => `₹${v}`}/>
-                    <Tooltip content={<CustomTooltip />} cursor={{ fill: "#EFF6FF" }} />
-                    <Bar dataKey="earnings" fill="#2563EB" radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </div>
+            <span className="rounded-full border border-blue-200 bg-blue-50 px-4 py-1 text-xs font-bold text-blue-700">2026</span>
           </div>
-          <div className="xl:col-span-2 rounded-2xl border border-blue-100 bg-white p-6 shadow-sm flex flex-col">
-            <div className="mb-4">
-              <h2 className="text-base font-extrabold text-slate-900">Earnings Breakdown</h2>
-              <p className="mt-0.5 text-xs font-medium text-slate-400">Split by consultation type</p>
+
+          {loading ? (
+            <div className="flex items-center justify-center" style={{ height: chartHeight }}>
+              <div className="h-6 w-6 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
             </div>
-            <div className="h-[160px] flex-shrink-0">
-              {loading ? (
-                <div className="flex h-full items-center justify-center">
-                  <div className="h-6 w-6 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
+          ) : monthly.length === 0 ? (
+            <div className="flex items-center justify-center text-sm font-semibold text-slate-400" style={{ height: chartHeight }}>
+              No monthly data available
+            </div>
+          ) : (
+            <div className="flex" style={{ height: chartHeight + 40 }}>
+              <div className="flex flex-col justify-between pr-3 pb-8" style={{ height: chartHeight }}>
+                {[...yTicks].reverse().map((tick) => (
+                  <span key={tick} className="text-[11px] font-semibold text-slate-400 leading-none text-right whitespace-nowrap">
+                    {formatYLabel(tick)}
+                  </span>
+                ))}
+              </div>
+
+              <div className="flex-1 relative">
+                <div className="absolute inset-0 pb-8 pointer-events-none">
+                  {[...yTicks].reverse().map((tick, i) => (
+                    <div key={tick} className="absolute w-full border-t border-slate-100"
+                      style={{ top: `${(i / (yTicks.length - 1)) * barAreaHeight}px` }} />
+                  ))}
                 </div>
-              ) : pieData.length === 0 ? (
-                <div className="flex h-full items-center justify-center text-sm font-semibold text-slate-400">No data available</div>
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={48} outerRadius={72} paddingAngle={4} dataKey="value">
-                      <Cell key="cell-video" fill={PIE_COLOR_VIDEO} />
-                      <Cell key="cell-clinic" fill={PIE_COLOR_CLINIC} />
-                    </Pie>
-                    <Tooltip content={<CustomTooltip />} />
-                  </PieChart>
-                </ResponsiveContainer>
-              )}
-            </div>
-            <div className="mt-auto space-y-2.5 pt-4">
-              <LegendItem icon={<FaVideo />} title="Video Call" amount={summary?.video_earnings ?? 0} iconBg={PIE_COLOR_VIDEO} text="text-blue-700" />
-              <LegendItem icon={<FaHospital />} title="Clinic Visit" amount={summary?.clinic_earnings ?? 0} iconBg={PIE_COLOR_CLINIC} text="text-sky-700" />
-              <div className="flex items-center justify-between rounded-xl bg-blue-600 px-4 py-3.5 mt-1">
-                <span className="text-xs font-bold text-blue-100">Total Received</span>
-                <span className="text-lg font-extrabold text-white">₹{(summary?.total_earnings ?? 0).toLocaleString("en-IN")}</span>
+
+                <div className="absolute top-0 left-0 right-0 flex items-end justify-around pb-8" style={{ height: chartHeight }}>
+                  {monthly.map((m, i) => {
+                    const barH = Math.max(4, (m.earnings / yMax) * barAreaHeight);
+                    const isHovered = hoveredBar === i;
+                    const isMax = m.earnings === maxEarnings && m.earnings > 0;
+                    return (
+                      <div key={i} className="relative flex flex-col items-center flex-1 mx-1" onMouseEnter={() => setHoveredBar(i)}
+                        onMouseLeave={() => setHoveredBar(null)} style={{ cursor: "pointer" }}>
+                        {isHovered && (
+                          <div className="absolute z-20 whitespace-nowrap rounded-xl bg-slate-900 px-3 py-2 text-xs font-bold text-white shadow-xl pointer-events-none"
+                            style={{ bottom: barH + 10 }}>
+                            <p className="text-slate-400 text-[10px] mb-0.5">{m.month}</p>
+                            <p className="text-blue-300">₹{m.earnings.toLocaleString("en-IN")}</p>
+                            <div className="absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 -translate-y-1 rotate-45 bg-slate-900" />
+                          </div>
+                        )}
+                        <div className="relative w-full max-w-[48px] rounded-t-xl transition-all duration-300"
+                          style={{
+                            height: barH,
+                            background: isHovered ? "linear-gradient(180deg, #1d4ed8 0%, #3b82f6 100%)"
+                              : isMax ? "linear-gradient(180deg, #2563eb 0%, #60a5fa 100%)"
+                                : "linear-gradient(180deg, #93c5fd 0%, #bfdbfe 100%)",
+                            boxShadow: isHovered ? "0 8px 24px 0 #3b82f650" : isMax ? "0 4px 16px 0 #3b82f630" : "none",
+                            transform: isHovered ? "scaleY(1.03)" : "scaleY(1)",
+                            transformOrigin: "bottom",
+                          }}>
+                          <div className="absolute top-0 left-0 right-0 rounded-t-xl opacity-30" style={{ height: "35%", background: "linear-gradient(180deg, #fff 0%, transparent 100%)" }} />
+                          {(isMax || isHovered) && (
+                            <div className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-extrabold text-blue-600">
+                              ₹{m.earnings >= 1000 ? `${(m.earnings / 1000).toFixed(0)}k` : m.earnings}
+                            </div>
+                          )}
+                        </div>
+                        <span className="mt-2 text-[11px] font-bold text-slate-400 select-none">{m.month}</span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
+          )}
+
+          {!loading && monthly.length > 0 && (
+            <div className="mt-3 flex flex-wrap items-center gap-4 rounded-xl bg-blue-50 px-4 py-3">
+              <div className="flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+                <span className="text-xs text-slate-500">Total</span>
+                <b className="text-xs text-slate-800">₹{monthly.reduce((s, m) => s + m.earnings, 0).toLocaleString("en-IN")}</b>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-full bg-blue-300" />
+                <span className="text-xs text-slate-500">Peak Month</span>
+                <b className="text-xs text-slate-800">{monthly.reduce((best, m) => m.earnings > best.earnings ? m : best).month}</b>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-full bg-blue-200" />
+                <span className="text-xs text-slate-500">Avg/Month</span>
+                <b className="text-xs text-slate-800">₹{Math.round(monthly.reduce((s, m) => s + m.earnings, 0) / monthly.length).toLocaleString("en-IN")}</b>
+              </div>
+            </div>
+          )}
         </div>
+
         <div className="rounded-2xl border border-blue-100 bg-white shadow-sm">
           <div className="flex flex-col gap-4 border-b border-slate-100 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -376,8 +396,7 @@ export const DoctorEarnings = () => {
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-3.5 py-2">
                 <FaCalendarAlt className="text-xs text-blue-400 flex-shrink-0" />
-                <input type="date" value={dateFilter} onChange={handleDateChange}
-                  className="border-none bg-transparent text-xs font-semibold text-slate-700 outline-none cursor-pointer"/>
+                <input type="date" value={dateFilter} onChange={handleDateChange} className="border-none bg-transparent text-xs font-semibold text-slate-700 outline-none cursor-pointer" />
                 {dateFilter && (
                   <button onClick={handleClearDate} className="ml-1 flex h-4 w-4 cursor-pointer items-center justify-center rounded-full text-slate-400 transition hover:bg-red-100 hover:text-red-500 font-bold text-xs">
                     ✕
@@ -399,6 +418,7 @@ export const DoctorEarnings = () => {
               </button>
             </div>
           </div>
+
           <div className="px-6 py-4">
             {paymentsLoading ? (
               <div className="space-y-3 py-4">
@@ -441,9 +461,7 @@ export const DoctorEarnings = () => {
                           <p className="mt-0.5 text-xs font-semibold text-slate-400">{item.time}</p>
                         </td>
                         <td className="px-4 py-4">
-                          <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${
-                              item.type === "Video Call" ? "bg-blue-50 text-blue-700 ring-1 ring-blue-100"
-                                : "bg-sky-50 text-sky-700 ring-1 ring-sky-100"}`}>
+                          <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${item.type === "Video Call" ? "bg-blue-50 text-blue-700 ring-1 ring-blue-100" : "bg-sky-50 text-sky-700 ring-1 ring-sky-100"}`}>
                             {item.type === "Video Call" ? <FaVideo className="text-[9px]" /> : <FaHospital className="text-[9px]" />}
                             {item.type}
                           </span>
@@ -467,6 +485,7 @@ export const DoctorEarnings = () => {
               </div>
             )}
           </div>
+
           {(!paymentsLoading && payments.length > 0) && (
             <div className="border-t border-slate-100 px-6 py-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3 rounded-xl bg-blue-50 border border-blue-100 px-4 py-3">
@@ -481,19 +500,11 @@ export const DoctorEarnings = () => {
                   <p className="mr-2 hidden text-xs font-semibold text-slate-400 sm:block">
                     {(currentPage - 1) * PAGE_LIMIT + 1}–{Math.min(currentPage * PAGE_LIMIT, totalPayments)} of {totalPayments}
                   </p>
-
-                  <button onClick={() => {
-                      setSlideDirection("left");
-                      setAnimKey(k => k + 1);
-                      setCurrentPage((p) => Math.max(1, p - 1));
-                    }}
-                    disabled={currentPage === 1}
-                    className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border border-blue-100 bg-white text-blue-600 shadow-sm transition hover:bg-blue-50 hover:border-blue-200 disabled:cursor-not-allowed disabled:opacity-40">
+                  <button onClick={() => { setSlideDirection("left"); setAnimKey(k => k + 1); setCurrentPage((p) => Math.max(1, p - 1)); }}
+                    disabled={currentPage === 1} className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border border-blue-100 bg-white text-blue-600 shadow-sm transition hover:bg-blue-50 hover:border-blue-200 disabled:cursor-not-allowed disabled:opacity-40">
                     <FaChevronLeft className="text-xs" />
                   </button>
-
-                  {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
                     .reduce((acc: (number | string)[], p, idx, arr) => {
                       if (idx > 0 && (p as number) - (arr[idx - 1] as number) > 1) acc.push("...");
                       acc.push(p);
@@ -503,27 +514,14 @@ export const DoctorEarnings = () => {
                       p === "..." ? (
                         <span key={`ellipsis-${idx}`} className="px-1 text-xs font-bold text-slate-400">…</span>
                       ) : (
-                        <button key={p}
-                          onClick={() => {
-                            setSlideDirection((p as number) > currentPage ? "right" : "left");
-                            setAnimKey(k => k + 1);
-                            setCurrentPage(p as number);
-                          }}
-                          className={`flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl text-xs font-extrabold transition ${
-                            currentPage === p ? "bg-blue-600 text-white shadow-md shadow-blue-200"
-                              : "border border-blue-100 bg-white text-slate-600 hover:bg-blue-50 hover:border-blue-200"}`}>
+                        <button key={p} onClick={() => { setSlideDirection((p as number) > currentPage ? "right" : "left"); setAnimKey(k => k + 1); setCurrentPage(p as number); }}
+                          className={`flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl text-xs font-extrabold transition ${currentPage === p ? "bg-blue-600 text-white shadow-md shadow-blue-200" : "border border-blue-100 bg-white text-slate-600 hover:bg-blue-50 hover:border-blue-200"}`}>
                           {p}
                         </button>
                       )
                     )}
-
-                  <button onClick={() => {
-                      setSlideDirection("right");
-                      setAnimKey(k => k + 1);
-                      setCurrentPage((p) => Math.min(totalPages, p + 1));
-                    }}
-                    disabled={currentPage === totalPages}
-                    className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border border-blue-100 bg-white text-blue-600 shadow-sm transition hover:bg-blue-50 hover:border-blue-200 disabled:cursor-not-allowed disabled:opacity-40">
+                  <button onClick={() => { setSlideDirection("right"); setAnimKey(k => k + 1); setCurrentPage((p) => Math.min(totalPages, p + 1)); }}
+                    disabled={currentPage === totalPages} className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border border-blue-100 bg-white text-blue-600 shadow-sm transition hover:bg-blue-50 hover:border-blue-200 disabled:cursor-not-allowed disabled:opacity-40">
                     <FaChevronRight className="text-xs" />
                   </button>
                 </div>
@@ -535,24 +533,5 @@ export const DoctorEarnings = () => {
     </div>
   );
 };
-
-const LegendItem = ({icon,title,amount,iconBg,text}: {
-  icon: React.ReactNode;
-  title: string;
-  amount: number;
-  iconBg: string;
-  text: string;
-}) => (
-  <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
-    <div className="flex items-center gap-3">
-      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-white text-xs"
-        style={{ backgroundColor: iconBg }}>
-        {icon}
-      </div>
-      <span className="text-sm font-bold text-slate-700">{title}</span>
-    </div>
-    <span className={`text-sm font-extrabold ${text}`}>₹{amount.toLocaleString("en-IN")}</span>
-  </div>
-);
 
 export default DoctorEarnings;

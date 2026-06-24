@@ -536,7 +536,7 @@ export const BookAppointment = () => {
                         const isSelected = selectedSlot?.start_time === slot.start_time;
                         const slotStatus = String(slot.status || "").toLowerCase();
                         const isBooked = slotStatus === "booked" || slotStatus === "confirmed" || slotStatus === "accepted" ||
-                          slotStatus === "completed" || slotStatus === "pending_payment" || Boolean(slot.appointment_id);
+                          slotStatus === "completed" || Boolean(slot.appointment_id);
                         const isBlocked = slotStatus === "blocked" || slotStatus === "pending_payment";
                         const isUnavailable = !isBooked && !isBlocked && (slotStatus === "unavailable" || slot.is_available === false);
                         const isDisabled = isBooked || isBlocked || isUnavailable;

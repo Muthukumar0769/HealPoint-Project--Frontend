@@ -6,7 +6,7 @@ const blogPosts: BlogPost[] = [
     id: 1,
     category: "Heart Health",
     categoryColor: "bg-red-50 text-red-600",
-    title: "5 Simple Habits to Keep Your Heart Healthy Every Day",
+    title: "5 Simple Habit to Keep Your Heart Healthy Every Day",
     excerpt:
       "Small daily changes — like a 30-minute walk, cutting added sugar, and sleeping 7 hours — can significantly reduce your risk of heart disease over time.",
     readTime: "4 min read",
@@ -20,7 +20,7 @@ const blogPosts: BlogPost[] = [
     categoryColor: "bg-amber-50 text-amber-600",
     title: "Understanding Blood Sugar: What Every Patient Should Know",
     excerpt:
-      "Managing diabetes starts with understanding your numbers. Learn what fasting glucose, HbA1c, and post-meal readings mean for your long-term health.",
+      "Managing diabetes start with understanding your numbers. Learn what fasting glucose, HbA1c, and post-meal readings mean for your long-term health.",
     readTime: "5 min read",
     date: "12 Jun 2025",
     emoji: "🩸",
@@ -32,7 +32,7 @@ const blogPosts: BlogPost[] = [
     categoryColor: "bg-violet-50 text-violet-600",
     title: "How to Manage Stress Before It Manages You",
     excerpt:
-      "Chronic stress affects your immune system, sleep, and heart. These evidence-based techniques help you build resilience without overhauling your lifestyle.",
+      "Chronic stress affect your immune system, sleep, and heart. These evidence-based techniques help you build resilience without overhauling your lifestyle.",
     readTime: "3 min read",
     date: "5 Jun 2025",
     emoji: "🧠",

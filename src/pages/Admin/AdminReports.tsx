@@ -1,14 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import {
-  FaCalendarAlt, FaCheckCircle, FaChevronLeft, FaChevronRight, FaDownload,
-  FaExclamationTriangle, FaSpinner, FaTimesCircle, FaUserMd, FaBed, FaSyncAlt,
-} from "react-icons/fa";
+import {FaCalendarAlt, FaCheckCircle, FaChevronLeft, FaChevronRight, FaDownload,
+  FaExclamationTriangle, FaSpinner, FaTimesCircle, FaUserMd, FaBed, FaSyncAlt,} from "react-icons/fa";
 import { Cell, PieChart, Pie, ResponsiveContainer, Tooltip } from "recharts";
 import { AdminSidebar } from "./AdminSidebar";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import {
-  fetchAvailabilityDashboard, setActiveTab, setPage, setSelectedDate,
-} from "../../store/slices/AdminReportsSlice";
+import { fetchAvailabilityDashboard, setActiveTab, setPage, setSelectedDate,} from "../../store/slices/AdminReportsSlice";
 import type { AvailableDoctor, UnavailableDoctor, LeaveDoctor } from "../../types/admin";
 import usePageTitle from "../../hooks/usePageTitle";
 
@@ -27,18 +23,13 @@ const formatTime = (time: string) => {
   return `${hour}:${String(m).padStart(2, "0")} ${ampm}`;
 };
 
-const getImageUrl = (pic: string) =>
-  pic?.startsWith("http") ? pic : `${BASE_URL}/uploads/${pic}`;
+const getImageUrl = (pic: string) => pic?.startsWith("http") ? pic : `${BASE_URL}/uploads/${pic}`;
 
-const fallback = (name: string) =>
-  `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=dbeafe&color=1d4ed8`;
-
+const fallback = (name: string) =>`https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=dbeafe&color=1d4ed8`;
 export const AdminReports = () => {
   usePageTitle("Leave Reports");
   const dispatch = useAppDispatch();
-  const { data, loading, error, selectedDate, activeTab, page } =
-    useAppSelector((s) => s.adminReports);
-
+  const { data, loading, error, selectedDate, activeTab, page } = useAppSelector((s) => s.adminReports);
   const [slideDir, setSlideDir] = useState<"left" | "right" | null>(null);
   const [animating, setAnimating] = useState(false);
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
@@ -48,11 +39,7 @@ export const AdminReports = () => {
     dispatch(fetchAvailabilityDashboard({ date: selectedDate }));
     setLastRefreshed(new Date());
   }, [dispatch, selectedDate]);
-
-  // Initial fetch
   useEffect(() => { doFetch(); }, [doFetch]);
-
-  // Refetch when the browser tab regains focus — picks up any doctor leave changes
   useEffect(() => {
     const onFocus = () => doFetch();
     window.addEventListener("focus", onFocus);
@@ -219,7 +206,6 @@ export const AdminReports = () => {
     <div className="flex min-h-screen bg-[#f0f4fb]">
       <AdminSidebar />
       <main className="min-w-0 flex-1 overflow-x-hidden px-4 pb-10 pt-24 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="flex items-center gap-2 text-2xl font-extrabold text-slate-900">
@@ -231,42 +217,27 @@ export const AdminReports = () => {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {/* Last refreshed + manual refresh button */}
             <div className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 shadow-md shadow-blue-100">
               <span className="text-[10px] font-semibold text-slate-400">
                 Updated {timeAgo()}
               </span>
-              <button
-                onClick={doFetch}
-                disabled={loading}
-                title="Refresh data"
-                className="cursor-pointer text-blue-500 hover:text-blue-700 disabled:opacity-40 transition-colors"
-              >
+              <button onClick={doFetch} disabled={loading} title="Refresh data"
+                className="cursor-pointer text-blue-500 hover:text-blue-700 disabled:opacity-40 transition-colors">
                 <FaSyncAlt className={`text-xs ${loading ? "animate-spin" : ""}`} />
               </button>
             </div>
-            {/* Date picker */}
             <div className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 shadow-md shadow-blue-100">
               <FaCalendarAlt className="text-sm text-blue-600" />
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => dispatch(setSelectedDate(e.target.value || TODAY))}
-                className="cursor-pointer bg-transparent text-xs font-bold text-slate-600 outline-none"
-              />
+              <input type="date" value={selectedDate} onChange={(e) => dispatch(setSelectedDate(e.target.value || TODAY))}
+                className="cursor-pointer bg-transparent text-xs font-bold text-slate-600 outline-none"/>
               {selectedDate !== TODAY && (
-                <button
-                  onClick={() => dispatch(setSelectedDate(TODAY))}
-                  className="cursor-pointer text-xs font-bold text-red-500"
-                >
+                <button onClick={() => dispatch(setSelectedDate(TODAY))} className="cursor-pointer text-xs font-bold text-red-500">
                   Today
                 </button>
               )}
             </div>
           </div>
         </div>
-
-        {/* Stat cards */}
         <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
           <StatCard title="Total Doctors"  value={summary?.totalDoctors      ?? 0} icon={<FaUserMd />}      color="blue"   />
           <StatCard title="Available"      value={summary?.availableDoctors  ?? 0} icon={<FaCheckCircle />} color="green"  />
@@ -275,7 +246,6 @@ export const AdminReports = () => {
         </div>
 
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_300px] min-w-0">
-          {/* Main table section */}
           <section className="rounded-2xl bg-white p-4 shadow-lg shadow-blue-100 min-w-0 overflow-hidden">
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-wrap gap-2">
@@ -304,10 +274,7 @@ export const AdminReports = () => {
                   )}
                 </TabBtn>
               </div>
-              <button
-                onClick={handleExport}
-                className="flex cursor-pointer items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-xs font-extrabold text-white transition hover:bg-blue-700"
-              >
+              <button onClick={handleExport} className="flex cursor-pointer items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-xs font-extrabold text-white transition hover:bg-blue-700">
                 <FaDownload className="text-xs" />
                 Export {activeTab === "available" ? "Available" : activeTab === "unavailable" ? "Unavailable" : "Leave"}
               </button>
@@ -324,10 +291,8 @@ export const AdminReports = () => {
               <div className="flex flex-col items-center justify-center gap-3 py-16">
                 <FaExclamationTriangle className="text-2xl text-red-400" />
                 <p className="text-sm font-semibold text-slate-500">{error}</p>
-                <button
-                  onClick={doFetch}
-                  className="cursor-pointer rounded-xl bg-blue-600 px-5 py-2 text-xs font-bold text-white"
-                >
+                <button onClick={doFetch}
+                  className="cursor-pointer rounded-xl bg-blue-600 px-5 py-2 text-xs font-bold text-white">
                   Retry
                 </button>
               </div>
@@ -335,13 +300,8 @@ export const AdminReports = () => {
 
             {!loading && !error && (
               <>
-                <div
-                  ref={tableWrapperRef}
-                  style={{
-                    overflowX: "auto", width: "100%", maxWidth: "100%",
-                    scrollbarWidth: "thin", scrollbarColor: "#93c5fd #f1f5f9",
-                  }}
-                >
+                <div ref={tableWrapperRef} style={{overflowX: "auto", width: "100%", maxWidth: "100%",
+                    scrollbarWidth: "thin", scrollbarColor: "#93c5fd #f1f5f9",}}>
                   <div key={`${activeTab}-${page}`} className={getAnimClass()}>
                     <table className="border-collapse text-sm" style={{ minWidth: 800, width: "100%" }}>
                       <thead>
@@ -364,12 +324,8 @@ export const AdminReports = () => {
                             <tr key={doc.doctor_id} className="border-b border-slate-100 transition hover:bg-blue-50/40">
                               <td className="px-4 py-4">
                                 <div className="flex items-center gap-2">
-                                  <img
-                                    src={getImageUrl(doc.profile_picture)}
-                                    alt={doc.doctor_name}
-                                    onError={(e) => { (e.target as HTMLImageElement).src = fallback(doc.doctor_name); }}
-                                    className="h-9 w-9 rounded-full object-cover"
-                                  />
+                                  <img src={getImageUrl(doc.profile_picture)} alt={doc.doctor_name} onError={(e) => { (e.target as HTMLImageElement).src = fallback(doc.doctor_name); }}
+                                    className="h-9 w-9 rounded-full object-cover"/>
                                   <p className="text-xs font-extrabold text-slate-900">{doc.doctor_name}</p>
                                 </div>
                               </td>
@@ -394,12 +350,8 @@ export const AdminReports = () => {
                             <tr key={doc.doctor_id} className="border-b border-slate-100 transition hover:bg-blue-50/40">
                               <td className="px-4 py-4">
                                 <div className="flex items-center gap-2">
-                                  <img
-                                    src={getImageUrl(doc.profile_picture)}
-                                    alt={doc.doctor_name}
-                                    onError={(e) => { (e.target as HTMLImageElement).src = fallback(doc.doctor_name); }}
-                                    className="h-9 w-9 rounded-full object-cover"
-                                  />
+                                  <img src={getImageUrl(doc.profile_picture)} alt={doc.doctor_name} onError={(e) => { (e.target as HTMLImageElement).src = fallback(doc.doctor_name); }}
+                                    className="h-9 w-9 rounded-full object-cover"/>
                                   <p className="text-xs font-extrabold text-slate-900">{doc.doctor_name}</p>
                                 </div>
                               </td>
@@ -418,12 +370,8 @@ export const AdminReports = () => {
                             <tr key={`${doc.doctor_id}-${doc.unavailable_date}`} className="border-b border-slate-100 transition hover:bg-blue-50/40">
                               <td className="px-4 py-3">
                                 <div className="flex items-center gap-2 min-w-[140px]">
-                                  <img
-                                    src={getImageUrl(doc.profile_picture)}
-                                    alt={doc.doctor_name}
-                                    onError={(e) => { (e.target as HTMLImageElement).src = fallback(doc.doctor_name); }}
-                                    className="h-9 w-9 shrink-0 rounded-full object-cover"
-                                  />
+                                  <img src={getImageUrl(doc.profile_picture)} alt={doc.doctor_name} onError={(e) => { (e.target as HTMLImageElement).src = fallback(doc.doctor_name); }}
+                                    className="h-9 w-9 shrink-0 rounded-full object-cover"/>
                                   <p className="text-xs font-extrabold text-slate-900 whitespace-nowrap">
                                     {doc.doctor_name}
                                   </p>
@@ -441,15 +389,10 @@ export const AdminReports = () => {
                                 </span>
                               </td>
                               <td className="px-4 py-3 text-xs font-semibold text-slate-600 whitespace-nowrap min-w-[180px]">
-                                {doc.is_full_day
-                                  ? "Full Day"
-                                  : `Half Day (${formatTime(doc.start_time ?? "")} – ${formatTime(doc.end_time ?? "")})`}
+                                {doc.is_full_day ? "Full Day" : `Half Day (${formatTime(doc.start_time ?? "")} – ${formatTime(doc.end_time ?? "")})`}
                               </td>
                               <td className="px-4 py-3 min-w-[160px]">
-                                <span
-                                  className="block max-w-[250px] truncate text-xs font-semibold text-slate-600"
-                                  title={doc.reason ?? "-"}
-                                >
+                                <span className="block max-w-[150px] truncate text-xs font-semibold text-slate-600" title={doc.reason ?? "-"}>
                                   {doc.reason ?? "-"}
                                 </span>
                               </td>
@@ -478,22 +421,12 @@ export const AdminReports = () => {
                         <FaChevronLeft />
                       </PageBtn>
                       {Array.from({ length: activeRows?.totalPages ?? 0 }, (_, i) => i + 1).map((p) => (
-                        <button
-                          key={p}
-                          onClick={() => goToPage(p)}
-                          className={`h-8 w-8 cursor-pointer rounded-xl text-xs font-bold transition-all duration-200 ${
-                            p === page
-                              ? "bg-blue-600 text-white"
-                              : "border border-slate-200 text-slate-600 hover:bg-slate-50"
-                          }`}
-                        >
+                        <button key={p} onClick={() => goToPage(p)} className={`h-8 w-8 cursor-pointer rounded-xl text-xs font-bold transition-all duration-200 ${
+                            p === page ? "bg-blue-600 text-white" : "border border-slate-200 text-slate-600 hover:bg-slate-50"}`}>
                           {p}
                         </button>
                       ))}
-                      <PageBtn
-                        disabled={page >= (activeRows?.totalPages ?? 1)}
-                        onClick={() => goToPage(page + 1)}
-                      >
+                      <PageBtn disabled={page >= (activeRows?.totalPages ?? 1)} onClick={() => goToPage(page + 1)}>
                         <FaChevronRight />
                       </PageBtn>
                     </div>
@@ -502,8 +435,6 @@ export const AdminReports = () => {
               </>
             )}
           </section>
-
-          {/* Sidebar charts */}
           <aside className="space-y-4">
             <div className="rounded-2xl bg-white p-5 shadow-lg shadow-blue-100">
               <h2 className="text-base font-extrabold text-slate-900">Leave Status Overview</h2>
@@ -518,9 +449,9 @@ export const AdminReports = () => {
                 </ResponsiveContainer>
               </div>
               <div className="mt-3 space-y-2">
-                <StatusItem color="bg-green-500"  label="Available"   value={data?.chartData.available  ?? 0} />
-                <StatusItem color="bg-red-500"    label="Unavailable" value={data?.chartData.unavailable ?? 0} />
-                <StatusItem color="bg-yellow-400" label="On Leave"    value={data?.chartData.onLeave     ?? 0} />
+                <StatusItem color="bg-green-500" label="Available" value={data?.chartData.available  ?? 0} />
+                <StatusItem color="bg-red-500" label="Unavailable" value={data?.chartData.unavailable ?? 0} />
+                <StatusItem color="bg-yellow-400" label="On Leave" value={data?.chartData.onLeave     ?? 0} />
               </div>
             </div>
 
@@ -528,9 +459,9 @@ export const AdminReports = () => {
               <h2 className="text-base font-extrabold text-slate-900">Quick Summary</h2>
               <p className="mt-1 text-xs text-slate-400">{formatDate(selectedDate)}</p>
               <div className="mt-4 space-y-3">
-                <SummaryBox title="Available Today"    value={data?.quickSummary.availableToday   ?? 0} color="text-green-600"  bg="bg-green-50"  />
-                <SummaryBox title="Unavailable Today"  value={data?.quickSummary.unavailableToday ?? 0} color="text-red-600"    bg="bg-red-50"    />
-                <SummaryBox title="On Leave Today"     value={data?.quickSummary.onLeaveToday     ?? 0} color="text-yellow-600" bg="bg-yellow-50" />
+                <SummaryBox title="Available Today" value={data?.quickSummary.availableToday   ?? 0} color="text-green-600"  bg="bg-green-50"  />
+                <SummaryBox title="Unavailable Today" value={data?.quickSummary.unavailableToday ?? 0} color="text-red-600"    bg="bg-red-50"    />
+                <SummaryBox title="On Leave Today" value={data?.quickSummary.onLeaveToday     ?? 0} color="text-yellow-600" bg="bg-yellow-50" />
               </div>
             </div>
           </aside>
@@ -540,38 +471,22 @@ export const AdminReports = () => {
   );
 };
 
-// ── Sub-components ────────────────────────────────────────────────────────────
 
-const TabBtn = ({
-  active, onClick, children,
-}: { active: boolean; onClick: () => void; children: React.ReactNode }) => (
-  <button
-    onClick={onClick}
+const TabBtn = ({active, onClick, children,}: { active: boolean; onClick: () => void; children: React.ReactNode }) => (
+  <button onClick={onClick}
     className={`cursor-pointer rounded-xl px-4 py-2 text-xs font-extrabold transition ${
-      active
-        ? "bg-blue-600 text-white shadow shadow-blue-200"
-        : "bg-slate-100 text-slate-500 hover:bg-blue-50 hover:text-blue-600"
-    }`}
-  >
+      active ? "bg-blue-600 text-white shadow shadow-blue-200" : "bg-slate-100 text-slate-500 hover:bg-blue-50 hover:text-blue-600"}`}>
     {children}
   </button>
 );
 
-const PageBtn = ({
-  onClick, disabled, children,
-}: { onClick: () => void; disabled: boolean; children: React.ReactNode }) => (
-  <button
-    onClick={onClick}
-    disabled={disabled}
-    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl border border-slate-200 transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40"
-  >
+const PageBtn = ({onClick, disabled, children,}: { onClick: () => void; disabled: boolean; children: React.ReactNode }) => (
+  <button onClick={onClick} disabled={disabled} className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl border border-slate-200 transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40">
     {children}
   </button>
 );
 
-const StatCard = ({
-  title, value, icon, color,
-}: { title: string; value: number; icon: React.ReactNode; color: "blue" | "green" | "orange" | "yellow" }) => {
+const StatCard = ({title, value, icon, color}: { title: string; value: number; icon: React.ReactNode; color: "blue" | "green" | "orange" | "yellow" }) => {
   const colors = {
     blue:   "bg-blue-100 text-blue-600",
     green:  "bg-green-100 text-green-600",
@@ -589,9 +504,7 @@ const StatCard = ({
   );
 };
 
-const StatusItem = ({
-  color, label, value,
-}: { color: string; label: string; value: number }) => (
+const StatusItem = ({color, label, value}: { color: string; label: string; value: number }) => (
   <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
     <div className="flex items-center gap-2">
       <span className={`h-2.5 w-2.5 rounded-full ${color}`} />
@@ -601,9 +514,7 @@ const StatusItem = ({
   </div>
 );
 
-const SummaryBox = ({
-  title, value, color, bg,
-}: { title: string; value: number; color: string; bg: string }) => (
+const SummaryBox = ({title, value, color, bg,}: { title: string; value: number; color: string; bg: string }) => (
   <div className={`rounded-xl ${bg} p-4`}>
     <p className="text-xs font-bold text-slate-500">{title}</p>
     <p className={`mt-1 text-2xl font-extrabold ${color}`}>{value}</p>

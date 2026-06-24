@@ -393,7 +393,6 @@ useEffect(() => {
                   </button>
                 </div>
 
-                {/* Leave table — delete only, no edit */}
                 <ScheduleTable title="Applied Leaves" color="red" loading={fetchLoading} empty={leaves.length === 0}
                   headers={["Date", "Leave Type", "Start Time", "End Time", "Reason", "Delete"]}
                   page={leavePage} total={totalPages(leaves)} onPage={setLeavePage}
@@ -401,7 +400,7 @@ useEffect(() => {
                     <tr key={l.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                       <td className="px-3 py-2 text-xs font-semibold text-slate-700">{l.unavailable_date}</td>
                       <td className="px-3 py-2">
-                        <span className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-bold ${l.is_full_day ? "bg-red-100 text-red-600" : "bg-amber-100 text-amber-600"}`}>
+                        <span className={`inline-block cursor-pointer rounded-full px-2 py-0.5 text-[11px] font-bold ${l.is_full_day ? "bg-red-100 text-red-600" : "bg-amber-100 text-amber-600"}`}>
                           {l.is_full_day ? "Full Day" : "Half Day"}
                         </span>
                       </td>
@@ -435,9 +434,9 @@ useEffect(() => {
             </div>
             <div className="flex gap-2 w-full">
               <button type="button" onClick={() => setDeleteModal({ open: false, type: null, id: null, label: "" })} disabled={deleteLoading}
-                className="flex-1 h-9 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-60">Cancel</button>
+                className="flex-1 h-9 rounded-xl cursor-pointer border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-60">Cancel</button>
               <button type="button" onClick={confirmDelete} disabled={deleteLoading}
-                className="flex-1 h-9 rounded-xl bg-red-500 text-xs font-bold text-white shadow shadow-red-200 hover:bg-red-600 disabled:opacity-60">
+                className="flex-1 h-9 rounded-xl cursor-pointer bg-red-500 text-xs font-bold text-white shadow shadow-red-200 hover:bg-red-600 disabled:opacity-60">
                 {deleteLoading ? "Deleting..." : "Yes, Delete"}
               </button>
             </div>
@@ -453,7 +452,7 @@ useEffect(() => {
                 Edit {editModal.type === "normal" ? "Weekly Schedule" : "Special Schedule"}
               </h3>
               <button type="button" onClick={() => !editLoading && setEditModal({ open: false, type: null, data: null })}
-                className="text-slate-400 hover:text-slate-600"><FaTimes /></button>
+                className="text-slate-400 cursor-pointer hover:text-slate-600"><FaTimes /></button>
             </div>
             {editModal.type === "normal" && (
               <div className="grid gap-3 md:grid-cols-2">
@@ -481,9 +480,9 @@ useEffect(() => {
             )}
             <div className="flex gap-2 mt-4">
               <button type="button" onClick={() => setEditModal({ open: false, type: null, data: null })} disabled={editLoading}
-                className="flex-1 h-9 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-60">Cancel</button>
+                className="flex-1 cursor-pointer h-9 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-60">Cancel</button>
               <button type="button" onClick={saveEdit} disabled={editLoading}
-                className="flex-1 h-9 rounded-xl bg-blue-600 text-xs font-bold text-white shadow shadow-blue-200 hover:bg-blue-700 disabled:opacity-60">
+                className="flex-1 h-9 cursor-pointer rounded-xl bg-blue-600 text-xs font-bold text-white shadow shadow-blue-200 hover:bg-blue-700 disabled:opacity-60">
                 {editLoading ? "Saving..." : "Save Changes"}
               </button>
             </div>
@@ -539,17 +538,17 @@ const ScheduleTable = ({ title, color, loading, empty, headers, rows, page, tota
           <span className="text-[11px] text-slate-400">Page {page} of {total}</span>
           <div className="flex items-center gap-1">
             <button type="button" onClick={() => onPage(Math.max(1, page - 1))} disabled={page === 1}
-              className={`flex h-6 w-6 items-center justify-center rounded-lg border text-[10px] ${page === 1 ? "border-slate-200 text-slate-300 cursor-not-allowed" : `border-slate-200 ${textAccent} hover:bg-white cursor-pointer`}`}>
+              className={`flex h-6 w-6 cursor-pointer items-center justify-center rounded-lg border text-[10px] ${page === 1 ? "border-slate-200 text-slate-300 cursor-not-allowed" : `border-slate-200 ${textAccent} hover:bg-white cursor-pointer`}`}>
               <FaChevronLeft />
             </button>
             {Array.from({ length: total }, (_, i) => i + 1).map((p) => (
               <button key={p} type="button" onClick={() => onPage(p)}
-                className={`flex h-6 w-6 items-center justify-center rounded-lg text-[10px] font-bold ${p === page ? `${accent} text-white` : "border border-slate-200 text-slate-500 hover:bg-white"}`}>
+                className={`flex h-6 w-6 items-center cursor-pointer justify-center rounded-lg text-[10px] font-bold ${p === page ? `${accent} text-white` : "border border-slate-200 text-slate-500 hover:bg-white"}`}>
                 {p}
               </button>
             ))}
             <button type="button" onClick={() => onPage(Math.min(total, page + 1))} disabled={page === total}
-              className={`flex h-6 w-6 items-center justify-center rounded-lg border text-[10px] ${page === total ? "border-slate-200 text-slate-300 cursor-not-allowed" : `border-slate-200 ${textAccent} hover:bg-white cursor-pointer`}`}>
+              className={`flex h-6 w-6 items-center cursor-pointer justify-center rounded-lg border text-[10px] ${page === total ? "border-slate-200 text-slate-300 cursor-not-allowed" : `border-slate-200 ${textAccent} hover:bg-white cursor-pointer`}`}>
               <FaChevronRight />
             </button>
           </div>
@@ -561,7 +560,7 @@ const ScheduleTable = ({ title, color, loading, empty, headers, rows, page, tota
 
 const ActionBtn = ({ color, icon, label, onClick }: { color: "blue" | "red"; icon: React.ReactNode; label: string; onClick: () => void }) => (
   <button type="button" onClick={onClick} title={label}
-    className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs cursor-pointer ${color === "blue" ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "bg-red-50 text-red-500 hover:bg-red-100"}`}>
+    className={`flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-xs cursor-pointer ${color === "blue" ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "bg-red-50 text-red-500 hover:bg-red-100"}`}>
     {icon}
   </button>
 );
@@ -582,11 +581,11 @@ const CustomDropdown = ({ label, value, onChange, color, options, placeholder }:
     <div ref={ref} className="relative z-50 overflow-visible">
       <label className="mb-1.5 block text-xs font-bold text-slate-700">{label}</label>
       <button type="button" onClick={() => setOpen(!open)}
-        className={`flex h-9 w-full items-center justify-between rounded-xl border bg-slate-50 px-3 text-xs font-semibold shadow-sm transition-all ${open
+        className={`flex h-9 w-full cursor-pointer items-center justify-between rounded-xl border bg-slate-50 px-3 text-xs font-semibold shadow-sm transition-all ${open
           ? color === "blue" ? "border-blue-400 bg-white ring-2 ring-blue-100" : "border-red-400 bg-white ring-2 ring-red-100"
           : "border-slate-200 hover:border-slate-300 hover:bg-white"}`}>
         <span className={value ? "text-slate-800" : "text-slate-400"}>{value ? selectedLabel : placeholder}</span>
-        <FaChevronDown className={`text-[10px] transition-all ${open ? "rotate-180 text-slate-700" : "text-slate-400"}`} />
+        <FaChevronDown className={`text-[10px] cursor-pointer transition-all ${open ? "rotate-180 text-slate-700" : "text-slate-400"}`} />
       </button>
       {open && (
         <div className="absolute left-0 top-full mt-1 z-[9999] w-full rounded-xl border border-slate-100 bg-white shadow-2xl">
@@ -596,7 +595,7 @@ const CustomDropdown = ({ label, value, onChange, color, options, placeholder }:
               const isSelected = value === item.value;
               return (
                 <button key={item.value} type="button" onClick={() => { onChange(item.value); setOpen(false); }}
-                  className={`flex w-full items-center justify-between rounded-lg px-3 py-1.5 text-xs font-semibold ${isSelected
+                  className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-1.5 text-xs font-semibold ${isSelected
                     ? color === "blue" ? "bg-blue-600 text-white" : "bg-red-500 text-white"
                     : "text-slate-700 hover:bg-slate-100"}`}>
                   <span>{item.label}</span>

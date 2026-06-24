@@ -236,8 +236,11 @@ export const DoctorEarnings = () => {
   };
 
   const maxEarnings = Math.max(...monthly.map(m => m.earnings), 1);
-  const yMax = 500000;
-  const yTicks = [0, 100000, 200000, 300000, 400000, 500000];
+  const yMax = Math.ceil(Math.max(...monthly.map(m => m.earnings), 1000) * 1.2);
+  const yTicks = (() => {
+    const step = Math.ceil(yMax / 5 / 1000) * 1000 || 1000;
+    return [0, step, step * 2, step * 3, step * 4, step * 5];
+  })();
   const chartHeight = 280;
   const chartPadTop = 20;
   const barAreaHeight = chartHeight - chartPadTop;

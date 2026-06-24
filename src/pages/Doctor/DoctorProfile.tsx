@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import {FaCamera,FaCalendarAlt,FaEnvelope,FaSave,FaStar,FaStethoscope,FaTimes,
-        FaUserMd,FaUsers,FaGraduationCap,} from "react-icons/fa";
+import {
+  FaCamera, FaCalendarAlt, FaEnvelope, FaSave, FaStar, FaStethoscope, FaTimes,
+  FaUserMd, FaUsers, FaGraduationCap,
+} from "react-icons/fa";
 import { MdWorkspacePremium, MdMedicalServices } from "react-icons/md";
 import toast from "react-hot-toast";
 import API, { IMAGE_BASE_URL } from "../../api/axios";
@@ -81,14 +83,14 @@ export const DoctorProfile = () => {
 
       const list = Array.isArray(rawDepartments)
         ? rawDepartments.map((item: any) => ({
-            id: Number(item.id || item.department_id || item._id),
-            name:
-              item.name ||
-              item.specialization ||
-              item.department_name ||
-              item.title ||
-              "",
-          }))
+          id: Number(item.id || item.department_id || item._id),
+          name:
+            item.name ||
+            item.specialization ||
+            item.department_name ||
+            item.title ||
+            "",
+        }))
         : [];
 
       setDepartments(list);
@@ -114,7 +116,7 @@ export const DoctorProfile = () => {
 
       const id = Number(doctor.id);
       setDoctorId(id);
-      localStorage.setItem( "user",
+      localStorage.setItem("user",
         JSON.stringify({
           ...loginUser,
           doctorId: id,
@@ -270,10 +272,10 @@ export const DoctorProfile = () => {
   return (
     <div className="min-h-screen bg-[#f0f4fb] lg:flex pt-20">
       <DoctorSidebar />
-      <main className="w-full flex-1 px-4 pt-8 pb-8 sm:px-6 lg:p-8">
-        <div className="mb-8 flex flex-col gap-5 rounded-3xl bg-white p-5 shadow-lg shadow-blue-100 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
+      <main className="w-full flex-1 px-3 pt-6 pb-6 sm:px-4 lg:px-6 lg:py-6">
+        <div className="mb-5 flex flex-col gap-3 rounded-3xl bg-white p-4 shadow-lg shadow-blue-100 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 sm:text-3xl lg:text-4xl">
+            <h1 className="text-xl font-extrabold text-slate-900 sm:text-2xl lg:text-3xl">
               Doctor <span className="text-blue-600">Profile</span>
             </h1>
             <p className="mt-2 text-sm text-slate-500 sm:text-base">
@@ -288,12 +290,12 @@ export const DoctorProfile = () => {
           )}
         </div>
 
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-500 p-5 shadow-2xl sm:p-8 lg:p-10">
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-500 p-4 shadow-2xl sm:p-6 lg:p-7">
           <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10" />
           <div className="relative z-10 flex flex-col items-center gap-8 text-center lg:flex-row lg:text-left">
             <div className="relative h-36 w-36 shrink-0 sm:h-44 sm:w-44">
               {imageUrl ? (
-                <img src={imageUrl} alt="Doctor" className="h-full w-full rounded-full border-[6px] border-white object-cover object-top shadow-2xl"/>
+                <img src={imageUrl} alt="Doctor" className="h-full w-full rounded-full border-[6px] border-white object-cover object-top shadow-2xl" />
               ) : (
                 <div className="flex h-full w-full items-center justify-center rounded-full bg-white shadow-2xl">
                   <FaUserMd className="text-6xl text-blue-500" />
@@ -303,7 +305,7 @@ export const DoctorProfile = () => {
               {isEdit && (
                 <label className="absolute bottom-2 right-2 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-white shadow-lg">
                   <FaCamera className="text-blue-600" />
-                  <input type="file" hidden accept="image/*" onChange={handleImage}/>
+                  <input type="file" hidden accept="image/*" onChange={handleImage} />
                 </label>
               )}
             </div>
@@ -321,26 +323,26 @@ export const DoctorProfile = () => {
                 ))}
               </div>
               <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <InfoCard icon={<FaCalendarAlt />} title="Appointments" value={String(profileStats.appointments)}/>
-                <InfoCard icon={<MdWorkspacePremium />} title="Experience" value={`${profile.experience_years || 0}+ Years`}/>
-                <InfoCard icon={<FaUsers />} title="Patients" value={String(profileStats.patients)}/>
+                <InfoCard icon={<FaCalendarAlt />} title="Appointments" value={String(profileStats.appointments)} />
+                <InfoCard icon={<MdWorkspacePremium />} title="Experience" value={`${profile.experience_years || 0}+ Years`} />
+                <InfoCard icon={<FaUsers />} title="Patients" value={String(profileStats.patients)} />
               </div>
             </div>
           </div>
         </section>
-        <section className="mt-8 rounded-3xl bg-white shadow-xl shadow-blue-100">
-          <div className="border-b border-blue-100 bg-blue-50 px-5 py-5 sm:px-8">
-            <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">
+        <section className="mt-5 rounded-3xl bg-white shadow-xl shadow-blue-100">
+          <div className="border-b border-blue-100 bg-blue-50 px-4 py-4 sm:px-6">
+            <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">
               Personal Information
             </h2>
           </div>
-          <div className="space-y-8 p-5 sm:p-8">
+          <div className="space-y-5 p-4 sm:p-6">
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              <InputField label="Full Name" value={profile.name} icon={<FaUserMd />} readOnly/>
-              <InputField label="Email Address" value={profile.email} icon={<FaEnvelope />} readOnly/>
+              <InputField label="Full Name" value={profile.name} icon={<FaUserMd />} readOnly />
+              <InputField label="Email Address" value={profile.email} icon={<FaEnvelope />} readOnly />
               <InputField label="Gender" value={profile.gender} readOnly />
               <InputField label="Experience Years" name="experience_years" value={profile.experience_years} onChange={handleChange}
-                          icon={<FaCalendarAlt />} readOnly={!isEdit}/>
+                icon={<FaCalendarAlt />} readOnly={!isEdit} />
               <SpecializationDropdown value={profile.specialization} departments={departments} disabled={!isEdit}
                 isOpen={specializationOpen} setIsOpen={setSpecializationOpen}
                 onSelect={(value) =>
@@ -348,19 +350,18 @@ export const DoctorProfile = () => {
                     ...prev,
                     specialization: value,
                   }))
-                }/>
+                } />
               <InputField label="Consultation Fee" name="consultation_fee" value={profile.consultation_fee}
-                onChange={handleChange} icon={<FaStethoscope />} readOnly={!isEdit}/>
+                onChange={handleChange} icon={<FaStethoscope />} readOnly={!isEdit} />
               <InputField label="Education" name="education" value={profile.education} onChange={handleChange}
-                icon={<FaGraduationCap />} readOnly={!isEdit}/>
+                icon={<FaGraduationCap />} readOnly={!isEdit} />
             </div>
             <div>
               <label className="mb-3 block text-sm font-bold uppercase tracking-wide text-slate-500">
                 Bio
               </label>
               <textarea rows={5} name="bio" value={profile.bio} onChange={handleChange} readOnly={!isEdit}
-                className={`w-full resize-none rounded-2xl border p-4 text-base font-medium text-slate-800 outline-none transition sm:p-5 sm:text-lg ${
-                  isEdit ? "border-slate-300 bg-white focus:border-blue-600" : "border-blue-100 bg-blue-50"}`}/>
+                className={`w-full resize-none rounded-2xl border p-4 text-base font-medium text-slate-800 outline-none transition sm:p-5 sm:text-lg ${isEdit ? "border-slate-300 bg-white focus:border-blue-600" : "border-blue-100 bg-blue-50"}`} />
             </div>
             {isEdit && (
               <div className="flex flex-col gap-3 border-t border-blue-100 pt-6 sm:flex-row sm:justify-end">
@@ -379,7 +380,7 @@ export const DoctorProfile = () => {
   );
 };
 
-const SpecializationDropdown = ({value,departments,disabled,isOpen,setIsOpen,onSelect,}: {
+const SpecializationDropdown = ({ value, departments, disabled, isOpen, setIsOpen, onSelect, }: {
   value: string;
   departments: Department[];
   disabled: boolean;
@@ -392,8 +393,7 @@ const SpecializationDropdown = ({value,departments,disabled,isOpen,setIsOpen,onS
       Specialization
     </label>
     <button type="button" disabled={disabled} onClick={() => setIsOpen(!isOpen)}
-      className={`flex h-14 w-full items-center justify-between rounded-2xl border px-4 text-left transition sm:h-16 ${
-        disabled ? "cursor-not-allowed border-blue-100 bg-blue-50" : "border-slate-300 bg-white focus:border-blue-600"}`}>
+      className={`flex h-14 w-full items-center justify-between rounded-2xl border px-4 text-left transition sm:h-16 ${disabled ? "cursor-not-allowed border-blue-100 bg-blue-50" : "border-slate-300 bg-white focus:border-blue-600"}`}>
       <span className="flex min-w-0 items-center gap-3">
         <MdMedicalServices className="shrink-0 text-lg text-blue-500" />
         <span className="truncate text-base font-semibold text-slate-800">
@@ -407,9 +407,9 @@ const SpecializationDropdown = ({value,departments,disabled,isOpen,setIsOpen,onS
         <div className="max-h-60 overflow-y-auto p-2">
           {departments.map((dept) => (
             <button key={dept.id} type="button" onClick={() => {
-                onSelect(dept.name);
-                setIsOpen(false);
-              }}
+              onSelect(dept.name);
+              setIsOpen(false);
+            }}
               className="w-full rounded-xl px-4 py-3 text-left font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700" >
               {dept.name}
             </button>
@@ -420,7 +420,7 @@ const SpecializationDropdown = ({value,departments,disabled,isOpen,setIsOpen,onS
   </div>
 );
 
-const InfoCard = ({icon,title,value,}: {
+const InfoCard = ({ icon, title, value, }: {
   icon: React.ReactNode;
   title: string;
   value: string;
@@ -444,10 +444,9 @@ const InputField = ({ label, icon, readOnly, ...props }: any) => (
     <label className="mb-3 block text-sm font-bold uppercase tracking-wide text-slate-500">
       {label}
     </label>
-    <div className={`flex h-14 items-center rounded-2xl border px-4 transition sm:h-16 ${
-        readOnly ? "border-blue-100 bg-blue-50": "border-slate-300 bg-white focus-within:border-blue-600"}`}>
+    <div className={`flex h-14 items-center rounded-2xl border px-4 transition sm:h-16 ${readOnly ? "border-blue-100 bg-blue-50" : "border-slate-300 bg-white focus-within:border-blue-600"}`}>
       {icon && <span className="shrink-0 text-lg text-blue-500">{icon}</span>}
-      <input {...props} readOnly={readOnly} className="h-full min-w-0 flex-1 bg-transparent px-3 text-base font-semibold text-slate-800 outline-none"/>
+      <input {...props} readOnly={readOnly} className="h-full min-w-0 flex-1 bg-transparent px-3 text-base font-semibold text-slate-800 outline-none" />
     </div>
   </div>
 );

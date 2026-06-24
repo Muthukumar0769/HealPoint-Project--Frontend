@@ -39,29 +39,54 @@ const getPaymentStatusConfig = (status: string | null) => {
 };
 
 const buildTrendPath = (trend: AppointmentTrendItem[]): { linePath: string; areaPath: string; points: [number, number][] } => {
-  if (!trend || trend.length === 0) {
-    return { linePath: "", areaPath: "", points: [] };
-  }
+  if (!trend || trend.length === 0) return { linePath: "", areaPath: "", points: [] };
   const maxVal = Math.max(...trend.map(t => t.appointments), 1);
   const padX = 10;
   const width = 380 - padX * 2;
   const height = 120;
   const topPad = 10;
-
   const points: [number, number][] = trend.map((t, i) => [
     padX + (trend.length === 1 ? width / 2 : (i / (trend.length - 1)) * width),
     topPad + (1 - t.appointments / maxVal) * height,
   ]);
-
   if (points.length === 1) {
     const [x, y] = points[0];
-    return {
-      linePath: `M${x} ${y}`,
-      areaPath: `M${x} ${y} L${x} 140 Z`,
-      points,
-    };
+    return { linePath: `M${x} ${y}`, areaPath: `M${x} ${y} L${x} 140 Z`, points };
   }
+  let linePath = `M${points[0][0]} ${points[0][1]}`;
+  let areaPath = `M${points[0][0]} ${points[0][1]}`;
+  for (let i = 1; i < points.length; i++) {
+    const [px, py] = points[i - 1];
+    const [cx, cy] = points[i];
+    const cp1x = px + (cx - px) / 2;
+    const cp2x = cx - (cx - px) / 2;
+    linePath += ` C${cp1x} ${py},${cp2x} ${cy},${cx} ${cy}`;
+    areaPath += ` C${cp1x} ${py},${cp2x} ${cy},${cx} ${cy}`;
+  }
+  areaPath += ` L${points[points.length - 1][0]} 140 L${points[0][0]} 140 Z`;
+  return { linePath, areaPath, points };
+};
 
+interface RevenueTrendItem {
+  month: string;
+  revenue: number;
+}
+
+const buildRevenuePath = (trend: RevenueTrendItem[]): { linePath: string; areaPath: string; points: [number, number][] } => {
+  if (!trend || trend.length === 0) return { linePath: "", areaPath: "", points: [] };
+  const maxVal = Math.max(...trend.map(t => t.revenue), 1);
+  const padX = 10;
+  const width = 380 - padX * 2;
+  const height = 120;
+  const topPad = 10;
+  const points: [number, number][] = trend.map((t, i) => [
+    padX + (trend.length === 1 ? width / 2 : (i / (trend.length - 1)) * width),
+    topPad + (1 - t.revenue / maxVal) * height,
+  ]);
+  if (points.length === 1) {
+    const [x, y] = points[0];
+    return { linePath: `M${x} ${y}`, areaPath: `M${x} ${y} L${x} 140 Z`, points };
+  }
   let linePath = `M${points[0][0]} ${points[0][1]}`;
   let areaPath = `M${points[0][0]} ${points[0][1]}`;
   for (let i = 1; i < points.length; i++) {
@@ -94,11 +119,7 @@ const StatCard = ({ title, value, icon, change }: { title: string; value: string
 
 const StatusBadge = ({ status }: StatusBadgeProps) => {
   const { cls, label } = getStatusConfig(status);
-  return (
-    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${cls}`}>
-      {label}
-    </span>
-  );
+  return <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${cls}`}>{label}</span>;
 };
 
 const InfoItem = ({ label, value }: InfoItemProps) => (
@@ -108,34 +129,23 @@ const InfoItem = ({ label, value }: InfoItemProps) => (
   </div>
 );
 
-const AppointmentsByDayChart = ({ trend }: { trend: AppointmentTrendItem[] }) => {
+const AppointmentsByMonthChart = ({ trend }: { trend: AppointmentTrendItem[] }) => {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
-
   if (!trend || trend.length === 0) {
-    return (
-      <div className="flex h-44 items-center justify-center text-sm text-slate-400 font-semibold">
-        No data available
-      </div>
-    );
+    return <div className="flex h-44 items-center justify-center text-sm text-slate-400 font-semibold">No data available</div>;
   }
-
   const maxVal = Math.max(...trend.map(t => t.appointments), 1);
   const chartHeight = 120;
   const barWidth = Math.min(28, Math.floor(320 / trend.length) - 6);
-
   return (
     <div className="relative">
       <div className="flex">
         <div className="flex flex-col justify-between text-xs text-slate-300 pr-2 pb-5" style={{ height: chartHeight + 20 }}>
-          {[maxVal, Math.round(maxVal * 0.5), 0].map((l, i) => (
-            <span key={i} className="leading-none">{l}</span>
-          ))}
+          {[maxVal, Math.round(maxVal * 0.5), 0].map((l, i) => <span key={i} className="leading-none">{l}</span>)}
         </div>
         <div className="flex-1 relative" style={{ height: chartHeight + 20 }}>
           <div className="absolute inset-0 flex flex-col justify-between pb-5 pointer-events-none">
-            {[0, 1, 2].map(i => (
-              <div key={i} className="border-t border-blue-50 w-full" />
-            ))}
+            {[0, 1, 2].map(i => <div key={i} className="border-t border-blue-50 w-full" />)}
           </div>
           <div className="absolute top-0 left-0 right-0 flex items-end justify-around pb-5" style={{ height: chartHeight + 20 }}>
             {trend.map((t, i) => {
@@ -143,32 +153,25 @@ const AppointmentsByDayChart = ({ trend }: { trend: AppointmentTrendItem[] }) =>
               const isHovered = hoveredIdx === i;
               const isMax = t.appointments === maxVal;
               return (
-                <div key={i} className="relative flex flex-col items-center" onMouseEnter={() => setHoveredIdx(i)}
-                  onMouseLeave={() => setHoveredIdx(null)} style={{ cursor: "pointer" }}>
+                <div key={i} className="relative flex flex-col items-center" onMouseEnter={() => setHoveredIdx(i)} onMouseLeave={() => setHoveredIdx(null)} style={{ cursor: "pointer" }}>
                   {isHovered && (
                     <div className="absolute bottom-full mb-2 z-20 whitespace-nowrap rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-lg pointer-events-none">
                       {MONTHS[t.month - 1]}: <span className="text-blue-300">{t.appointments}</span>
                       <div className="absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 -translate-y-1 rotate-45 bg-slate-900" />
                     </div>
                   )}
-                  <div className="relative rounded-t-lg transition-all duration-300"
-                    style={{width: barWidth,height: barH,background: isHovered
-                        ? "linear-gradient(180deg, #1d4ed8 0%, #3b82f6 100%)": isMax
-                          ? "linear-gradient(180deg, #2563eb 0%, #60a5fa 100%)"
-                          : "linear-gradient(180deg, #60a5fa 0%, #bfdbfe 100%)",
-                      boxShadow: isHovered ? "0 4px 16px 0 #3b82f640" : undefined,
-                      transform: isHovered ? "scaleY(1.04)" : "scaleY(1)",
-                      transformOrigin: "bottom"}}>
+                  <div className="relative rounded-t-lg transition-all duration-300" style={{
+                    width: barWidth, height: barH,
+                    background: isHovered ? "linear-gradient(180deg, #1d4ed8 0%, #3b82f6 100%)" : isMax ? "linear-gradient(180deg, #2563eb 0%, #60a5fa 100%)" : "linear-gradient(180deg, #60a5fa 0%, #bfdbfe 100%)",
+                    boxShadow: isHovered ? "0 4px 16px 0 #3b82f640" : undefined,
+                    transform: isHovered ? "scaleY(1.04)" : "scaleY(1)", transformOrigin: "bottom",
+                  }}>
                     {(isHovered || isMax) && (
-                      <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-xs font-bold text-blue-600 whitespace-nowrap">
-                        {t.appointments}
-                      </span>
+                      <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-xs font-bold text-blue-600 whitespace-nowrap">{t.appointments}</span>
                     )}
-                    <div className="absolute top-0 left-0 right-0 rounded-t-lg opacity-30" style={{ height: "40%", background: "linear-gradient(180deg, #fff 0%, transparent 100%)" }}/>
+                    <div className="absolute top-0 left-0 right-0 rounded-t-lg opacity-30" style={{ height: "40%", background: "linear-gradient(180deg, #fff 0%, transparent 100%)" }} />
                   </div>
-                  <span className="mt-1.5 text-[10px] font-semibold text-slate-400 select-none">
-                    {MONTHS[t.month - 1]}
-                  </span>
+                  <span className="mt-1.5 text-[10px] font-semibold text-slate-400 select-none">{MONTHS[t.month - 1]}</span>
                 </div>
               );
             })}
@@ -184,16 +187,82 @@ const AppointmentsByDayChart = ({ trend }: { trend: AppointmentTrendItem[] }) =>
         <div className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-full bg-blue-300" />
           <span className="text-xs text-slate-500">Peak Month</span>
-          <b className="text-xs text-slate-800">
-            {MONTHS[trend.reduce((best, t) => t.appointments > best.appointments ? t : best).month - 1]}
-          </b>
+          <b className="text-xs text-slate-800">{MONTHS[trend.reduce((best, t) => t.appointments > best.appointments ? t : best).month - 1]}</b>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-full bg-blue-200" />
           <span className="text-xs text-slate-500">Avg/Month</span>
-          <b className="text-xs text-slate-800">
-            {Math.round(trend.reduce((s, t) => s + t.appointments, 0) / trend.length)}
-          </b>
+          <b className="text-xs text-slate-800">{Math.round(trend.reduce((s, t) => s + t.appointments, 0) / trend.length)}</b>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const RevenueTrendChart = ({ trend }: { trend: RevenueTrendItem[] }) => {
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+  if (!trend || trend.length === 0) {
+    return <div className="flex h-44 items-center justify-center text-sm text-slate-400 font-semibold">No revenue data available</div>;
+  }
+  const { linePath, areaPath, points } = buildRevenuePath(trend);
+  const maxVal = Math.max(...trend.map(t => t.revenue), 1);
+  const yLabels = [maxVal, Math.round(maxVal * 0.66), Math.round(maxVal * 0.33), 0];
+  const totalRevenue = trend.reduce((s, t) => s + t.revenue, 0);
+  const peakMonth = trend.reduce((best, t) => t.revenue > best.revenue ? t : best);
+  const avgRevenue = Math.round(totalRevenue / trend.length);
+  return (
+    <div>
+      <div className="relative h-44">
+        <div className="absolute left-0 top-0 flex h-full flex-col justify-between text-xs text-slate-300 pb-0">
+          {yLabels.map((l, i) => (
+            <span key={i}>{l >= 1000 ? `₹${(l / 1000).toFixed(0)}k` : `₹${l}`}</span>
+          ))}
+        </div>
+        <svg viewBox="0 0 380 140" className="absolute left-8 top-0 h-full w-[calc(100%-2rem)]" fill="none" onMouseLeave={() => setHoverIndex(null)}>
+          <defs>
+            <linearGradient id="areaGreen" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#10b981" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          {[0, 46, 93, 139].map(y => (
+            <line key={y} x1="0" y1={y} x2="380" y2={y} stroke="#f0fdf4" strokeWidth="1" />
+          ))}
+          {areaPath && <path d={areaPath} fill="url(#areaGreen)" />}
+          {linePath && <path d={linePath} stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />}
+          {points.map(([cx, cy], i) => (
+            <g key={i}>
+              <circle cx={cx} cy={cy} r="4" fill="#fff" stroke="#10b981" strokeWidth="2" />
+              <circle cx={cx} cy={cy} r="14" fill="transparent" onMouseEnter={() => setHoverIndex(i)} onClick={() => setHoverIndex(i)} style={{ cursor: "pointer" }} />
+            </g>
+          ))}
+          {trend.map((t, i) => (
+            <text key={i} x={points[i]?.[0] ?? 0} y={138} textAnchor="middle" fontSize="9" fill="#94a3b8">{t.month}</text>
+          ))}
+        </svg>
+        {hoverIndex !== null && trend[hoverIndex] && (
+          <div className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-lg"
+            style={{ left: `calc(2rem + ${(points[hoverIndex][0] / 380) * 100}% * (100% - 2rem) / 100%)`, top: `${(points[hoverIndex][1] / 140) * 100}%` }}>
+            {trend[hoverIndex].month}: <span className="text-emerald-300">{formatCurrency(trend[hoverIndex].revenue)}</span>
+            <div className="absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 -translate-y-1 rotate-45 bg-slate-900" />
+          </div>
+        )}
+      </div>
+      <div className="mt-2 flex items-center gap-4 rounded-xl bg-emerald-50 px-3 py-2">
+        <div className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+          <span className="text-xs text-slate-500">Total</span>
+          <b className="text-xs text-slate-800">{formatCurrency(totalRevenue)}</b>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-emerald-300" />
+          <span className="text-xs text-slate-500">Peak</span>
+          <b className="text-xs text-slate-800">{peakMonth.month}</b>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-emerald-200" />
+          <span className="text-xs text-slate-500">Avg/Month</span>
+          <b className="text-xs text-slate-800">{formatCurrency(avgRevenue)}</b>
         </div>
       </div>
     </div>
@@ -209,6 +278,8 @@ export const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+  const [revenueTrend, setRevenueTrend] = useState<RevenueTrendItem[]>([]);
+  const [revenueLoading, setRevenueLoading] = useState(true);
 
   const fetchDashboard = useCallback(async (year: string) => {
     setLoading(true);
@@ -223,16 +294,33 @@ export const AdminDashboard = () => {
     }
   }, []);
 
+  const fetchRevenueTrend = useCallback(async () => {
+    setRevenueLoading(true);
+    try {
+      const res = await API.get(`/admin/dashboard/earnings-report?period=year`);
+      const raw = res.data.data?.revenueTrend ?? [];
+      setRevenueTrend(raw.map((t: any) => ({ month: t.month, revenue: Number(t.revenue) })));
+    } catch {
+      setRevenueTrend([]);
+    } finally {
+      setRevenueLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchDashboard(selectedYear);
   }, [selectedYear, fetchDashboard]);
 
+  useEffect(() => {
+    fetchRevenueTrend();
+  }, [fetchRevenueTrend]);
+
   const stats = data ? [
-        { title: "Total Doctors", value: String(data.summary.totalDoctors), icon: "🩺", change: "+12%" },
-        { title: "Total Patients", value: String(data.summary.totalPatients), icon: "👥", change: "+8%" },
-        { title: "Appointments", value: String(data.summary.totalAppointments), icon: "📅", change: "+5%" },
-        { title: "Total Revenue", value: formatCurrency(data.summary.totalRevenue), icon: "💰", change: "+18%" },
-      ] : [];
+    { title: "Total Doctors", value: String(data.summary.totalDoctors), icon: "🩺", change: "+12%" },
+    { title: "Total Patients", value: String(data.summary.totalPatients), icon: "👥", change: "+8%" },
+    { title: "Appointments", value: String(data.summary.totalAppointments), icon: "📅", change: "+5%" },
+    { title: "Total Revenue", value: formatCurrency(data.summary.totalRevenue), icon: "💰", change: "+18%" },
+  ] : [];
 
   const { linePath, areaPath, points } = buildTrendPath(data?.appointmentTrend ?? []);
   const trendMax = data?.appointmentTrend ? Math.max(...data.appointmentTrend.map(t => t.appointments), 1) : 300;
@@ -254,9 +342,7 @@ export const AdminDashboard = () => {
         </div>
 
         {error && (
-          <div className="mb-4 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm font-semibold text-red-600">
-            {error}
-          </div>
+          <div className="mb-4 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm font-semibold text-red-600">{error}</div>
         )}
 
         {loading && (
@@ -268,9 +354,7 @@ export const AdminDashboard = () => {
         {!loading && data && (
           <>
             <div className="grid grid-cols-2 gap-3 xl:grid-cols-4 xl:gap-4 mb-5">
-              {stats.map((item, index) => (
-                <StatCard key={index} {...item} />
-              ))}
+              {stats.map((item, index) => <StatCard key={index} {...item} />)}
             </div>
 
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 mb-5">
@@ -280,50 +364,39 @@ export const AdminDashboard = () => {
                     <h3 className="text-sm font-bold text-slate-900">Appointments Overview</h3>
                     <p className="text-xs text-slate-400 mt-0.5">Monthly trend · {trendMonthLabel} {selectedYear}</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-2 rounded-xl border border-blue-200 bg-white px-3 py-1.5 shadow-sm">
-                      <span className="text-blue-400 text-sm"><FaCalendarAlt /></span>
-                      <input type="number" min="2000" max="2100" value={selectedYear} onChange={e => setSelectedYear(e.target.value)}
-                        className="border-none bg-transparent text-sm text-slate-700 outline-none cursor-pointer w-20"/>
-                    </div>
+                  <div className="flex items-center gap-2 rounded-xl border border-blue-200 bg-white px-3 py-1.5 shadow-sm">
+                    <span className="text-blue-400 text-sm"><FaCalendarAlt /></span>
+                    <input type="number" min="2000" max="2100" value={selectedYear} onChange={e => setSelectedYear(e.target.value)}
+                      className="border-none bg-transparent text-sm text-slate-700 outline-none cursor-pointer w-20" />
                   </div>
                 </div>
                 <div className="relative h-44">
                   <div className="absolute left-0 top-0 flex h-full flex-col justify-between text-xs text-slate-300 pb-0">
                     {yLabels.map((l, i) => <span key={i}>{l}</span>)}
                   </div>
-                  <svg viewBox="0 0 380 140" className="absolute left-8 top-0 h-full w-[calc(100%-2rem)]"
-                    fill="none" onMouseLeave={() => setHoverIndex(null)}>
+                  <svg viewBox="0 0 380 140" className="absolute left-8 top-0 h-full w-[calc(100%-2rem)]" fill="none" onMouseLeave={() => setHoverIndex(null)}>
                     <defs>
                       <linearGradient id="areaBlue" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.18" />
                         <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
                       </linearGradient>
                     </defs>
-                    {[0, 46, 93, 139].map(y => (
-                      <line key={y} x1="0" y1={y} x2="380" y2={y} stroke="#eff6ff" strokeWidth="1" />
-                    ))}
+                    {[0, 46, 93, 139].map(y => <line key={y} x1="0" y1={y} x2="380" y2={y} stroke="#eff6ff" strokeWidth="1" />)}
                     {areaPath && <path d={areaPath} fill="url(#areaBlue)" />}
-                    {linePath && (
-                      <path d={linePath} stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                    )}
+                    {linePath && <path d={linePath} stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />}
                     {points.map(([cx, cy], i) => (
                       <g key={i}>
                         <circle cx={cx} cy={cy} r="4" fill="#fff" stroke="#3b82f6" strokeWidth="2" />
-                        <circle cx={cx} cy={cy} r="14" fill="transparent" onMouseEnter={() => setHoverIndex(i)}
-                          onClick={() => setHoverIndex(i)} style={{ cursor: "pointer" }}/>
+                        <circle cx={cx} cy={cy} r="14" fill="transparent" onMouseEnter={() => setHoverIndex(i)} onClick={() => setHoverIndex(i)} style={{ cursor: "pointer" }} />
                       </g>
                     ))}
                     {data.appointmentTrend.map((t, i) => (
-                      <text key={i} x={points[i]?.[0] ?? 0} y={138} textAnchor="middle" fontSize="9" fill="#94a3b8">
-                        {MONTHS[t.month - 1]}
-                      </text>
+                      <text key={i} x={points[i]?.[0] ?? 0} y={138} textAnchor="middle" fontSize="9" fill="#94a3b8">{MONTHS[t.month - 1]}</text>
                     ))}
                   </svg>
                   {hoverIndex !== null && data.appointmentTrend[hoverIndex] && (
                     <div className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-lg"
-                      style={{ left: `calc(2rem + ${(points[hoverIndex][0] / 380) * 100}% * (100% - 2rem) / 100%)`,
-                        top: `${(points[hoverIndex][1] / 140) * 100}%`}}>
+                      style={{ left: `calc(2rem + ${(points[hoverIndex][0] / 380) * 100}% * (100% - 2rem) / 100%)`, top: `${(points[hoverIndex][1] / 140) * 100}%` }}>
                       {MONTHS[data.appointmentTrend[hoverIndex].month - 1]}: {data.appointmentTrend[hoverIndex].appointments} appointments
                       <div className="absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 -translate-y-1 rotate-45 bg-slate-900" />
                     </div>
@@ -336,8 +409,27 @@ export const AdminDashboard = () => {
                   <h3 className="text-sm font-bold text-slate-900">Appointments by Month</h3>
                   <p className="text-xs text-slate-400 mt-0.5">Monthly breakdown · {selectedYear}</p>
                 </div>
-                <AppointmentsByDayChart trend={data.appointmentTrend} />
+                <AppointmentsByMonthChart trend={data.appointmentTrend} />
               </div>
+            </div>
+
+            <div className="rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm mb-5">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Revenue Trend</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">Monthly revenue from video consultations</p>
+                </div>
+                <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-600">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" /> Video Call Revenue
+                </span>
+              </div>
+              {revenueLoading ? (
+                <div className="flex items-center justify-center gap-2 py-10 text-sm font-bold text-emerald-500">
+                  <FaSpinner className="animate-spin" /> Loading revenue…
+                </div>
+              ) : (
+                <RevenueTrendChart trend={revenueTrend} />
+              )}
             </div>
 
             <div className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm">

@@ -73,9 +73,24 @@ export const DoctorSchedule = () => {
   const dayOptions: OptionType[] = DAYS.map((d) => ({ label: d, value: d }));
   const durationOptions: OptionType[] = DURATIONS.map((t) => ({ label: `${t} Minutes`, value: t }));
 
-  const doFetch = useCallback(() => {
-    dispatch(fetchAllSchedules());
-  }, [dispatch]);
+ const doFetch = useCallback(() => {
+  dispatch(fetchAllSchedules());
+}, [dispatch]);
+
+useEffect(() => {
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const doctorId = user?.doctorId;
+  if (doctorId) {
+    doFetch();
+  } else {
+    const handleAuth = () => {
+      const u = JSON.parse(localStorage.getItem("user") || "{}");
+      if (u?.doctorId) doFetch();
+    };
+    window.addEventListener("authChanged", handleAuth);
+    return () => window.removeEventListener("authChanged", handleAuth);
+  }
+}, [doFetch]);
 
   const saveSchedule = async () => {
     if (!day) return toast.error("Please select day");

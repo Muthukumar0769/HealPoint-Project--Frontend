@@ -46,7 +46,7 @@ export const Header = () => {
               And Your Family
             </h1>
             <p className="mt-2 max-w-[520px] text-sm leading-7 text-white/90 sm:text-base md:text-sm">
-              Book appointments with trusted doctors and get world-class
+              Create an account and Book appointments with trusted doctors and get world-class
               healthcare consultation for you and your loved ones anytime.
             </p>
             <div className="mt-6 flex flex-wrap items-center gap-4">

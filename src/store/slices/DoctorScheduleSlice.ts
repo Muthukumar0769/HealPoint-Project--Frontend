@@ -83,6 +83,7 @@ export const fetchNormalSchedules = createAsyncThunk("schedule/fetchNormalSchedu
   async (_, thunkAPI) => {
     try {
       const response = await API.get("/availability");
+      // FIX: Try all possible response shapes your API might return
       const raw =
         response.data?.data?.availabilities ||
         response.data?.availabilities ||
@@ -102,7 +103,8 @@ export const fetchSpecialSchedules = createAsyncThunk("schedule/fetchSpecialSche
   async (_, thunkAPI) => {
     try {
       const response = await API.get("/special-availability");
-      const raw = response.data?.data?.specialAvailabilities ||
+      const raw =
+        response.data?.data?.specialAvailabilities ||
         response.data?.specialAvailabilities ||
         response.data?.data ||
         response.data ||
@@ -120,11 +122,19 @@ export const fetchLeaves = createAsyncThunk("schedule/fetchLeaves",
   async (_, thunkAPI) => {
     try {
       const response = await API.get("/unavailability");
-      const raw = response.data?.data?.unavailabilities ||
+      const raw =
+        response.data?.data?.unavailabilities ||
         response.data?.unavailabilities ||
+        response.data?.data?.leaves ||
+        response.data?.leaves ||
         response.data?.data ||
         response.data ||
         [];
+
+      // DEBUG: Remove this log after confirming data loads correctly
+      console.log("[fetchLeaves] raw response:", response.data);
+      console.log("[fetchLeaves] parsed:", raw);
+
       return Array.isArray(raw) ? raw : [];
     } catch (error: any) {
       return thunkAPI.rejectWithValue(
@@ -207,12 +217,23 @@ const doctorScheduleSlice = createSlice({
           action.payload?.availability ||
           action.payload?.data ||
           action.payload;
-        if (created?.id) state.normalSchedules.push(created);
+        if (created?.id) {
+          // FIX: Replace existing schedule for same day instead of pushing duplicate
+          const existingIndex = state.normalSchedules.findIndex(
+            (s) => s.day_of_week === created.day_of_week
+          );
+          if (existingIndex !== -1) {
+            state.normalSchedules[existingIndex] = created;
+          } else {
+            state.normalSchedules.push(created);
+          }
+        }
       })
       .addCase(createAvailability.rejected, (state, action: any) => {
         state.loading = false;
         state.error = action.payload;
       });
+
     builder
       .addCase(createSpecialAvailability.pending, (state) => {
         state.loading = true;
@@ -224,12 +245,23 @@ const doctorScheduleSlice = createSlice({
           action.payload?.specialAvailability ||
           action.payload?.data ||
           action.payload;
-        if (created?.id) state.specialSchedules.push(created);
+        if (created?.id) {
+          // FIX: Replace existing special schedule for same date
+          const existingIndex = state.specialSchedules.findIndex(
+            (s) => s.date === created.date
+          );
+          if (existingIndex !== -1) {
+            state.specialSchedules[existingIndex] = created;
+          } else {
+            state.specialSchedules.push(created);
+          }
+        }
       })
       .addCase(createSpecialAvailability.rejected, (state, action: any) => {
         state.loading = false;
         state.error = action.payload;
       });
+
     builder
       .addCase(createUnavailability.pending, (state) => {
         state.loading = true;
@@ -239,65 +271,80 @@ const doctorScheduleSlice = createSlice({
         state.loading = false;
         const items = Array.isArray(action.payload)
           ? action.payload.map(
-            (r: any) => r?.unavailability || r?.data || r
-          )
+              (r: any) => r?.unavailability || r?.data || r
+            )
           : [];
-        state.leaves.push(...items.filter((i: any) => i?.id));
+        // FIX: Avoid duplicate leaves for same date
+        items.filter((i: any) => i?.id).forEach((newLeave: any) => {
+          const existingIndex = state.leaves.findIndex(
+            (l) => l.unavailable_date === newLeave.unavailable_date
+          );
+          if (existingIndex !== -1) {
+            state.leaves[existingIndex] = newLeave;
+          } else {
+            state.leaves.push(newLeave);
+          }
+        });
       })
       .addCase(createUnavailability.rejected, (state, action: any) => {
         state.loading = false;
         state.error = action.payload;
       });
+
     builder
       .addCase(fetchNormalSchedules.pending, (state) => {
         state.fetchLoading = true;
       })
       .addCase(fetchNormalSchedules.fulfilled, (state, action: any) => {
         state.fetchLoading = false;
-        state.normalSchedules = Array.isArray(action.payload)
-          ? action.payload
-          : [];
+        // FIX: Always replace full list on fetch — this fixes stale/old data after edit
+        state.normalSchedules = Array.isArray(action.payload) ? action.payload : [];
       })
       .addCase(fetchNormalSchedules.rejected, (state, action: any) => {
         state.fetchLoading = false;
         state.error = action.payload;
       });
+
     builder
       .addCase(fetchSpecialSchedules.pending, (state) => {
         state.fetchLoading = true;
       })
       .addCase(fetchSpecialSchedules.fulfilled, (state, action: any) => {
         state.fetchLoading = false;
-        state.specialSchedules = Array.isArray(action.payload)
-          ? action.payload
-          : [];
+        // FIX: Always replace full list on fetch
+        state.specialSchedules = Array.isArray(action.payload) ? action.payload : [];
       })
       .addCase(fetchSpecialSchedules.rejected, (state, action: any) => {
         state.fetchLoading = false;
         state.error = action.payload;
       });
+
     builder
       .addCase(fetchLeaves.pending, (state) => {
         state.fetchLoading = true;
       })
       .addCase(fetchLeaves.fulfilled, (state, action: any) => {
         state.fetchLoading = false;
+        // FIX: Always replace full list on fetch — fixes leave not showing
         state.leaves = Array.isArray(action.payload) ? action.payload : [];
       })
       .addCase(fetchLeaves.rejected, (state, action: any) => {
         state.fetchLoading = false;
         state.error = action.payload;
       });
+
     builder.addCase(deleteNormalSchedule.fulfilled, (state, action) => {
       state.normalSchedules = state.normalSchedules.filter(
         (s) => s.id !== action.payload
       );
     });
+
     builder.addCase(deleteSpecialSchedule.fulfilled, (state, action) => {
       state.specialSchedules = state.specialSchedules.filter(
         (s) => s.id !== action.payload
       );
     });
+
     builder.addCase(deleteLeave.fulfilled, (state, action) => {
       state.leaves = state.leaves.filter((l) => l.id !== action.payload);
     });

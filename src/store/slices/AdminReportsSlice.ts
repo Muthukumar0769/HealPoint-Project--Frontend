@@ -1,10 +1,10 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import API from "../../api/axios";
 import { isBookableSlot } from "../../utils/slotHelpers";
-import type {AdminReportsState,PaginatedDoctors,LeaveDoctor,AvailableDoctor,UnavailableDoctor,ReportsDashboardData,} from "../../types/admin";
+import type {AdminReportsState, PaginatedDoctors, LeaveDoctor,
+  AvailableDoctor, UnavailableDoctor, ReportsDashboardData,} from "../../types/admin";
 
-const today = new Date().toISOString().split("T")[0];
-
+const today = new Date().toISOString().split("T")[0]
 const initialState: AdminReportsState = {
   data: null,
   loading: false,
@@ -45,19 +45,13 @@ export const fetchAvailabilityDashboard = createAsyncThunk(
       }));
 
       const notOnLeaveRows: any[] = base.availableDoctors?.rows ?? [];
-
       const slotResults = await Promise.allSettled(
         notOnLeaveRows.map(async (doctor: any) => {
           try {
-            const slotRes = await API.get(`/slots/${doctor.doctor_id}`, {
-              params: { date },
-            });
+            const slotRes = await API.get(`/slots/${doctor.doctor_id}`, { params: { date } });
             const raw: any[] =
-              slotRes.data?.slots ||
-              slotRes.data?.data?.slots ||
-              slotRes.data?.data ||
-              slotRes.data ||
-              [];
+              slotRes.data?.slots || slotRes.data?.data?.slots ||
+              slotRes.data?.data || slotRes.data || [];
             const slots = Array.isArray(raw) ? raw : [];
             const bookable = slots.filter(isBookableSlot).length;
             const total = slots.length;
@@ -70,38 +64,26 @@ export const fetchAvailabilityDashboard = createAsyncThunk(
 
       const allAvailable: AvailableDoctor[] = [];
       const allUnavailable: UnavailableDoctor[] = [];
-
       slotResults.forEach((result) => {
         if (result.status === "fulfilled") {
           const { doctor, bookable, total } = result.value;
           if (bookable > 0) {
             allAvailable.push({
-              doctor_id: doctor.doctor_id,
-              doctor_name: doctor.doctor_name,
-              profile_picture: doctor.profile_picture,
-              specialization: doctor.specialization,
-              date,
-              status: "available",
-              slots_status: "has_slots",
+              doctor_id: doctor.doctor_id, doctor_name: doctor.doctor_name,
+              profile_picture: doctor.profile_picture, specialization: doctor.specialization,
+              date, status: "available", slots_status: "has_slots",
             });
           } else if (total > 0 && bookable === 0) {
             allAvailable.push({
-              doctor_id: doctor.doctor_id,
-              doctor_name: doctor.doctor_name,
-              profile_picture: doctor.profile_picture,
-              specialization: doctor.specialization,
-              date,
-              status: "available",
-              slots_status: "slots_full",
+              doctor_id: doctor.doctor_id, doctor_name: doctor.doctor_name,
+              profile_picture: doctor.profile_picture, specialization: doctor.specialization,
+              date, status: "available", slots_status: "slots_full",
             });
           } else {
             allUnavailable.push({
-              doctor_id: doctor.doctor_id,
-              doctor_name: doctor.doctor_name,
-              profile_picture: doctor.profile_picture,
-              specialization: doctor.specialization,
-              date,
-              status: "unavailable",
+              doctor_id: doctor.doctor_id, doctor_name: doctor.doctor_name,
+              profile_picture: doctor.profile_picture, specialization: doctor.specialization,
+              date, status: "unavailable",
             });
           }
         }
@@ -139,6 +121,14 @@ export const fetchAvailabilityDashboard = createAsyncThunk(
   }
 );
 
+const rebuildSummary = (d: ReportsDashboardData) => {
+  d.summary.onLeaveDoctors = d._allLeave.length;
+  d.summary.unavailableDoctors = d._allUnavailable.length;
+  d.summary.availableDoctors = d._allAvailable.length;
+  d.chartData.onLeave = d._allLeave.length;
+  d.quickSummary.onLeaveToday = d._allLeave.length;
+};
+
 const adminReportsSlice = createSlice({
   name: "adminReports",
   initialState,
@@ -174,6 +164,45 @@ const adminReportsSlice = createSlice({
         }
       }
     },
+    removeLeaveByDate: (state, action: PayloadAction<string>) => {
+      if (!state.data) return;
+      const d = state.data as ReportsDashboardData;
+      d._allLeave = d._allLeave.filter(
+        (l) => l.unavailable_date !== action.payload
+      );
+      rebuildSummary(d);
+      const curPage = state.activeTab === "leave" ? state.page : 1;
+      d.onLeaveDoctors = paginate(d._allLeave, curPage, state.pageSize);
+    },
+    updateLeaveRecord: (
+      state,
+      action: PayloadAction<{
+        oldDate: string;
+        newDate: string;
+        is_full_day: boolean;
+        start_time: string | null;
+        end_time: string | null;
+        reason: string;
+      }>
+    ) => {
+      if (!state.data) return;
+      const d = state.data as ReportsDashboardData;
+      const { oldDate, newDate, is_full_day, start_time, end_time, reason } = action.payload;
+      const idx = d._allLeave.findIndex((l) => l.unavailable_date === oldDate);
+      if (idx !== -1) {
+        d._allLeave[idx] = {
+          ...d._allLeave[idx],
+          unavailable_date: newDate,
+          is_full_day,
+          start_time: start_time ?? undefined,
+          end_time: end_time ?? undefined,
+          reason,
+        };
+      }
+      rebuildSummary(d);
+      const curPage = state.activeTab === "leave" ? state.page : 1;
+      d.onLeaveDoctors = paginate(d._allLeave, curPage, state.pageSize);
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -194,5 +223,6 @@ const adminReportsSlice = createSlice({
   },
 });
 
-export const { setSelectedDate, setActiveTab, setPage } = adminReportsSlice.actions;
+export const { setSelectedDate, setActiveTab, setPage, removeLeaveByDate, updateLeaveRecord } =
+  adminReportsSlice.actions;
 export default adminReportsSlice.reducer;

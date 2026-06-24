@@ -339,10 +339,10 @@ export interface LeaveDoctor {
   profile_picture: string;
   specialization: string;
   unavailable_date: string;
-  reason: string;
+  reason: string | null;  
   is_full_day: boolean;
-  start_time: string | null;
-  end_time: string | null;
+  start_time: string | null | undefined;
+  end_time: string | null | undefined; 
   status: "on_leave";
 }
 

@@ -1,18 +1,18 @@
 import { useState, useRef, useEffect } from "react";
-import { FaCalendarAlt, FaSave, FaUmbrellaBeach, FaClock, FaCheckCircle,
+import {FaCalendarAlt, FaSave, FaUmbrellaBeach, FaClock, FaCheckCircle,
   FaChevronDown, FaRegCalendarAlt, FaStar, FaTrash, FaEdit,
-  FaExclamationTriangle, FaChevronLeft, FaChevronRight, FaTimes} from "react-icons/fa";
+  FaExclamationTriangle, FaChevronLeft, FaChevronRight, FaTimes,} from "react-icons/fa";
 import toast from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import {createAvailability, createSpecialAvailability, createUnavailability,
-  fetchAllSchedules, deleteNormalSchedule, deleteSpecialSchedule, deleteLeave} from "../../store/slices/DoctorScheduleSlice";
+  fetchAllSchedules, deleteNormalSchedule, deleteSpecialSchedule, deleteLeave,} from "../../store/slices/DoctorScheduleSlice";
+import {removeLeaveByDate, updateLeaveRecord} from "../../store/slices/AdminReportsSlice";
 import { DoctorSidebar } from "../Doctor/DoctorSidebar";
 import usePageTitle from "../../hooks/usePageTitle";
 import API from "../../api/axios";
 
 type LeaveType = "full_day" | "half_day";
 type MainTab = "Weekly" | "Special" | "Leave";
-
 type OptionType = { label: string; value: string };
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -23,7 +23,6 @@ const LEAVE_TYPES: OptionType[] = [
 ];
 
 const PAGE_SIZE = 5;
-
 export const DoctorSchedule = () => {
   usePageTitle("My Schedule");
   const dispatch = useAppDispatch();
@@ -54,8 +53,6 @@ export const DoctorSchedule = () => {
     open: boolean; type: "normal" | "special" | "leave" | null; id: number | null; label: string;
   }>({ open: false, type: null, id: null, label: "" });
   const [deleteLoading, setDeleteLoading] = useState(false);
-
-  // Edit modal
   const [editModal, setEditModal] = useState<{
     open: boolean; type: "normal" | "special" | "leave" | null; data: any;
   }>({ open: false, type: null, data: null });
@@ -68,7 +65,7 @@ export const DoctorSchedule = () => {
   const [editDuration, setEditDuration] = useState("15");
   const [editDate, setEditDate] = useState("");
   const [editLeaveFrom, setEditLeaveFrom] = useState("");
-  const [, setEditLeaveTo] = useState("");
+  const [editLeaveTo, setEditLeaveTo] = useState("");
   const [editLeaveType, setEditLeaveType] = useState<LeaveType>("full_day");
   const [editLeaveStart, setEditLeaveStart] = useState("");
   const [editLeaveEnd, setEditLeaveEnd] = useState("");
@@ -135,9 +132,17 @@ export const DoctorSchedule = () => {
     if (!deleteModal.type || !deleteModal.id) return;
     setDeleteLoading(true);
     try {
-      if (deleteModal.type === "normal") await dispatch(deleteNormalSchedule(deleteModal.id)).unwrap();
-      else if (deleteModal.type === "special") await dispatch(deleteSpecialSchedule(deleteModal.id)).unwrap();
-      else await dispatch(deleteLeave(deleteModal.id)).unwrap();
+      if (deleteModal.type === "normal") {
+        await dispatch(deleteNormalSchedule(deleteModal.id)).unwrap();
+      } else if (deleteModal.type === "special") {
+        await dispatch(deleteSpecialSchedule(deleteModal.id)).unwrap();
+      } else {
+        const leaveRecord = leaves.find((l) => l.id === deleteModal.id);
+        await dispatch(deleteLeave(deleteModal.id)).unwrap();
+        if (leaveRecord?.unavailable_date) {
+          dispatch(removeLeaveByDate(leaveRecord.unavailable_date));
+        }
+      }
       toast.success("Deleted successfully");
       setDeleteModal({ open: false, type: null, id: null, label: "" });
     } catch (e: any) { toast.error(e || "Delete failed"); }
@@ -190,6 +195,14 @@ export const DoctorSchedule = () => {
           start_time: editLeaveType === "half_day" ? editLeaveStart : null,
           end_time: editLeaveType === "half_day" ? editLeaveEnd : null,
         });
+        dispatch(updateLeaveRecord({
+          oldDate: editModal.data.unavailable_date,
+          newDate: editLeaveFrom,
+          is_full_day: editLeaveType === "full_day",
+          start_time: editLeaveType === "half_day" ? editLeaveStart : null,
+          end_time: editLeaveType === "half_day" ? editLeaveEnd : null,
+          reason: editReason,
+        }));
       }
       toast.success("Updated successfully");
       dispatch(fetchAllSchedules());
@@ -249,8 +262,7 @@ export const DoctorSchedule = () => {
                   <button key={tab.key} type="button" onClick={() => setActiveTab(tab.key as MainTab)}
                     className={`flex cursor-pointer items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition-all duration-200 ${activeTab === tab.key
                       ? tab.key === "Leave" ? "bg-white text-red-500 shadow-lg" : "bg-white text-blue-600 shadow-lg"
-                      : "text-white hover:bg-white/10"
-                      }`}>
+                      : "text-white hover:bg-white/10"}`}>
                     {tab.icon}{tab.label}
                   </button>
                 ))}
@@ -285,16 +297,11 @@ export const DoctorSchedule = () => {
                     <FaSave />{loading ? "Saving..." : "Save Schedule"}
                   </button>
                 </div>
-                <ScheduleTable
-                  title="Saved Weekly Schedules"
-                  color="blue"
-                  loading={fetchLoading}
-                  empty={normalSchedules.length === 0}
+                <ScheduleTable title="Saved Weekly Schedules" color="blue"
+                  loading={fetchLoading} empty={normalSchedules.length === 0}
                   headers={["Day", "Start Time", "End Time", "Slot Duration", "Break Start", "Break End", "Actions"]}
-                  page={normalPage}
-                  total={totalPages(normalSchedules)}
-                  onPage={setNormalPage}
-                  rows={paginate(normalSchedules, normalPage).map((s) => (
+                  page={normalPage} total={totalPages(normalSchedules)}
+                  onPage={setNormalPage} rows={paginate(normalSchedules, normalPage).map((s) => (
                     <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                       <td className="px-4 py-3 text-sm font-semibold text-slate-700">{s.day_of_week}</td>
                       <td className="px-4 py-3 text-sm text-slate-600">{fmtTime(s.start_time)}</td>
@@ -305,8 +312,7 @@ export const DoctorSchedule = () => {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <ActionBtn color="blue" icon={<FaEdit />} label="Edit" onClick={() => openEdit("normal", s)} />
-                          <ActionBtn color="red" icon={<FaTrash />} label="Delete"
-                            onClick={() => setDeleteModal({ open: true, type: "normal", id: s.id, label: `${s.day_of_week} schedule` })} />
+                          <ActionBtn color="red" icon={<FaTrash />} label="Delete" onClick={() => setDeleteModal({ open: true, type: "normal", id: s.id, label: `${s.day_of_week} schedule` })} />
                         </div>
                       </td>
                     </tr>
@@ -345,15 +351,9 @@ export const DoctorSchedule = () => {
                   </button>
                 </div>
 
-                <ScheduleTable
-                  title="Saved Special Schedules"
-                  color="amber"
-                  loading={fetchLoading}
-                  empty={specialSchedules.length === 0}
-                  headers={["Date", "Start Time", "End Time", "Slot Duration", "Actions"]}
-                  page={specialPage}
-                  total={totalPages(specialSchedules)}
-                  onPage={setSpecialPage}
+                <ScheduleTable title="Saved Special Schedules" color="amber" loading={fetchLoading}
+                  empty={specialSchedules.length === 0} headers={["Date", "Start Time", "End Time", "Slot Duration", "Actions"]}
+                  page={specialPage} total={totalPages(specialSchedules)} onPage={setSpecialPage}
                   rows={paginate(specialSchedules, specialPage).map((s) => (
                     <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                       <td className="px-4 py-3 text-sm font-semibold text-slate-700">{s.date}</td>
@@ -404,16 +404,10 @@ export const DoctorSchedule = () => {
                   </button>
                 </div>
 
-                <ScheduleTable
-                  title="Applied Leaves"
-                  color="red"
-                  loading={fetchLoading}
-                  empty={leaves.length === 0}
-                  headers={["Date", "Leave Type", "Start Time", "End Time", "Reason", "Actions"]}
-                  page={leavePage}
-                  total={totalPages(leaves)}
-                  onPage={setLeavePage}
-                  rows={paginate(leaves, leavePage).map((l) => (
+                <ScheduleTable title="Applied Leaves" color="red" loading={fetchLoading}
+                  empty={leaves.length === 0} headers={["Date", "Leave Type", "Start Time", "End Time", "Reason", "Actions"]}
+                  page={leavePage} total={totalPages(leaves)}
+                  onPage={setLeavePage} rows={paginate(leaves, leavePage).map((l) => (
                     <tr key={l.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                       <td className="px-4 py-3 text-sm font-semibold text-slate-700">{l.unavailable_date}</td>
                       <td className="px-4 py-3">
@@ -452,8 +446,7 @@ export const DoctorSchedule = () => {
               </p>
             </div>
             <div className="flex gap-3 mt-2 w-full">
-              <button type="button" onClick={() => setDeleteModal({ open: false, type: null, id: null, label: "" })} disabled={deleteLoading}
-                className="flex-1 h-11 rounded-2xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all disabled:opacity-60">
+              <button type="button" onClick={() => setDeleteModal({ open: false, type: null, id: null, label: "" })} disabled={deleteLoading} className="flex-1 h-11 rounded-2xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all disabled:opacity-60">
                 Cancel
               </button>
               <button type="button" onClick={confirmDelete} disabled={deleteLoading}
@@ -464,8 +457,6 @@ export const DoctorSchedule = () => {
           </div>
         </Modal>
       )}
-
-      {/* ── EDIT MODAL ── */}
       {editModal.open && (
         <Modal onClose={() => !editLoading && setEditModal({ open: false, type: null, data: null })} wide>
           <div className="p-1">
@@ -611,9 +602,7 @@ const ScheduleTable = ({ title, color, loading, empty, headers, rows, page, tota
 const ActionBtn = ({ color, icon, label, onClick }: { color: "blue" | "red"; icon: React.ReactNode; label: string; onClick: () => void }) => (
   <button type="button" onClick={onClick} title={label}
     className={`flex h-8 w-8 items-center justify-center rounded-xl text-xs transition-all cursor-pointer ${color === "blue"
-      ? "bg-blue-50 text-blue-600 hover:bg-blue-100"
-      : "bg-red-50 text-red-500 hover:bg-red-100"
-      }`}>
+      ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "bg-red-50 text-red-500 hover:bg-red-100"}`}>
     {icon}
   </button>
 );

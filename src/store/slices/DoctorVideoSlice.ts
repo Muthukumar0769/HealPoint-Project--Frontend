@@ -18,7 +18,8 @@ const isCancelled = (a: VideoAppointment) =>
   String(a.status).toLowerCase() === "canceled";
 
 const isUpcoming = (a: VideoAppointment) =>
-  String(a.status).toLowerCase() === "confirmed" &&
+  (String(a.status).toLowerCase() === "confirmed" ||
+   String(a.status).toLowerCase() === "pending_payment") &&
   !isCompleted(a) &&
   !isCancelled(a) &&
   !isNoShow(a);
@@ -43,9 +44,8 @@ const normalizeResponse = (d: any, page: number, limit: number): PaginatedRespon
   };
 };
 
-const isModeAppointment = (a: VideoAppointment, mode: ConsultationMode) => {
-  if (mode === "video") return !!a.meeting_room;
-  return !a.meeting_room;
+const isModeAppointment = (_a: VideoAppointment, mode: ConsultationMode) => {
+  return mode === "video";
 };
 
 const filterByTab = (appointments: VideoAppointment[], tab: TabKey) => {

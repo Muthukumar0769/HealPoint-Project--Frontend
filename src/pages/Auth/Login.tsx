@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 import usePageTitle from "../../hooks/usePageTitle";
 
 export const Login = () => {
-   usePageTitle("Login");
+  usePageTitle("Login");
   const toastId = useRef<string | undefined>(undefined);
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -27,8 +27,8 @@ export const Login = () => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (isSubmitting.current) return; 
-    isSubmitting.current = true;      
+    if (isSubmitting.current) return;
+    isSubmitting.current = true;
     setLoading(true);
     setErrors({});
     toast.dismiss(toastId.current);
@@ -49,6 +49,9 @@ export const Login = () => {
           user.doctor?.id ||
           null,
       };
+
+      console.log("response.data:", response.data);
+      console.log("loginUser.doctorId:", loginUser.doctorId);
 
       localStorage.setItem("user", JSON.stringify(loginUser));
       localStorage.setItem("accessToken", accessToken);
@@ -71,7 +74,7 @@ export const Login = () => {
       toast.dismiss(toastId.current);
       toastId.current = toast.error(errData?.message || "Login failed");
     } finally {
-      setLoading(false); 
+      setLoading(false);
     }
   };
 

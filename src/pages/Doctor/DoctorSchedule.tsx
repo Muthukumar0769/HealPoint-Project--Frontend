@@ -65,7 +65,7 @@ export const DoctorSchedule = () => {
   const [editDuration, setEditDuration] = useState("15");
   const [editDate, setEditDate] = useState("");
   const [editLeaveFrom, setEditLeaveFrom] = useState("");
-  const [editLeaveTo, setEditLeaveTo] = useState("");
+  const [, setEditLeaveTo] = useState("");
   const [editLeaveType, setEditLeaveType] = useState<LeaveType>("full_day");
   const [editLeaveStart, setEditLeaveStart] = useState("");
   const [editLeaveEnd, setEditLeaveEnd] = useState("");

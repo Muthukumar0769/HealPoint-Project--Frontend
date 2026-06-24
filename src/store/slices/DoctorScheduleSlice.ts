@@ -27,30 +27,21 @@ export const createAvailability = createAsyncThunk("schedule/createAvailability"
       const response = await API.post("/availability", data);
       return response.data;
     } catch (error: any) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.message || "Failed to create schedule"
-      );
+      return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed to create schedule");
     }
   }
 );
 
 export const createSpecialAvailability = createAsyncThunk("schedule/createSpecialAvailability",
   async (
-    data: {
-      date: string;
-      start_time: string;
-      end_time: string;
-      slot_duration: number;
-    },
+    data: { date: string; start_time: string; end_time: string; slot_duration: number },
     thunkAPI
   ) => {
     try {
       const response = await API.post("/special-availability", data);
       return response.data;
     } catch (error: any) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.message || "Failed to create special schedule"
-      );
+      return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed to create special schedule");
     }
   }
 );
@@ -67,23 +58,22 @@ export const createUnavailability = createAsyncThunk("schedule/createUnavailabil
     thunkAPI
   ) => {
     try {
-      const responses = await Promise.all(
-        data.map((item) => API.post("/unavailability", item))
-      );
+      const responses = await Promise.all(data.map((item) => API.post("/unavailability", item)));
       return responses.map((res) => res.data);
     } catch (error: any) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.message || "Failed to apply leave"
-      );
+      return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed to apply leave");
     }
   }
 );
 
+// ── NEW: fetch using doctorId from auth state ──────────────────────────────
+
 export const fetchNormalSchedules = createAsyncThunk("schedule/fetchNormalSchedules",
   async (_, thunkAPI) => {
     try {
-      const response = await API.get("/availability");
-      // FIX: Try all possible response shapes your API might return
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const doctorId = user?.doctorId;
+      const response = await API.get(`/doctors/${doctorId}/availability`);
       const raw =
         response.data?.data?.availabilities ||
         response.data?.availabilities ||
@@ -92,9 +82,7 @@ export const fetchNormalSchedules = createAsyncThunk("schedule/fetchNormalSchedu
         [];
       return Array.isArray(raw) ? raw : [];
     } catch (error: any) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.message || "Failed to fetch schedules"
-      );
+      return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed to fetch schedules");
     }
   }
 );
@@ -102,7 +90,9 @@ export const fetchNormalSchedules = createAsyncThunk("schedule/fetchNormalSchedu
 export const fetchSpecialSchedules = createAsyncThunk("schedule/fetchSpecialSchedules",
   async (_, thunkAPI) => {
     try {
-      const response = await API.get("/special-availability");
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const doctorId = user?.doctorId;
+      const response = await API.get(`/${doctorId}/special-availability`);
       const raw =
         response.data?.data?.specialAvailabilities ||
         response.data?.specialAvailabilities ||
@@ -111,9 +101,7 @@ export const fetchSpecialSchedules = createAsyncThunk("schedule/fetchSpecialSche
         [];
       return Array.isArray(raw) ? raw : [];
     } catch (error: any) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.message || "Failed to fetch special schedules"
-      );
+      return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed to fetch special schedules");
     }
   }
 );
@@ -121,7 +109,9 @@ export const fetchSpecialSchedules = createAsyncThunk("schedule/fetchSpecialSche
 export const fetchLeaves = createAsyncThunk("schedule/fetchLeaves",
   async (_, thunkAPI) => {
     try {
-      const response = await API.get("/unavailability");
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const doctorId = user?.doctorId;
+      const response = await API.get(`/doctors/${doctorId}/unavailability`);
       const raw =
         response.data?.data?.unavailabilities ||
         response.data?.unavailabilities ||
@@ -130,16 +120,9 @@ export const fetchLeaves = createAsyncThunk("schedule/fetchLeaves",
         response.data?.data ||
         response.data ||
         [];
-
-      // DEBUG: Remove this log after confirming data loads correctly
-      console.log("[fetchLeaves] raw response:", response.data);
-      console.log("[fetchLeaves] parsed:", raw);
-
       return Array.isArray(raw) ? raw : [];
     } catch (error: any) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.message || "Failed to fetch leaves"
-      );
+      return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed to fetch leaves");
     }
   }
 );
@@ -153,9 +136,7 @@ export const fetchAllSchedules = createAsyncThunk("schedule/fetchAllSchedules",
         dispatch(fetchLeaves()),
       ]);
       const failed = results.filter((r) => r.status === "rejected");
-      if (failed.length === results.length) {
-        return rejectWithValue("Failed to fetch all schedules");
-      }
+      if (failed.length === results.length) return rejectWithValue("Failed to fetch all schedules");
     } catch (error: any) {
       return rejectWithValue("Failed to fetch schedules");
     }
@@ -168,9 +149,7 @@ export const deleteNormalSchedule = createAsyncThunk("schedule/deleteNormalSched
       await API.delete(`/availability/${id}`);
       return id;
     } catch (error: any) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.message || "Failed to delete schedule"
-      );
+      return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed to delete schedule");
     }
   }
 );
@@ -181,9 +160,7 @@ export const deleteSpecialSchedule = createAsyncThunk("schedule/deleteSpecialSch
       await API.delete(`/special-availability/${id}`);
       return id;
     } catch (error: any) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.message || "Failed to delete special schedule"
-      );
+      return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed to delete special schedule");
     }
   }
 );
@@ -194,9 +171,7 @@ export const deleteLeave = createAsyncThunk("schedule/deleteLeave",
       await API.delete(`/unavailability/${id}`);
       return id;
     } catch (error: any) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.message || "Failed to delete leave"
-      );
+      return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed to delete leave");
     }
   }
 );
@@ -207,144 +182,76 @@ const doctorScheduleSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(createAvailability.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
+      .addCase(createAvailability.pending, (state) => { state.loading = true; state.error = null; })
       .addCase(createAvailability.fulfilled, (state, action: any) => {
         state.loading = false;
-        const created =
-          action.payload?.availability ||
-          action.payload?.data ||
-          action.payload;
+        const created = action.payload?.availability || action.payload?.data || action.payload;
         if (created?.id) {
-          // FIX: Replace existing schedule for same day instead of pushing duplicate
-          const existingIndex = state.normalSchedules.findIndex(
-            (s) => s.day_of_week === created.day_of_week
-          );
-          if (existingIndex !== -1) {
-            state.normalSchedules[existingIndex] = created;
-          } else {
-            state.normalSchedules.push(created);
-          }
+          const idx = state.normalSchedules.findIndex((s) => s.day_of_week === created.day_of_week);
+          if (idx !== -1) state.normalSchedules[idx] = created;
+          else state.normalSchedules.push(created);
         }
       })
-      .addCase(createAvailability.rejected, (state, action: any) => {
-        state.loading = false;
-        state.error = action.payload;
-      });
+      .addCase(createAvailability.rejected, (state, action: any) => { state.loading = false; state.error = action.payload; });
 
     builder
-      .addCase(createSpecialAvailability.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
+      .addCase(createSpecialAvailability.pending, (state) => { state.loading = true; state.error = null; })
       .addCase(createSpecialAvailability.fulfilled, (state, action: any) => {
         state.loading = false;
-        const created =
-          action.payload?.specialAvailability ||
-          action.payload?.data ||
-          action.payload;
+        const created = action.payload?.specialAvailability || action.payload?.data || action.payload;
         if (created?.id) {
-          // FIX: Replace existing special schedule for same date
-          const existingIndex = state.specialSchedules.findIndex(
-            (s) => s.date === created.date
-          );
-          if (existingIndex !== -1) {
-            state.specialSchedules[existingIndex] = created;
-          } else {
-            state.specialSchedules.push(created);
-          }
+          const idx = state.specialSchedules.findIndex((s) => s.date === created.date);
+          if (idx !== -1) state.specialSchedules[idx] = created;
+          else state.specialSchedules.push(created);
         }
       })
-      .addCase(createSpecialAvailability.rejected, (state, action: any) => {
-        state.loading = false;
-        state.error = action.payload;
-      });
+      .addCase(createSpecialAvailability.rejected, (state, action: any) => { state.loading = false; state.error = action.payload; });
 
     builder
-      .addCase(createUnavailability.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
+      .addCase(createUnavailability.pending, (state) => { state.loading = true; state.error = null; })
       .addCase(createUnavailability.fulfilled, (state, action: any) => {
         state.loading = false;
         const items = Array.isArray(action.payload)
-          ? action.payload.map(
-              (r: any) => r?.unavailability || r?.data || r
-            )
+          ? action.payload.map((r: any) => r?.unavailability || r?.data || r)
           : [];
-        // FIX: Avoid duplicate leaves for same date
         items.filter((i: any) => i?.id).forEach((newLeave: any) => {
-          const existingIndex = state.leaves.findIndex(
-            (l) => l.unavailable_date === newLeave.unavailable_date
-          );
-          if (existingIndex !== -1) {
-            state.leaves[existingIndex] = newLeave;
-          } else {
-            state.leaves.push(newLeave);
-          }
+          const idx = state.leaves.findIndex((l) => l.unavailable_date === newLeave.unavailable_date);
+          if (idx !== -1) state.leaves[idx] = newLeave;
+          else state.leaves.push(newLeave);
         });
       })
-      .addCase(createUnavailability.rejected, (state, action: any) => {
-        state.loading = false;
-        state.error = action.payload;
-      });
+      .addCase(createUnavailability.rejected, (state, action: any) => { state.loading = false; state.error = action.payload; });
 
     builder
-      .addCase(fetchNormalSchedules.pending, (state) => {
-        state.fetchLoading = true;
-      })
+      .addCase(fetchNormalSchedules.pending, (state) => { state.fetchLoading = true; })
       .addCase(fetchNormalSchedules.fulfilled, (state, action: any) => {
         state.fetchLoading = false;
-        // FIX: Always replace full list on fetch — this fixes stale/old data after edit
         state.normalSchedules = Array.isArray(action.payload) ? action.payload : [];
       })
-      .addCase(fetchNormalSchedules.rejected, (state, action: any) => {
-        state.fetchLoading = false;
-        state.error = action.payload;
-      });
+      .addCase(fetchNormalSchedules.rejected, (state, action: any) => { state.fetchLoading = false; state.error = action.payload; });
 
     builder
-      .addCase(fetchSpecialSchedules.pending, (state) => {
-        state.fetchLoading = true;
-      })
+      .addCase(fetchSpecialSchedules.pending, (state) => { state.fetchLoading = true; })
       .addCase(fetchSpecialSchedules.fulfilled, (state, action: any) => {
         state.fetchLoading = false;
-        // FIX: Always replace full list on fetch
         state.specialSchedules = Array.isArray(action.payload) ? action.payload : [];
       })
-      .addCase(fetchSpecialSchedules.rejected, (state, action: any) => {
-        state.fetchLoading = false;
-        state.error = action.payload;
-      });
+      .addCase(fetchSpecialSchedules.rejected, (state, action: any) => { state.fetchLoading = false; state.error = action.payload; });
 
     builder
-      .addCase(fetchLeaves.pending, (state) => {
-        state.fetchLoading = true;
-      })
+      .addCase(fetchLeaves.pending, (state) => { state.fetchLoading = true; })
       .addCase(fetchLeaves.fulfilled, (state, action: any) => {
         state.fetchLoading = false;
-        // FIX: Always replace full list on fetch — fixes leave not showing
         state.leaves = Array.isArray(action.payload) ? action.payload : [];
       })
-      .addCase(fetchLeaves.rejected, (state, action: any) => {
-        state.fetchLoading = false;
-        state.error = action.payload;
-      });
+      .addCase(fetchLeaves.rejected, (state, action: any) => { state.fetchLoading = false; state.error = action.payload; });
 
     builder.addCase(deleteNormalSchedule.fulfilled, (state, action) => {
-      state.normalSchedules = state.normalSchedules.filter(
-        (s) => s.id !== action.payload
-      );
+      state.normalSchedules = state.normalSchedules.filter((s) => s.id !== action.payload);
     });
-
     builder.addCase(deleteSpecialSchedule.fulfilled, (state, action) => {
-      state.specialSchedules = state.specialSchedules.filter(
-        (s) => s.id !== action.payload
-      );
+      state.specialSchedules = state.specialSchedules.filter((s) => s.id !== action.payload);
     });
-
     builder.addCase(deleteLeave.fulfilled, (state, action) => {
       state.leaves = state.leaves.filter((l) => l.id !== action.payload);
     });

@@ -76,13 +76,6 @@ export const DoctorSchedule = () => {
   const doFetch = useCallback(() => {
     dispatch(fetchAllSchedules());
   }, [dispatch]);
-  
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    console.log("doctorId from localStorage:", user?.doctorId);
-  }, []);
-
-  useEffect(() => { doFetch(); }, [doFetch]);
 
   const saveSchedule = async () => {
     if (!day) return toast.error("Please select day");

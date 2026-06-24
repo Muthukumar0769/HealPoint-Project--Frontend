@@ -40,19 +40,8 @@ export const Login = () => {
 
       const user = response.data.user;
       const accessToken = response.data.accessToken;
-      const loginUser = {
-        ...user,
-        doctorId:
-          response.data.doctor?.id ||
-          response.data.data?.doctor?.id ||
-          user.doctorId ||
-          user.doctor?.id ||
-          null,
-      };
-
-      console.log("response.data:", response.data);
-      console.log("loginUser.doctorId:", loginUser.doctorId);
-
+      const tokenPayload = JSON.parse(atob(accessToken.split(".")[1]));
+      const loginUser = {...user,doctorId: tokenPayload?.profile_id || null};
       localStorage.setItem("user", JSON.stringify(loginUser));
       localStorage.setItem("accessToken", accessToken);
       window.dispatchEvent(new Event("authChanged"));

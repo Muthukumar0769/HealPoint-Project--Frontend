@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { AdminSidebar } from "../Admin/AdminSidebar";
 import type { StatusBadgeProps } from "../../types/common.ts";
-import type { ChartLabelProps, InfoItemProps } from "../../types/admin.ts";
+import type { InfoItemProps } from "../../types/admin.ts";
 import { FaCalendarAlt, FaHospitalAlt, FaSpinner, FaVideo } from "react-icons/fa";
 import { FaArrowTrendUp } from "react-icons/fa6";
 import API from "../../api/axios";
@@ -37,6 +37,7 @@ const getPaymentStatusConfig = (status: string | null) => {
   if (s === "failed") return "bg-red-50 text-red-500";
   return "bg-slate-50 text-slate-500";
 };
+
 const buildTrendPath = (trend: AppointmentTrendItem[]): { linePath: string; areaPath: string; points: [number, number][] } => {
   if (!trend || trend.length === 0) {
     return { linePath: "", areaPath: "", points: [] };
@@ -75,7 +76,7 @@ const buildTrendPath = (trend: AppointmentTrendItem[]): { linePath: string; area
   return { linePath, areaPath, points };
 };
 
-const StatCard = ({ title, value, icon, change, }: { title: string; value: string; icon: string; change: string }) => (
+const StatCard = ({ title, value, icon, change }: { title: string; value: string; icon: string; change: string }) => (
   <div className="relative overflow-hidden rounded-2xl border border-blue-100 bg-white p-4 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md">
     <div className="absolute top-0 left-0 right-0 h-0.5 bg-blue-500 rounded-t-2xl" />
     <div className="flex items-start justify-between">
@@ -88,14 +89,6 @@ const StatCard = ({ title, value, icon, change, }: { title: string; value: strin
       </div>
       <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-lg">{icon}</div>
     </div>
-  </div>
-);
-
-const ChartLabel = ({ color, label, value }: ChartLabelProps) => (
-  <div className="flex items-center gap-2">
-    <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${color}`} />
-    <span className="text-xs text-slate-600">{label}</span>
-    <b className="text-xs text-slate-900">{value}</b>
   </div>
 );
 
@@ -114,6 +107,98 @@ const InfoItem = ({ label, value }: InfoItemProps) => (
     <p className="mt-0.5 text-xs font-semibold text-slate-700">{value}</p>
   </div>
 );
+
+const AppointmentsByDayChart = ({ trend }: { trend: AppointmentTrendItem[] }) => {
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+
+  if (!trend || trend.length === 0) {
+    return (
+      <div className="flex h-44 items-center justify-center text-sm text-slate-400 font-semibold">
+        No data available
+      </div>
+    );
+  }
+
+  const maxVal = Math.max(...trend.map(t => t.appointments), 1);
+  const chartHeight = 120;
+  const barWidth = Math.min(28, Math.floor(320 / trend.length) - 6);
+
+  return (
+    <div className="relative">
+      <div className="flex">
+        <div className="flex flex-col justify-between text-xs text-slate-300 pr-2 pb-5" style={{ height: chartHeight + 20 }}>
+          {[maxVal, Math.round(maxVal * 0.5), 0].map((l, i) => (
+            <span key={i} className="leading-none">{l}</span>
+          ))}
+        </div>
+        <div className="flex-1 relative" style={{ height: chartHeight + 20 }}>
+          <div className="absolute inset-0 flex flex-col justify-between pb-5 pointer-events-none">
+            {[0, 1, 2].map(i => (
+              <div key={i} className="border-t border-blue-50 w-full" />
+            ))}
+          </div>
+          <div className="absolute top-0 left-0 right-0 flex items-end justify-around pb-5" style={{ height: chartHeight + 20 }}>
+            {trend.map((t, i) => {
+              const barH = Math.max(4, (t.appointments / maxVal) * chartHeight);
+              const isHovered = hoveredIdx === i;
+              const isMax = t.appointments === maxVal;
+              return (
+                <div key={i} className="relative flex flex-col items-center" onMouseEnter={() => setHoveredIdx(i)}
+                  onMouseLeave={() => setHoveredIdx(null)} style={{ cursor: "pointer" }}>
+                  {isHovered && (
+                    <div className="absolute bottom-full mb-2 z-20 whitespace-nowrap rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-lg pointer-events-none">
+                      {MONTHS[t.month - 1]}: <span className="text-blue-300">{t.appointments}</span>
+                      <div className="absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 -translate-y-1 rotate-45 bg-slate-900" />
+                    </div>
+                  )}
+                  <div className="relative rounded-t-lg transition-all duration-300"
+                    style={{width: barWidth,height: barH,background: isHovered
+                        ? "linear-gradient(180deg, #1d4ed8 0%, #3b82f6 100%)": isMax
+                          ? "linear-gradient(180deg, #2563eb 0%, #60a5fa 100%)"
+                          : "linear-gradient(180deg, #60a5fa 0%, #bfdbfe 100%)",
+                      boxShadow: isHovered ? "0 4px 16px 0 #3b82f640" : undefined,
+                      transform: isHovered ? "scaleY(1.04)" : "scaleY(1)",
+                      transformOrigin: "bottom"}}>
+                    {(isHovered || isMax) && (
+                      <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-xs font-bold text-blue-600 whitespace-nowrap">
+                        {t.appointments}
+                      </span>
+                    )}
+                    <div className="absolute top-0 left-0 right-0 rounded-t-lg opacity-30" style={{ height: "40%", background: "linear-gradient(180deg, #fff 0%, transparent 100%)" }}/>
+                  </div>
+                  <span className="mt-1.5 text-[10px] font-semibold text-slate-400 select-none">
+                    {MONTHS[t.month - 1]}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+      <div className="mt-2 flex items-center gap-4 rounded-xl bg-blue-50 px-3 py-2">
+        <div className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+          <span className="text-xs text-slate-500">Total</span>
+          <b className="text-xs text-slate-800">{trend.reduce((s, t) => s + t.appointments, 0)}</b>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-blue-300" />
+          <span className="text-xs text-slate-500">Peak Month</span>
+          <b className="text-xs text-slate-800">
+            {MONTHS[trend.reduce((best, t) => t.appointments > best.appointments ? t : best).month - 1]}
+          </b>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-blue-200" />
+          <span className="text-xs text-slate-500">Avg/Month</span>
+          <b className="text-xs text-slate-800">
+            {Math.round(trend.reduce((s, t) => s + t.appointments, 0) / trend.length)}
+          </b>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const AdminDashboard = () => {
   usePageTitle("Admin Dashboard");
@@ -141,28 +226,13 @@ export const AdminDashboard = () => {
   useEffect(() => {
     fetchDashboard(selectedYear);
   }, [selectedYear, fetchDashboard]);
-  const stats = data
-    ? [
-      { title: "Total Doctors", value: String(data.summary.totalDoctors), icon: "🩺", change: "+12%" },
-      { title: "Total Patients", value: String(data.summary.totalPatients), icon: "👥", change: "+8%" },
-      { title: "Appointments", value: String(data.summary.totalAppointments), icon: "📅", change: "+5%" },
-      { title: "Total Revenue", value: formatCurrency(data.summary.totalRevenue), icon: "💰", change: "+18%" },
-    ]
-    : [];
 
-  const appointmentsByType = data ? (() => {
-    const total = data.recentAppointments.length || 1;
-    const video = data.recentAppointments.filter(a => a.consultationType?.toLowerCase().includes("video")).length;
-    const clinic = data.recentAppointments.filter(a => a.consultationType?.toLowerCase().includes("clinic")).length;
-    const others = total - video - clinic;
-    return {
-      video: Math.round((video / total) * 100),
-      clinic: Math.round((clinic / total) * 100),
-      others: Math.round((others / total) * 100),
-      total: data.summary.totalAppointments,
-    };
-  })()
-    : { video: 65, clinic: 25, others: 10, total: 0 };
+  const stats = data ? [
+        { title: "Total Doctors", value: String(data.summary.totalDoctors), icon: "🩺", change: "+12%" },
+        { title: "Total Patients", value: String(data.summary.totalPatients), icon: "👥", change: "+8%" },
+        { title: "Appointments", value: String(data.summary.totalAppointments), icon: "📅", change: "+5%" },
+        { title: "Total Revenue", value: formatCurrency(data.summary.totalRevenue), icon: "💰", change: "+18%" },
+      ] : [];
 
   const { linePath, areaPath, points } = buildTrendPath(data?.appointmentTrend ?? []);
   const trendMax = data?.appointmentTrend ? Math.max(...data.appointmentTrend.map(t => t.appointments), 1) : 300;
@@ -182,11 +252,13 @@ export const AdminDashboard = () => {
             <p className="mt-0.5 text-xs text-slate-400">Manage doctors, patients, appointments and payments</p>
           </div>
         </div>
+
         {error && (
           <div className="mb-4 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm font-semibold text-red-600">
             {error}
           </div>
         )}
+
         {loading && (
           <div className="flex items-center justify-center gap-2 rounded-2xl bg-white py-10 text-sm font-bold text-blue-500 shadow-sm mb-5">
             <FaSpinner className="animate-spin" /> Loading dashboard…
@@ -200,6 +272,7 @@ export const AdminDashboard = () => {
                 <StatCard key={index} {...item} />
               ))}
             </div>
+
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 mb-5">
               <div className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
@@ -211,7 +284,7 @@ export const AdminDashboard = () => {
                     <div className="flex items-center gap-2 rounded-xl border border-blue-200 bg-white px-3 py-1.5 shadow-sm">
                       <span className="text-blue-400 text-sm"><FaCalendarAlt /></span>
                       <input type="number" min="2000" max="2100" value={selectedYear} onChange={e => setSelectedYear(e.target.value)}
-                        className="border-none bg-transparent text-sm text-slate-700 outline-none cursor-pointer w-20" />
+                        className="border-none bg-transparent text-sm text-slate-700 outline-none cursor-pointer w-20"/>
                     </div>
                   </div>
                 </div>
@@ -219,9 +292,8 @@ export const AdminDashboard = () => {
                   <div className="absolute left-0 top-0 flex h-full flex-col justify-between text-xs text-slate-300 pb-0">
                     {yLabels.map((l, i) => <span key={i}>{l}</span>)}
                   </div>
-                  <svg viewBox="0 0 380 140" className="absolute left-8 top-0 h-full w-[calc(100%-2rem)]" fill="none"
-                    onMouseLeave={() => setHoverIndex(null)}
-                  >
+                  <svg viewBox="0 0 380 140" className="absolute left-8 top-0 h-full w-[calc(100%-2rem)]"
+                    fill="none" onMouseLeave={() => setHoverIndex(null)}>
                     <defs>
                       <linearGradient id="areaBlue" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.18" />
@@ -239,7 +311,7 @@ export const AdminDashboard = () => {
                       <g key={i}>
                         <circle cx={cx} cy={cy} r="4" fill="#fff" stroke="#3b82f6" strokeWidth="2" />
                         <circle cx={cx} cy={cy} r="14" fill="transparent" onMouseEnter={() => setHoverIndex(i)}
-                          onClick={() => setHoverIndex(i)} style={{ cursor: "pointer" }} />
+                          onClick={() => setHoverIndex(i)} style={{ cursor: "pointer" }}/>
                       </g>
                     ))}
                     {data.appointmentTrend.map((t, i) => (
@@ -250,8 +322,7 @@ export const AdminDashboard = () => {
                   </svg>
                   {hoverIndex !== null && data.appointmentTrend[hoverIndex] && (
                     <div className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-lg"
-                      style={{
-                        left: `calc(2rem + ${(points[hoverIndex][0] / 380) * 100}% * (100% - 2rem) / 100%)`,
+                      style={{ left: `calc(2rem + ${(points[hoverIndex][0] / 380) * 100}% * (100% - 2rem) / 100%)`,
                         top: `${(points[hoverIndex][1] / 140) * 100}%`}}>
                       {MONTHS[data.appointmentTrend[hoverIndex].month - 1]}: {data.appointmentTrend[hoverIndex].appointments} appointments
                       <div className="absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 -translate-y-1 rotate-45 bg-slate-900" />
@@ -259,42 +330,16 @@ export const AdminDashboard = () => {
                   )}
                 </div>
               </div>
+
               <div className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm">
                 <div className="mb-3">
-                  <h3 className="text-sm font-bold text-slate-900">Appointments by Type</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">Distribution this month</p>
+                  <h3 className="text-sm font-bold text-slate-900">Appointments by Month</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">Monthly breakdown · {selectedYear}</p>
                 </div>
-                <div className="flex items-center justify-center gap-8">
-                  <div className="relative h-32 w-32 shrink-0">
-                    <svg viewBox="0 0 42 42" className="h-full w-full -rotate-90">
-                      <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#0ea5e9"
-                        strokeWidth="6"
-                        strokeDasharray={`${appointmentsByType.video} ${100 - appointmentsByType.video}`}
-                        strokeDashoffset="0" />
-                      <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#2563eb"
-                        strokeWidth="6"
-                        strokeDasharray={`${appointmentsByType.clinic} ${100 - appointmentsByType.clinic}`}
-                        strokeDashoffset={`-${appointmentsByType.video}`} />
-                      <circle cx="21" cy="21" r="15.9" fill="transparent" stroke="#bfdbfe"
-                        strokeWidth="6"
-                        strokeDasharray={`${appointmentsByType.others} ${100 - appointmentsByType.others}`}
-                        strokeDashoffset={`-${appointmentsByType.video + appointmentsByType.clinic}`} />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-base font-bold text-slate-900">
-                        {appointmentsByType.total >= 1000 ? `${(appointmentsByType.total / 1000).toFixed(1)}K` : appointmentsByType.total}
-                      </span>
-                      <span className="text-xs text-slate-400">Total</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    <ChartLabel color="bg-sky-400" label="Video Consultation" value={`${appointmentsByType.video}%`} />
-                    <ChartLabel color="bg-blue-600" label="Clinic Visit" value={`${appointmentsByType.clinic}%`} />
-                    <ChartLabel color="bg-blue-200" label="Others" value={`${appointmentsByType.others}%`} />
-                  </div>
-                </div>
+                <AppointmentsByDayChart trend={data.appointmentTrend} />
               </div>
             </div>
+
             <div className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
                 <div>
@@ -305,6 +350,7 @@ export const AdminDashboard = () => {
                   View All →
                 </button>
               </div>
+
               <div className="block space-y-3 md:hidden">
                 {data.recentAppointments.map((item, index) => (
                   <div key={index} className="rounded-xl border border-blue-50 bg-blue-50/40 p-3">
@@ -328,6 +374,7 @@ export const AdminDashboard = () => {
                   </div>
                 ))}
               </div>
+
               <div className="hidden overflow-x-auto md:block">
                 <table className="w-full min-w-[720px] border-collapse text-left">
                   <thead>
@@ -352,8 +399,7 @@ export const AdminDashboard = () => {
                         <td className="py-3 px-3 text-slate-500">Dr. {item.doctorName ?? "—"}</td>
                         <td className="py-3 px-3 text-slate-400">{formatDate(item.appointmentDate)}</td>
                         <td className="py-3 px-3">
-                          <span className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs font-semibold ${item.consultationType?.toLowerCase().includes("video")
-                            ? "bg-sky-50 text-sky-600" : "bg-blue-50 text-blue-700"}`}>
+                          <span className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs font-semibold ${item.consultationType?.toLowerCase().includes("video") ? "bg-sky-50 text-sky-600" : "bg-blue-50 text-blue-700"}`}>
                             {item.consultationType?.toLowerCase().includes("video") ? <FaVideo /> : <FaHospitalAlt />}
                             {item.consultationType ?? "—"}
                           </span>

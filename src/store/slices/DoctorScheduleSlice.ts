@@ -66,20 +66,19 @@ export const createUnavailability = createAsyncThunk("schedule/createUnavailabil
   }
 );
 
-// ── NEW: fetch using doctorId from auth state ──────────────────────────────
 
 export const fetchNormalSchedules = createAsyncThunk("schedule/fetchNormalSchedules",
   async (_, thunkAPI) => {
     try {
       const user = JSON.parse(localStorage.getItem("user") || "{}");
       const doctorId = user?.doctorId;
+      if (!doctorId) return thunkAPI.rejectWithValue("Doctor ID not found");
       const response = await API.get(`/doctors/${doctorId}/availability`);
       const raw =
         response.data?.data?.availabilities ||
         response.data?.availabilities ||
         response.data?.data ||
-        response.data ||
-        [];
+        response.data || [];
       return Array.isArray(raw) ? raw : [];
     } catch (error: any) {
       return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed to fetch schedules");
@@ -92,13 +91,13 @@ export const fetchSpecialSchedules = createAsyncThunk("schedule/fetchSpecialSche
     try {
       const user = JSON.parse(localStorage.getItem("user") || "{}");
       const doctorId = user?.doctorId;
+      if (!doctorId) return thunkAPI.rejectWithValue("Doctor ID not found");
       const response = await API.get(`/${doctorId}/special-availability`);
       const raw =
         response.data?.data?.specialAvailabilities ||
         response.data?.specialAvailabilities ||
         response.data?.data ||
-        response.data ||
-        [];
+        response.data || [];
       return Array.isArray(raw) ? raw : [];
     } catch (error: any) {
       return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed to fetch special schedules");
@@ -111,6 +110,7 @@ export const fetchLeaves = createAsyncThunk("schedule/fetchLeaves",
     try {
       const user = JSON.parse(localStorage.getItem("user") || "{}");
       const doctorId = user?.doctorId;
+      if (!doctorId) return thunkAPI.rejectWithValue("Doctor ID not found");
       const response = await API.get(`/doctors/${doctorId}/unavailability`);
       const raw =
         response.data?.data?.unavailabilities ||
@@ -118,8 +118,7 @@ export const fetchLeaves = createAsyncThunk("schedule/fetchLeaves",
         response.data?.data?.leaves ||
         response.data?.leaves ||
         response.data?.data ||
-        response.data ||
-        [];
+        response.data || [];
       return Array.isArray(raw) ? raw : [];
     } catch (error: any) {
       return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed to fetch leaves");

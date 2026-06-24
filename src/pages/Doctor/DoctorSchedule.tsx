@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react"; // ← added useCallback
 import {FaCalendarAlt, FaSave, FaUmbrellaBeach, FaClock, FaCheckCircle,
   FaChevronDown, FaRegCalendarAlt, FaStar, FaTrash, FaEdit,
   FaExclamationTriangle, FaChevronLeft, FaChevronRight, FaTimes,} from "react-icons/fa";
@@ -74,9 +74,15 @@ export const DoctorSchedule = () => {
   const dayOptions: OptionType[] = DAYS.map((d) => ({ label: d, value: d }));
   const durationOptions: OptionType[] = DURATIONS.map((t) => ({ label: `${t} Minutes`, value: t }));
 
-  useEffect(() => {
+  // FIX 1: Use useCallback so doFetch is stable and can be called anywhere
+  const doFetch = useCallback(() => {
     dispatch(fetchAllSchedules());
   }, [dispatch]);
+
+  // FIX 2: Always re-fetch on mount — this fixes data disappearing when navigating back
+  useEffect(() => {
+    doFetch();
+  }, [doFetch]);
 
   const saveSchedule = async () => {
     if (!day) return toast.error("Please select day");
@@ -90,6 +96,8 @@ export const DoctorSchedule = () => {
       })).unwrap();
       toast.success("Schedule saved successfully");
       setDay(""); setScheduleStartTime(""); setScheduleEndTime(""); setDuration("15"); setBreakStart(""); setBreakEnd("");
+      // FIX 3: Re-fetch after saving so admin reports reflect new availability
+      doFetch();
     } catch (error: any) { toast.error(error || "Schedule save failed"); }
   };
 
@@ -103,6 +111,8 @@ export const DoctorSchedule = () => {
       })).unwrap();
       toast.success("Special schedule saved");
       setSpecialDate(""); setSpecialStartTime(""); setSpecialEndTime(""); setSpecialDuration("15");
+      // FIX 3: Re-fetch after saving
+      doFetch();
     } catch (error: any) { toast.error(error || "Failed to save special schedule"); }
   };
 
@@ -125,6 +135,8 @@ export const DoctorSchedule = () => {
       await dispatch(createUnavailability(requests)).unwrap();
       toast.success("Leave applied successfully");
       setLeaveFrom(""); setLeaveTo(""); setLeaveType("full_day"); setLeaveStart(""); setLeaveEnd(""); setReason("");
+      // FIX 3: Re-fetch after leave so admin reports update
+      doFetch();
     } catch (error: any) { toast.error(error || "Leave apply failed"); }
   };
 
@@ -134,14 +146,19 @@ export const DoctorSchedule = () => {
     try {
       if (deleteModal.type === "normal") {
         await dispatch(deleteNormalSchedule(deleteModal.id)).unwrap();
+        // FIX 4: Re-fetch after deleting schedule so admin available tab updates
+        doFetch();
       } else if (deleteModal.type === "special") {
         await dispatch(deleteSpecialSchedule(deleteModal.id)).unwrap();
+        doFetch();
       } else {
+        // FIX 5: Delete leave → remove from admin reports leave list immediately
         const leaveRecord = leaves.find((l) => l.id === deleteModal.id);
         await dispatch(deleteLeave(deleteModal.id)).unwrap();
         if (leaveRecord?.unavailable_date) {
           dispatch(removeLeaveByDate(leaveRecord.unavailable_date));
         }
+        doFetch();
       }
       toast.success("Deleted successfully");
       setDeleteModal({ open: false, type: null, id: null, label: "" });
@@ -195,6 +212,7 @@ export const DoctorSchedule = () => {
           start_time: editLeaveType === "half_day" ? editLeaveStart : null,
           end_time: editLeaveType === "half_day" ? editLeaveEnd : null,
         });
+        // FIX 6: Update admin reports leave record in real time
         dispatch(updateLeaveRecord({
           oldDate: editModal.data.unavailable_date,
           newDate: editLeaveFrom,
@@ -205,7 +223,8 @@ export const DoctorSchedule = () => {
         }));
       }
       toast.success("Updated successfully");
-      dispatch(fetchAllSchedules());
+      // FIX 7: Always re-fetch after any edit so both doctor and admin data are fresh
+      doFetch();
       setEditModal({ open: false, type: null, data: null });
     } catch (e: any) { toast.error(typeof e === "string" ? e : e?.response?.data?.message || "Update failed"); }
     setEditLoading(false);

@@ -32,14 +32,14 @@ export const SpecialityMenu = () => {
           Choose your required medical specialist and book an appointment easily.
         </p>
 
-        <div className="mt-8 flex gap-3 overflow-x-auto pb-4 scrollbar-hide lg:grid lg:grid-cols-10 lg:overflow-visible">
+        <div className="mt-8 grid grid-cols-5 gap-4 sm:grid-cols-5 md:grid-cols-10 lg:grid-cols-10">
           {SpecialityData.map((item) => (
-            <Link to={`/doctors/speciality/${encodeURIComponent(item.speciality)}`} className="flex min-w-[95px] flex-col items-center text-center text-sm"
+            <Link to={`/doctors/speciality/${encodeURIComponent(item.speciality)}`} className="flex flex-col items-center text-center"
               key={item.speciality}>
-              <div className="flex lg:h-20 lg:w-20 items-center justify-center rounded-full bg-blue-400 p-4 shadow-md transition-all duration-300 hover:scale-105 sm:h-24 sm:w-24 sm:p-5">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-400 p-3 shadow-md transition-all duration-300 hover:scale-105 xs:h-16 xs:w-16 sm:h-18 sm:w-18 sm:p-4 md:h-20 md:w-20 md:p-5">
                 <img src={item.image} alt={item.speciality} className="h-full w-full object-contain" />
               </div>
-              <p className="mt-2 text-xs font-semibold text-gray-600 sm:text-sm">
+              <p className="mt-2 text-[10px] font-semibold text-gray-600 xs:text-xs sm:text-xs md:text-sm">
                 {item.speciality}
               </p>
             </Link>

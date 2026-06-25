@@ -9,15 +9,15 @@ declare global {
 }
 
 export const extractRoomName = (meetingRoom: string) => {
+  const full = meetingRoom.startsWith("http") ? meetingRoom : `https://meet.jit.si/${meetingRoom}`;
   try {
-    const url = new URL(meetingRoom);
+    const url = new URL(full);
     return { domain: url.hostname, roomName: url.pathname.replace(/^\//, "") };
   } catch {
     return { domain: "meet.jit.si", roomName: meetingRoom };
   }
 };
-
-export const JitsiMeetRoom = ({meetingRoom, displayName, titleName, avatarName, onClose, onHangup,}: JitsiMeetRoomProps) => {
+export const JitsiMeetRoom = ({ meetingRoom, displayName, titleName, avatarName, onClose, onHangup, }: JitsiMeetRoomProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const apiRef = useRef<any>(null);
   const [ready, setReady] = useState(false);
@@ -62,7 +62,8 @@ export const JitsiMeetRoom = ({meetingRoom, displayName, titleName, avatarName, 
           configOverwrite: {
             startWithAudioMuted: false,
             startWithVideoMuted: false,
-            disableDeepLinking: true,  
+            disableDeepLinking: true,
+            disableProfile: true,
             prejoinPageEnabled: false,
             p2p: { enabled: false },
             requireDisplayName: false,
@@ -73,7 +74,9 @@ export const JitsiMeetRoom = ({meetingRoom, displayName, titleName, avatarName, 
           interfaceConfigOverwrite: {
             SHOW_JITSI_WATERMARK: false,
             SHOW_WATERMARK_FOR_GUESTS: false,
-            MOBILE_APP_PROMO: false, 
+            MOBILE_APP_PROMO: false,
+            SHOW_PROMOTIONAL_CLOSE_PAGE: false,
+            DISABLE_DEEP_LINKING: true,
             TOOLBAR_BUTTONS: [
               "microphone", "camera", "closedcaptions", "desktop",
               "fullscreen", "fodeviceselection", "hangup", "chat",

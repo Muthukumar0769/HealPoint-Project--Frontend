@@ -129,76 +129,6 @@ const InfoItem = ({ label, value }: InfoItemProps) => (
   </div>
 );
 
-const AppointmentsByMonthChart = ({ trend }: { trend: AppointmentTrendItem[] }) => {
-  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
-  if (!trend || trend.length === 0) {
-    return <div className="flex h-44 items-center justify-center text-sm text-slate-400 font-semibold">No data available</div>;
-  }
-  const maxVal = Math.max(...trend.map(t => t.appointments), 1);
-  const chartHeight = 120;
-  const barWidth = Math.min(28, Math.floor(320 / trend.length) - 6);
-  return (
-    <div className="relative">
-      <div className="flex">
-        <div className="flex flex-col justify-between text-xs text-slate-300 pr-2 pb-5" style={{ height: chartHeight + 20 }}>
-          {[maxVal, Math.round(maxVal * 0.5), 0].map((l, i) => <span key={i} className="leading-none">{l}</span>)}
-        </div>
-        <div className="flex-1 relative" style={{ height: chartHeight + 20 }}>
-          <div className="absolute inset-0 flex flex-col justify-between pb-5 pointer-events-none">
-            {[0, 1, 2].map(i => <div key={i} className="border-t border-blue-50 w-full" />)}
-          </div>
-          <div className="absolute top-0 left-0 right-0 flex items-end justify-around pb-5" style={{ height: chartHeight + 20 }}>
-            {trend.map((t, i) => {
-              const barH = Math.max(4, (t.appointments / maxVal) * chartHeight);
-              const isHovered = hoveredIdx === i;
-              const isMax = t.appointments === maxVal;
-              return (
-                <div key={i} className="relative flex flex-col items-center" onMouseEnter={() => setHoveredIdx(i)} onMouseLeave={() => setHoveredIdx(null)} style={{ cursor: "pointer" }}>
-                  {isHovered && (
-                    <div className="absolute bottom-full mb-2 z-20 whitespace-nowrap rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-lg pointer-events-none">
-                      {MONTHS[t.month - 1]}: <span className="text-blue-300">{t.appointments}</span>
-                      <div className="absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 -translate-y-1 rotate-45 bg-slate-900" />
-                    </div>
-                  )}
-                  <div className="relative rounded-t-lg transition-all duration-300" style={{
-                    width: barWidth, height: barH,
-                    background: isHovered ? "linear-gradient(180deg, #1d4ed8 0%, #3b82f6 100%)" : isMax ? "linear-gradient(180deg, #2563eb 0%, #60a5fa 100%)" : "linear-gradient(180deg, #60a5fa 0%, #bfdbfe 100%)",
-                    boxShadow: isHovered ? "0 4px 16px 0 #3b82f640" : undefined,
-                    transform: isHovered ? "scaleY(1.04)" : "scaleY(1)", transformOrigin: "bottom",
-                  }}>
-                    {(isHovered || isMax) && (
-                      <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-xs font-bold text-blue-600 whitespace-nowrap">{t.appointments}</span>
-                    )}
-                    <div className="absolute top-0 left-0 right-0 rounded-t-lg opacity-30" style={{ height: "40%", background: "linear-gradient(180deg, #fff 0%, transparent 100%)" }} />
-                  </div>
-                  <span className="mt-1.5 text-[10px] font-semibold text-slate-400 select-none">{MONTHS[t.month - 1]}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-      <div className="mt-2 flex items-center gap-4 rounded-xl bg-blue-50 px-3 py-2">
-        <div className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
-          <span className="text-xs text-slate-500">Total</span>
-          <b className="text-xs text-slate-800">{trend.reduce((s, t) => s + t.appointments, 0)}</b>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-blue-300" />
-          <span className="text-xs text-slate-500">Peak Month</span>
-          <b className="text-xs text-slate-800">{MONTHS[trend.reduce((best, t) => t.appointments > best.appointments ? t : best).month - 1]}</b>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-blue-200" />
-          <span className="text-xs text-slate-500">Avg/Month</span>
-          <b className="text-xs text-slate-800">{Math.round(trend.reduce((s, t) => s + t.appointments, 0) / trend.length)}</b>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const RevenueTrendChart = ({ trend }: { trend: RevenueTrendItem[] }) => {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   if (!trend || trend.length === 0) {
@@ -357,7 +287,7 @@ export const AdminDashboard = () => {
               {stats.map((item, index) => <StatCard key={index} {...item} />)}
             </div>
 
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 mb-5">
+            <div className="mb-5">
               <div className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
                   <div>
@@ -402,14 +332,6 @@ export const AdminDashboard = () => {
                     </div>
                   )}
                 </div>
-              </div>
-
-              <div className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm">
-                <div className="mb-3">
-                  <h3 className="text-sm font-bold text-slate-900">Appointments by Month</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">Monthly breakdown · {selectedYear}</p>
-                </div>
-                <AppointmentsByMonthChart trend={data.appointmentTrend} />
               </div>
             </div>
 

@@ -213,6 +213,7 @@ export const AddDoctor = () => {
         };
         if (form.password.trim()) {
           updateData.password = form.password;
+          
         }
         await API.put(`/doctors/${id}`, updateData, {
           headers: {
@@ -276,19 +277,19 @@ export const AddDoctor = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#f0f4fb] pt-20">
+    <div className="flex min-h-screen bg-[#f0f4fb] pt-16">
       <AdminSidebar />
-      <main className="flex-1 p-8">
-        <div className="mx-auto max-w-5xl rounded-2xl bg-white p-8 shadow-lg">
-          <h1 className="text-3xl font-bold text-gray-900">
+      <main className="flex-1 p-4 lg:p-6">
+        <div className="mx-auto max-w-4xl rounded-2xl bg-white p-5 lg:p-6 shadow-lg">
+          <h1 className="text-xl font-bold text-gray-900">
             {isEditMode ? "Update Doctor" : "Add Doctor"}
           </h1>
-          <p className="mt-2 text-gray-500">
+          <p className="mt-1 text-sm text-gray-500">
             {isEditMode ? "Update doctor details." : "Fill the doctor details and upload a photo."}
           </p>
-          <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+          <form onSubmit={handleSubmit} className="mt-5 space-y-4">
             <div className="flex justify-center">
-              <label className="relative flex h-40 w-40 cursor-pointer items-center justify-center overflow-hidden rounded-full border-4 border-white bg-blue-50 shadow-xl ring-4 ring-blue-100">
+              <label className="relative flex h-28 w-28 cursor-pointer items-center justify-center overflow-hidden rounded-full border-4 border-white bg-blue-50 shadow-xl ring-4 ring-blue-100">
                 {photoPreview ? (
                   <img src={photoPreview} alt="doctor" className="h-full w-full rounded-full object-cover object-top"
                     onError={() => setPhotoPreview(null)} />
@@ -418,7 +419,7 @@ export const AddDoctor = () => {
               <textarea name="bio" value={form.bio} onChange={handleChange} rows={5} placeholder="Write about doctor..."
                 className="w-full resize-none rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-blue-500" />
             </div>
-            <button type="submit" disabled={loading} className={`w-full cursor-pointer rounded-xl py-4 text-lg font-semibold text-white transition disabled:opacity-60 ${isEditMode
+            <button type="submit" disabled={loading} className={`w-full cursor-pointer rounded-xl py-3 text-base font-semibold text-white transition disabled:opacity-60 ${isEditMode
               ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}`} >
               {loading ? isEditMode ? "Updating Doctor..." : "Adding Doctor..." : isEditMode ? "Update Doctor" : "Add Doctor"}
             </button>

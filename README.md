@@ -1,5 +1,34 @@
 ﻿# HealPoint
 
+Vercel Deploy link:
+------------------------
+https://healpoint-frontend.vercel.app/
+
+ 
+Login Credentials:
+---------------------
+Admin:
+-------
+Email - sudhakar@gmail.com,
+password - 123456
+ 
+Doctor:
+----------
+Email: priya@gmail.com,
+password: 123456
+ 
+Patient:
+-----------
+Email: sudhakarinfoo@gmail.com,
+password: 123456
+ 
+Razorpay Card Details:
+-------------------------
+Card Number: 5267 3181 8797 5449,
+Expiry : 12/26,
+CVV: 123,
+OTP: 1234 (or) 123456
+
 ## Overview
 
 HealPoint is a modern healthcare appointment and consultation frontend built with React, TypeScript, Redux Toolkit, and Vite. It supports three user roles—Patient, Doctor, and Admin—and provides interfaces for browsing doctors, booking appointments, tracking payments, managing schedules, and running video consultations.

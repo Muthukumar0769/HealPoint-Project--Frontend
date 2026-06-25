@@ -6,11 +6,15 @@ import API from "../../api/axios";
 import type { ApiData } from "../../types/admin";
 import usePageTitle from "../../hooks/usePageTitle";
 
+//------Helper Functions----------------
+
 const formatINR = (val: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(val);
 type FilterType = "week" | "month" | "year";
 const LIMIT = 5;
 const RANK_COLORS = ["text-yellow-500", "text-slate-400", "text-orange-400"];
 const RANK_BG = ["bg-yellow-50", "bg-slate-50", "bg-orange-50"];
+
+//------Main Component-----------
 
 export const AdminDoctorEarnings = () => {
   usePageTitle("Doctor Earnings");
@@ -28,6 +32,8 @@ export const AdminDoctorEarnings = () => {
   const [animating, setAnimating] = useState(false);
   const [animKey, setAnimKey] = useState(0);
   const tableRef = useRef<HTMLDivElement>(null);
+
+  //--------Fetch the Total doctor-wise earnings for all the doctors data logic-----------
 
   const fetchData = async (pageNum: number, currentFilter: FilterType, searchQuery: string) => {
     setLoading(true);
@@ -76,6 +82,8 @@ export const AdminDoctorEarnings = () => {
     fetchData(1, filter, val);
   };
 
+//--------Pagination Logic--------
+
   const goToPage = (nextPage: number) => {
     if (animating || nextPage === page) return;
     const dir = nextPage > page ? "right" : "left";
@@ -90,7 +98,7 @@ export const AdminDoctorEarnings = () => {
     }, 200);
   };
 
-  const totalRecords = allRows.length;
+  const totalRecords = apiData?.doctorSummary.totalRecords ?? 0;
   const totalPages = Math.ceil(totalRecords / LIMIT) || 1;
   const currentPage = page;
   const rows = allRows.slice((page - 1) * LIMIT, page * LIMIT);

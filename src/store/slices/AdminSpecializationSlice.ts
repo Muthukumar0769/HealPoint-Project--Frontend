@@ -11,6 +11,7 @@ const initialState: AdminSpecializationState = {
   totalPages: 1,
   totalDepartments: 0,
   direction: 1,
+  pageSize: 6,
 };
 
 const normalizeDepartment = (item: any): Specialization => ({
@@ -20,6 +21,8 @@ const normalizeDepartment = (item: any): Specialization => ({
   doctors: 0,
 });
 
+//Thunk for fetch the specilaization-----------------
+
 export const fetchAdminSpecializations = createAsyncThunk(
   "adminSpecializations/fetchAdminSpecializations",
   async (_, { getState, rejectWithValue }) => {
@@ -28,8 +31,8 @@ export const fetchAdminSpecializations = createAsyncThunk(
         adminSpecializations: AdminSpecializationState;
       };
 
-      const { currentPage, search } = state.adminSpecializations;
-      const limit = 6;
+      const { currentPage, search, pageSize } = state.adminSpecializations;
+      const limit = pageSize;
       const [deptRes, doctorRes] = await Promise.all([
         API.get("/departments", {
           params: {
@@ -71,12 +74,12 @@ export const fetchAdminSpecializations = createAsyncThunk(
         [];
       const departments = Array.isArray(rawDepartments)
         ? rawDepartments.map((item: any) => {
-            const dept = normalizeDepartment(item);
-            return {
-              ...dept,
-              doctors: counts[dept.name.trim().toLowerCase()] || 0,
-            };
-          })
+          const dept = normalizeDepartment(item);
+          return {
+            ...dept,
+            doctors: counts[dept.name.trim().toLowerCase()] || 0,
+          };
+        })
         : [];
 
       return {
@@ -97,6 +100,8 @@ export const fetchAdminSpecializations = createAsyncThunk(
   }
 );
 
+//--------Thunk for delete the specialization----------------
+
 export const deleteSpecialization = createAsyncThunk(
   "adminSpecializations/deleteSpecialization",
   async (id: number, { dispatch, rejectWithValue }) => {
@@ -111,6 +116,9 @@ export const deleteSpecialization = createAsyncThunk(
     }
   }
 );
+
+//------------Reducers--------------
+
 const adminSpecializationSlice = createSlice({
   name: "adminSpecializations",
   initialState,
@@ -126,6 +134,11 @@ const adminSpecializationSlice = createSlice({
     ) => {
       state.currentPage = action.payload.page;
       state.direction = action.payload.dir;
+    },
+    setPageSize: (state, action: PayloadAction<number>) => {  // ← add this
+      state.pageSize = action.payload;
+      state.currentPage = 1;
+      state.direction = 1;
     },
   },
 
@@ -150,5 +163,5 @@ const adminSpecializationSlice = createSlice({
   },
 });
 
-export const { setSearch, setPage } =adminSpecializationSlice.actions;
+export const { setSearch, setPage,setPageSize  } = adminSpecializationSlice.actions;
 export default adminSpecializationSlice.reducer;

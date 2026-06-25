@@ -31,16 +31,16 @@ export const FAQ = () => {
   };
 
   return (
-    <section className="bg-[#EEF0F8] px-6 py-14 md:px-16 lg:px-24">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-12">
-        <div className="md:w-1/3 flex flex-col justify-start gap-6">
-          <p className="text-sm font-semibold text-gray-500 uppercase tracking-widest">FAQ</p>
-          <h2 className="text-3xl font-bold text-[#0d1b5e] leading-snug">
+    <section className="bg-[#EEF0F8] px-5 py-9 md:px-12 lg:px-16">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-8">
+        <div className="md:w-1/3 flex flex-col justify-start gap-4">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest">FAQ</p>
+          <h2 className="text-xl font-bold text-[#0d1b5e] leading-snug sm:text-2xl">
             We are here to <span className="font-extrabold">Answer your Questions</span>
           </h2>
 
-          <div className="flex items-center gap-4 mt-4">
-            <div className="w-16 h-16 flex-shrink-0">
+          <div className="flex items-center gap-3 mt-3">
+            <div className="w-12 h-12 flex-shrink-0">
               <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="80" height="80" rx="12" fill="#dce3f5" />
                 <circle cx="40" cy="28" r="12" fill="#3b5bdb" />
@@ -51,18 +51,18 @@ export const FAQ = () => {
             </div>
 
             <div>
-              <p className="text-sm text-gray-600 mb-1">Still do you have any questions?</p>
+              <p className="text-xs text-gray-600 mb-0.5">Still do you have any questions?</p>
               <a href="tel:+919876543210" className="text-[#3b5bdb] font-semibold flex items-center gap-1 hover:underline">
                 📞 +91 9876543210
               </a>
             </div>
           </div>
         </div>
-        <div className="md:w-2/3 flex flex-col gap-4">
+        <div  className="md:w-2/3 flex flex-col gap-3">
           {faqs.map((faq, index) => (
             <div key={index} className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-              <button onClick={() => toggle(index)} className="w-full flex justify-between items-center px-6 py-4 text-left">
-                <span className="font-semibold text-[#0d1b5e] text-sm md:text-base">
+              <button onClick={() => toggle(index)} className="w-full flex justify-between items-center px-5 py-3 text-left">
+                <span className="font-semibold text-[#0d1b5e] text-xs md:text-sm">
                   {faq.question}
                 </span>
                 <span className="text-gray-500 text-lg ml-4">
@@ -71,7 +71,7 @@ export const FAQ = () => {
               </button>
 
               {openIndex === index && (
-                <div className="px-6 pb-5 text-gray-600 text-sm leading-relaxed border-t border-gray-100 pt-3">
+                <div className="px-5 pb-4 text-gray-600 text-xs leading-relaxed border-t border-gray-100 pt-2.5">
                   <span className="font-semibold text-gray-700">Ans: </span>
                   {faq.answer}
                 </div>

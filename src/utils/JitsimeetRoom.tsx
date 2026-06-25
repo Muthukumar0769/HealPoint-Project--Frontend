@@ -8,6 +8,8 @@ declare global {
   }
 }
 
+//---------Extract the room name for correct url----------------
+
 export const extractRoomName = (meetingRoom: string) => {
   const full = meetingRoom.startsWith("http") ? meetingRoom : `https://meet.jit.si/${meetingRoom}`;
   try {

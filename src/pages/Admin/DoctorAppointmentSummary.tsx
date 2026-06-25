@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AdminSidebar } from "./AdminSidebar";
-import { FaArrowLeft, FaUserMd, FaSpinner, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaArrowLeft, FaUserMd, FaSpinner } from "react-icons/fa";
 import API from "../../api/axios";
 import type { DoctorSummaryDashboardData } from "../../types/admin";
 import usePageTitle from "../../hooks/usePageTitle";
+
+//---Helper functions-------
 
 const specializationColors: Record<string, { bg: string; text: string; dot: string }> = {
   Cardiologist: { bg: "bg-rose-50", text: "text-rose-600", dot: "bg-rose-400" },
@@ -51,6 +53,8 @@ function StatBadge({ value, label, colorClass, bgClass }: {
   );
 }
 
+//-------Main Component----------
+
 export const DoctorAppointmentSummary = () => {
   usePageTitle("Appointment Summary");
   const navigate = useNavigate();
@@ -58,21 +62,29 @@ export const DoctorAppointmentSummary = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const limit = 5;
+  const [limit, setLimit] = useState(5);
+  const [allDoctorRows, setAllDoctorRows] = useState<DoctorSummaryDashboardData["doctorSummary"]["rows"]>([]);
 
-  const fetchData = async (pageNum: number) => {
+  //-----fetch the doctor-wise Total Appointmets---------
+  const fetchData = async ( lim = limit) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await API.get("/admin/dashboard/appointmentsOverview", { params: { page: pageNum, limit } });
-      if (res.data?.success) {
-        setData({
-          doctorSummary: res.data.data.doctorSummary,
-          insights: res.data.data.insights,
-        });
-      } else {
-        setError("Failed to load data.");
-      }
+      const first = await API.get("/admin/dashboard/appointmentsOverview", { params: { page: 1, limit: lim } });
+      if (!first.data?.success) { setError("Failed to load data."); return; }
+
+      const totalPagesAll = first.data.data.doctorSummary.totalPages;
+      const restRequests = Array.from({ length: totalPagesAll - 1 }, (_, i) =>
+        API.get("/admin/dashboard/appointmentsOverview", { params: { page: i + 2, limit: lim } })
+      );
+      const restResponses = await Promise.all(restRequests);
+      const allRows = [first, ...restResponses].flatMap(r => r.data?.data?.doctorSummary?.rows ?? []);
+
+      setAllDoctorRows(allRows);
+      setData({
+        doctorSummary: first.data.data.doctorSummary, // still used for current-page rows/pagination
+        insights: first.data.data.insights,
+      });
     } catch (err) {
       console.error("Failed to fetch dashboard:", err);
       setError("Something went wrong. Please try again.");
@@ -81,7 +93,7 @@ export const DoctorAppointmentSummary = () => {
     }
   };
 
-  useEffect(() => { fetchData(page); }, [page]);
+  useEffect(() => { fetchData( limit); }, [page, limit]);
 
   const rows = data?.doctorSummary.rows ?? [];
   const totalPages = data?.doctorSummary.totalPages ?? 1;
@@ -90,7 +102,7 @@ export const DoctorAppointmentSummary = () => {
   const allStats = data?.insights.doctorStats ?? [];
   const grandTotal = allStats.reduce((sum, d) => sum + d.total, 0);
   const completionRate = data?.insights.completionRate ?? "0";
-  const pageTotals = rows.reduce(
+  const globalTotals = allDoctorRows.reduce(
     (acc, d) => ({
       completed: acc.completed + d.completed,
       missed: acc.missed + d.missed,
@@ -100,169 +112,191 @@ export const DoctorAppointmentSummary = () => {
   );
 
   return (
-    <div className="flex min-h-screen bg-[#f0f4fb] pt-16 sm:pt-20">
+    <div className="flex min-h-screen bg-[#f0f4fb] pt-16 sm:pt-20 md:pt-16">
       <AdminSidebar />
-      <main className="flex-1 min-w-0 px-3 sm:px-6 lg:px-8 py-5 sm:py-8">
-        <button onClick={() => navigate("/admin/appointments")}
-          className="mb-4 sm:mb-5 inline-flex items-center gap-2 text-xs sm:text-sm cursor-pointer font-semibold text-blue-600 hover:text-blue-800 transition-colors">
-          <FaArrowLeft className="text-[10px] sm:text-xs" /> Back To Appointments
-        </button>
-        <div className="mb-5 sm:mb-8 flex flex-col gap-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-gray-900">
-              Doctor's Appointments <span className="text-blue-600">Summary</span>
-            </h1>
-            <p className="mt-1 text-xs sm:text-sm text-gray-500">
-              Total appointment breakdown across all physicians
-            </p>
-          </div>
-
-          {!loading && (
-            <div className="flex flex-wrap gap-2 sm:gap-3">
-              <div className="flex items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl bg-white px-3 sm:px-4 py-2 sm:py-2.5 shadow-sm border border-gray-100">
-                <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-blue-500 shrink-0" />
-                <span className="text-[10px] sm:text-xs font-semibold text-gray-500">Total</span>
-                <span className="text-xs sm:text-sm font-extrabold text-gray-800">{grandTotal}</span>
-              </div>
-              <div className="flex items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl bg-white px-3 sm:px-4 py-2 sm:py-2.5 shadow-sm border border-gray-100">
-                <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-emerald-500 shrink-0" />
-                <span className="text-[10px] sm:text-xs font-semibold text-gray-500">Completed</span>
-                <span className="text-xs sm:text-sm font-extrabold text-emerald-700">{pageTotals.completed}</span>
-              </div>
-              <div className="flex items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl bg-white px-3 sm:px-4 py-2 sm:py-2.5 shadow-sm border border-gray-100">
-                <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-yellow-400 shrink-0" />
-                <span className="text-[10px] sm:text-xs font-semibold text-gray-500">Missed</span>
-                <span className="text-xs sm:text-sm font-extrabold text-yellow-600">{pageTotals.missed}</span>
-              </div>
-              <div className="flex items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl bg-white px-3 sm:px-4 py-2 sm:py-2.5 shadow-sm border border-gray-100">
-                <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-red-400 shrink-0" />
-                <span className="text-[10px] sm:text-xs font-semibold text-gray-500">Cancelled</span>
-                <span className="text-xs sm:text-sm font-extrabold text-red-600">{pageTotals.cancelled}</span>
-              </div>
-              <div className="flex items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl bg-gradient-to-r from-blue-500 to-blue-700 px-3 sm:px-4 py-2 sm:py-2.5 shadow-sm">
-                <span className="text-[10px] sm:text-xs font-semibold text-blue-100">Completion</span>
-                <span className="text-xs sm:text-sm font-extrabold text-white">{completionRate}%</span>
-              </div>
+      <main className="flex-1 min-w-0 px-3 py-3 sm:px-4 sm:py-4 lg:px-5 lg:py-5 xl:px-7">
+        <div className="mx-auto w-full max-w-screen-lg">
+          <button onClick={() => navigate("/admin/appointments")}
+            className="mb-4 sm:mb-5 inline-flex items-center gap-2 text-xs sm:text-sm cursor-pointer font-semibold text-blue-600 hover:text-blue-800 transition-colors">
+            <FaArrowLeft className="text-[10px] sm:text-xs" /> Back To Appointments
+          </button>
+          <div className="mb-5 sm:mb-8 flex flex-col gap-4">
+            <div>
+              <h1 className="text-lg sm:text-xl font-extrabold tracking-tight text-gray-900">
+                Doctor's Appointments <span className="text-blue-600">Summary</span>
+              </h1>
+              <p className="mt-0.5 text-xs text-gray-500">
+                Total appointment breakdown across all physicians
+              </p>
             </div>
-          )}
-        </div>
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-24 gap-3">
-            <FaSpinner className="animate-spin text-blue-500 text-3xl" />
-            <p className="text-sm text-gray-400">Loading doctor summaries…</p>
-          </div>
-        ) : error ? (
-          <div className="rounded-2xl bg-red-50 border border-red-200 px-6 py-8 text-center">
-            <p className="text-sm font-semibold text-red-600">{error}</p>
-            <button onClick={() => fetchData(page)} className="mt-4 text-sm text-blue-600 hover:underline">
-              Retry
-            </button>
-          </div>
-        ) : (
-          <>
-            <div className="space-y-3 slide-in-right">
-              {rows.map((doctor, index) => {
-                const spec = getSpecColor(doctor.specialization);
-                const avatarGrad = AVATAR_GRADIENTS[((currentPage - 1) * limit + index) % AVATAR_GRADIENTS.length];
-                const hasAppointments = doctor.total > 0;
 
-                return (
-                  <div key={doctor.doctor_id} className={`group rounded-2xl bg-white px-4 sm:px-6 py-4 sm:py-5 shadow-sm border transition-all duration-200 ${
-                      hasAppointments ? "border-gray-100 hover:shadow-md hover:border-blue-100" : "border-gray-100 opacity-60"}`}>
-                    <div className="flex items-start gap-3 sm:hidden">
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gray-50 text-xs font-extrabold text-gray-400">
-                        {(currentPage - 1) * limit + index + 1}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2.5 mb-2">
-                          <div className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${avatarGrad} text-white shadow-md`}>
-                            <FaUserMd className="text-base" />
-                            {hasAppointments && (
-                              <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-400 ring-2 ring-white text-[7px] font-bold text-white">✓</span>
-                            )}
+            {!loading && (
+              <div className="flex flex-wrap gap-2 sm:gap-3">
+                <div className="flex items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl bg-white px-3 sm:px-4 py-2 sm:py-2.5 shadow-sm border border-gray-100">
+                  <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-blue-500 shrink-0" />
+                  <span className="text-[10px] sm:text-xs font-semibold text-gray-500">Total</span>
+                  <span className="text-xs sm:text-sm font-extrabold text-gray-800">{grandTotal}</span>
+                </div>
+                <div className="flex items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl bg-white px-3 sm:px-4 py-2 sm:py-2.5 shadow-sm border border-gray-100">
+                  <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-emerald-500 shrink-0" />
+                  <span className="text-[10px] sm:text-xs font-semibold text-gray-500">Completed</span>
+                  <span className="text-xs sm:text-sm font-extrabold text-emerald-700">{globalTotals.completed}</span>
+                </div>
+                <div className="flex items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl bg-white px-3 sm:px-4 py-2 sm:py-2.5 shadow-sm border border-gray-100">
+                  <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-yellow-400 shrink-0" />
+                  <span className="text-[10px] sm:text-xs font-semibold text-gray-500">Missed</span>
+                  <span className="text-xs sm:text-sm font-extrabold text-yellow-600">{globalTotals.missed}</span>
+                </div>
+                <div className="flex items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl bg-white px-3 sm:px-4 py-2 sm:py-2.5 shadow-sm border border-gray-100">
+                  <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-red-400 shrink-0" />
+                  <span className="text-[10px] sm:text-xs font-semibold text-gray-500">Cancelled</span>
+                  <span className="text-xs sm:text-sm font-extrabold text-red-600">{globalTotals.cancelled}</span>
+                </div>
+                <div className="flex items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl bg-gradient-to-r from-blue-500 to-blue-700 px-3 sm:px-4 py-2 sm:py-2.5 shadow-sm">
+                  <span className="text-[10px] sm:text-xs font-semibold text-blue-100">Completion</span>
+                  <span className="text-xs sm:text-sm font-extrabold text-white">{completionRate}%</span>
+                </div>
+              </div>
+            )}
+          </div>
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-24 gap-3">
+              <FaSpinner className="animate-spin text-blue-500 text-3xl" />
+              <p className="text-sm text-gray-400">Loading doctor summaries…</p>
+            </div>
+          ) : error ? (
+            <div className="rounded-2xl bg-red-50 border border-red-200 px-6 py-8 text-center">
+              <p className="text-sm font-semibold text-red-600">{error}</p>
+              <button onClick={() => fetchData(page)} className="mt-4 text-sm text-blue-600 hover:underline">
+                Retry
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-3 slide-in-right">
+                {rows.map((doctor, index) => {
+                  const spec = getSpecColor(doctor.specialization);
+                  const avatarGrad = AVATAR_GRADIENTS[((currentPage - 1) * limit + index) % AVATAR_GRADIENTS.length];
+                  const hasAppointments = doctor.total > 0;
+
+                  return (
+                    <div key={doctor.doctor_id} className={`group rounded-2xl bg-white px-4 sm:px-6 py-4 sm:py-5 shadow-sm border transition-all duration-200 ${hasAppointments ? "border-gray-100 hover:shadow-md hover:border-blue-100" : "border-gray-100 opacity-60"}`}>
+                      <div className="flex items-start gap-3 sm:hidden">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gray-50 text-xs font-extrabold text-gray-400">
+                          {(currentPage - 1) * limit + index + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2.5 mb-2">
+                            <div className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${avatarGrad} text-white shadow-md`}>
+                              <FaUserMd className="text-base" />
+                              {hasAppointments && (
+                                <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-400 ring-2 ring-white text-[7px] font-bold text-white">✓</span>
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-bold text-gray-900 text-sm leading-tight truncate">{doctor.doctor_name}</p>
+                              <div className={`mt-0.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 ${spec.bg}`}>
+                                <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${spec.dot}`} />
+                                <span className={`text-[10px] font-semibold ${spec.text}`}>{doctor.specialization}</span>
+                              </div>
+                            </div>
                           </div>
-                          <div className="min-w-0">
-                            <p className="font-bold text-gray-900 text-sm leading-tight truncate">{doctor.doctor_name}</p>
-                            <div className={`mt-0.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 ${spec.bg}`}>
-                              <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${spec.dot}`} />
-                              <span className={`text-[10px] font-semibold ${spec.text}`}>{doctor.specialization}</span>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-xl font-extrabold text-gray-800">{doctor.total}</span>
+                              <span className="text-[10px] font-medium text-gray-400">appts</span>
+                            </div>
+                            <div className="flex gap-2">
+                              <StatBadge value={doctor.missed} label="Missed" colorClass="text-yellow-500" bgClass="bg-yellow-50" />
+                              <StatBadge value={doctor.completed} label="Done" colorClass="text-emerald-600" bgClass="bg-emerald-50" />
+                              <StatBadge value={doctor.cancelled} label="Cancelled" colorClass="text-red-500" bgClass="bg-red-50" />
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-xl font-extrabold text-gray-800">{doctor.total}</span>
-                            <span className="text-[10px] font-medium text-gray-400">appts</span>
+                      </div>
+                      <div className="hidden sm:flex items-center gap-4 lg:gap-6">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-50 text-sm font-extrabold text-gray-400 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors">
+                          {(currentPage - 1) * limit + index + 1}
+                        </div>
+                        <div className="flex min-w-[180px] lg:min-w-[220px] flex-1 items-center gap-3">
+                          <div className={`relative flex h-11 w-11 lg:h-12 lg:w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${avatarGrad} text-white shadow-md`}>
+                            <FaUserMd className="text-base lg:text-lg" />
+                            {hasAppointments && (
+                              <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-400 ring-2 ring-white text-[8px] font-bold text-white">✓</span>
+                            )}
                           </div>
-                          <div className="flex gap-2">
-                            <StatBadge value={doctor.missed}    label="Missed"     colorClass="text-yellow-500" bgClass="bg-yellow-50" />
-                            <StatBadge value={doctor.completed} label="Done"       colorClass="text-emerald-600" bgClass="bg-emerald-50" />
-                            <StatBadge value={doctor.cancelled} label="Cancelled"  colorClass="text-red-500"    bgClass="bg-red-50" />
+                          <div className="min-w-0">
+                            <p className="font-bold text-gray-900 leading-tight truncate">{doctor.doctor_name}</p>
+                            <div className={`mt-1 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 ${spec.bg}`}>
+                              <span className={`h-1.5 w-1.5 rounded-full ${spec.dot}`} />
+                              <span className={`text-[11px] font-semibold ${spec.text}`}>{doctor.specialization}</span>
+                            </div>
                           </div>
+                        </div>
+                        <div className="flex items-baseline gap-1.5 shrink-0">
+                          <span className="text-xl lg:text-2xl font-extrabold text-gray-800">{doctor.total}</span>
+                          <span className="text-xs font-medium text-gray-400">appointments</span>
+                        </div>
+                        <div className="ml-auto flex gap-2 sm:gap-3 shrink-0">
+                          <StatBadge value={doctor.missed} label="Missed" colorClass="text-yellow-500" bgClass="bg-yellow-50" />
+                          <StatBadge value={doctor.completed} label="Completed" colorClass="text-emerald-600" bgClass="bg-emerald-50" />
+                          <StatBadge value={doctor.cancelled} label="Cancelled" colorClass="text-red-500" bgClass="bg-red-50" />
                         </div>
                       </div>
                     </div>
-                    <div className="hidden sm:flex items-center gap-4 lg:gap-6">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-50 text-sm font-extrabold text-gray-400 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors">
-                        {(currentPage - 1) * limit + index + 1}
-                      </div>
-                      <div className="flex min-w-[180px] lg:min-w-[220px] flex-1 items-center gap-3">
-                        <div className={`relative flex h-11 w-11 lg:h-12 lg:w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${avatarGrad} text-white shadow-md`}>
-                          <FaUserMd className="text-base lg:text-lg" />
-                          {hasAppointments && (
-                            <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-400 ring-2 ring-white text-[8px] font-bold text-white">✓</span>
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-bold text-gray-900 leading-tight truncate">{doctor.doctor_name}</p>
-                          <div className={`mt-1 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 ${spec.bg}`}>
-                            <span className={`h-1.5 w-1.5 rounded-full ${spec.dot}`} />
-                            <span className={`text-[11px] font-semibold ${spec.text}`}>{doctor.specialization}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-baseline gap-1.5 shrink-0">
-                        <span className="text-xl lg:text-2xl font-extrabold text-gray-800">{doctor.total}</span>
-                        <span className="text-xs font-medium text-gray-400">appointments</span>
-                      </div>
-                      <div className="ml-auto flex gap-2 sm:gap-3 shrink-0">
-                        <StatBadge value={doctor.missed}    label="Missed"     colorClass="text-yellow-500"  bgClass="bg-yellow-50" />
-                        <StatBadge value={doctor.completed} label="Completed"  colorClass="text-emerald-600" bgClass="bg-emerald-50" />
-                        <StatBadge value={doctor.cancelled} label="Cancelled"  colorClass="text-red-500"     bgClass="bg-red-50" />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="mt-5 sm:mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs sm:text-sm text-gray-500">
-                Showing{" "}
-                <span className="font-semibold text-gray-800">
-                  {(currentPage - 1) * limit + 1}–{Math.min(currentPage * limit, totalRecords)}
-                </span>{" "}
-                of <span className="font-semibold text-gray-800">{totalRecords}</span> doctors
-              </p>
-              <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
-                <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1}
-                  className="flex h-7 w-7 sm:h-8 sm:w-8 cursor-pointer items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-100 transition disabled:opacity-40 disabled:cursor-not-allowed">
-                  <FaChevronLeft className="text-[10px] sm:text-xs" />
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-                  <button key={pageNum} onClick={() => setPage(pageNum)}
-                    className={`h-7 w-7 sm:h-8 sm:w-8 cursor-pointer rounded-xl text-[11px] sm:text-sm font-bold transition ${
-                      currentPage === pageNum ? "bg-blue-600 text-white shadow-sm" : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-100"}`}>
-                    {pageNum}
-                  </button>
-                ))}
-                <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}
-                  className="flex h-7 w-7 sm:h-8 sm:w-8 cursor-pointer items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-100 transition disabled:opacity-40 disabled:cursor-not-allowed">
-                  <FaChevronRight className="text-[10px] sm:text-xs" />
-                </button>
+                  );
+                })}
               </div>
-            </div>
-          </>
-        )}
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-xs text-gray-500">
+                  Showing <span className="font-semibold text-gray-800">{(currentPage - 1) * limit + 1}–{Math.min(currentPage * limit, totalRecords)}</span> of <span className="font-semibold text-gray-800">{totalRecords}</span> doctors
+                </p>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1}
+                    className="h-8 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 transition">
+                    ← Prev
+                  </button>
+                  {(() => {
+                    const pages: (number | string)[] = [];
+                    if (totalPages <= 7) {
+                      for (let i = 1; i <= totalPages; i++) pages.push(i);
+                    } else {
+                      pages.push(1);
+                      if (currentPage > 3) pages.push("...");
+                      for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) pages.push(i);
+                      if (currentPage < totalPages - 2) pages.push("...");
+                      pages.push(totalPages);
+                    }
+                    return pages.map((p, i) =>
+                      p === "..." ? (
+                        <button key={`dot-${i}`} onClick={() => setPage(i === 1 ? Math.max(1, currentPage - 5) : Math.min(totalPages, currentPage + 5))}
+                          className="h-8 w-8 cursor-pointer flex items-center justify-center rounded-lg border border-slate-200 bg-white text-xs text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition">
+                          …
+                        </button>
+                      ) : (
+                        <button key={p} onClick={() => setPage(Number(p))} className={`h-8 w-8 cursor-pointer rounded-lg border text-xs font-bold transition
+                          ${currentPage === p ? "border-blue-600 bg-blue-600 text-white shadow-sm" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}>
+                          {p}
+                        </button>
+                      )
+                    );
+                  })()}
+                  <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}
+                    className="h-8 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 transition">
+                    Next →
+                  </button>
+                  <div className="ml-1 flex items-center gap-1.5">
+                    <select value={limit} onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}
+                      className="h-8 cursor-pointer rounded-lg border border-slate-200 bg-white px-2 text-xs font-medium text-slate-600 outline-none">
+                      {[5, 10, 15, 20].map((o) => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                    <span className="text-xs text-slate-400">/ page</span>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       </main>
     </div>
   );

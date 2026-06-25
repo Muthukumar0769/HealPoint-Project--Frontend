@@ -15,6 +15,7 @@ type AdminPatientsState = {
   genderFilter: string;
   bloodGroupFilter: string;
   statusFilter: string;
+  pageSize: number;
 };
 
 const initialState: AdminPatientsState = {
@@ -29,6 +30,7 @@ const initialState: AdminPatientsState = {
   genderFilter: "All",
   bloodGroupFilter: "All",
   statusFilter: "All",
+  pageSize: 10,
 };
 
 const formatDateOnly = (date?: string) => {
@@ -51,10 +53,10 @@ const normalizePatient = (patient: ApiPatient): Patient => {
 
     phone: String(
       patient.phone_number ||
-        patient.phone ||
-        patient.user?.phone_number ||
-        patient.user?.phone ||
-        "N/A"
+      patient.phone ||
+      patient.user?.phone_number ||
+      patient.user?.phone ||
+      "N/A"
     ),
 
     gender: patient.gender || patient.user?.gender || "N/A",
@@ -68,14 +70,16 @@ const normalizePatient = (patient: ApiPatient): Patient => {
 
     registeredOn: formatDateOnly(
       patient.created_at ||
-        patient.createdAt ||
-        patient.user?.created_at ||
-        patient.user?.createdAt
+      patient.createdAt ||
+      patient.user?.created_at ||
+      patient.user?.createdAt
     ),
 
     status: isActive ? "Active" : "Inactive",
   };
 };
+
+//---------Thunk for fetch the registered patients with pagination------------
 
 export const fetchAdminPatients = createAsyncThunk(
   "adminPatients/fetchAdminPatients",
@@ -85,18 +89,12 @@ export const fetchAdminPatients = createAsyncThunk(
       adminPatients: AdminPatientsState;
     };
 
-    const {
-      currentPage,
-      search,
-      genderFilter,
-      bloodGroupFilter,
-      statusFilter,
-    } = state.adminPatients;
+    const {currentPage,search,genderFilter,bloodGroupFilter,statusFilter,pageSize,} = state.adminPatients;
 
     try {
       const params: any = {
         page: currentPage,
-        limit: 10,
+        limit: pageSize,
       };
 
       if (search.trim()) {
@@ -150,6 +148,8 @@ export const fetchAdminPatients = createAsyncThunk(
   }
 );
 
+//----------Reducers---------------
+
 const adminPatientsSlice = createSlice({
   name: "adminPatients",
 
@@ -199,6 +199,12 @@ const adminPatientsSlice = createSlice({
       state.currentPage = action.payload.page;
       state.direction = action.payload.dir;
     },
+    setPageSize: (state, action: PayloadAction<number>) => {
+      state.pageSize = action.payload;
+      state.currentPage = 1;
+      state.direction = 1;
+    },
+
 
     clearFilters: (state) => {
       state.search = "";
@@ -222,8 +228,8 @@ const adminPatientsSlice = createSlice({
         (state, action) => {
           state.loading = false;
           state.patients = action.payload.patients;
-          state.totalPatients =action.payload.totalPatients;
-          state.totalPages =action.payload.totalPages;
+          state.totalPatients = action.payload.totalPatients;
+          state.totalPages = action.payload.totalPages;
         }
       )
 
@@ -236,7 +242,7 @@ const adminPatientsSlice = createSlice({
   },
 });
 
-export const {setSearch,setGenderFilter,setBloodGroupFilter,setStatusFilter,
-  setPage,clearFilters,} = adminPatientsSlice.actions;
+export const { setSearch, setGenderFilter, setBloodGroupFilter, setStatusFilter,
+  setPage, clearFilters,setPageSize } = adminPatientsSlice.actions;
 export default adminPatientsSlice.reducer;
 

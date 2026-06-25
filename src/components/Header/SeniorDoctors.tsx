@@ -8,6 +8,8 @@ import { AvailabilityBadge } from "../../utils/AvailabilityBadge.tsx";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { checkAllDoctorsAvailability } from "../../store/slices/DoctorListingSlice";
 
+//------Get a Doctor Image----------
+
 const SeniorDoctorImage = ({ doctor }: { doctor: Doctor }) => {
   const [src, setSrc] = useState<string>("");
   const [error, setError] = useState(false);
@@ -34,12 +36,16 @@ const SeniorDoctorImage = ({ doctor }: { doctor: Doctor }) => {
   );
 };
 
+//-------Main Component----------
+
 export const SeniorDoctors = () => {
   const navigate = useNavigate();
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const doctorsPerSlide = 2;
+
+//---------Fetch the Doctor Logic with more than 10 years experience-------
 
   const fetchDoctors = async () => {
     try {
@@ -51,6 +57,8 @@ export const SeniorDoctors = () => {
       console.log("Senior doctors error:", error);
     }
   };
+
+//-------To get the available/unavailable Badge
 
   const dispatch = useAppDispatch();
   const { doctorAvailability, availabilityLoading } = useAppSelector(
@@ -70,6 +78,8 @@ export const SeniorDoctors = () => {
 
   const totalSlides = Math.ceil(doctors.length / doctorsPerSlide);
 
+  //-----This logic for how many doctors per slide-----------
+
   useEffect(() => {
     if (totalSlides <= 1) return;
     const interval = setInterval(() => {
@@ -84,28 +94,28 @@ export const SeniorDoctors = () => {
   const visibleDoctors = doctors.slice(startIndex, startIndex + doctorsPerSlide);
 
   return (
-    <section className="relative overflow-hidden bg-blue-900 px-4 py-10 sm:px-6 sm:py-12 lg:py-16">
+    <section className="relative overflow-hidden bg-blue-900 px-4 py-7 sm:px-6 sm:py-9 lg:py-12">
       <div className="absolute -left-16 top-10 h-40 w-40 rounded-full bg-blue-700/40 sm:h-52 sm:w-52" />
       <div className="absolute -right-16 bottom-10 h-40 w-40 rounded-full bg-blue-800/50 sm:h-52 sm:w-52" />
       <div className="absolute right-10 top-16 h-24 w-24 rounded-full bg-cyan-700/30 sm:h-32 sm:w-32" />
 
       <div className="relative mx-auto max-w-6xl">
-        <div className="mb-8 flex flex-col justify-between gap-4 sm:mb-10 lg:flex-row lg:items-center">
+        <div className="mb-5 flex flex-col justify-between gap-3 sm:mb-7 lg:flex-row lg:items-center">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[4px] text-blue-300">
+            <p className="text-[10px] font-bold uppercase tracking-[3px] text-blue-300">
               Our Specialists
             </p>
-            <h1 className="mt-2 text-2xl font-black text-white sm:mt-3 sm:text-3xl lg:text-4xl">
+            <h1 className="mt-1.5 text-xl font-black text-white sm:mt-2 sm:text-2xl lg:text-3xl">
               Meet Our{" "}
               <span className="text-cyan-400">Senior Doctors</span>
             </h1>
-            <p className="mt-2 max-w-xl text-sm leading-7 text-blue-200 sm:mt-3 sm:text-base">
+            <p className="mt-1.5 max-w-xl text-xs leading-6 text-blue-200 sm:mt-2 sm:text-sm">
               10+ years experienced specialists for trusted healthcare.
             </p>
           </div>
 
           <button onClick={() => { window.scrollTo({ top: 0, behavior: "instant" }); navigate("/doctors"); }}
-            className="flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-bold text-blue-900 shadow-lg transition hover:scale-105 sm:h-12 sm:w-fit sm:px-7">
+            className="flex h-9 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-bold text-blue-900 shadow-lg transition hover:scale-105 sm:h-10 sm:w-fit sm:px-5 sm:text-xs">
             View All Doctors
             <FaArrowRight />
           </button>
@@ -117,16 +127,16 @@ export const SeniorDoctors = () => {
               exit={{ x: -160, opacity: 0 }} transition={{ duration: 0.55, ease: "easeInOut" }}
               className={`grid gap-4 sm:gap-6 ${visibleDoctors.length === 1 ? "mx-auto max-w-xl grid-cols-1" : "grid-cols-1 sm:grid-cols-2"}`}>
               {visibleDoctors.map((doctor) => (
-                <div key={doctor.id} className="group flex flex-col items-center gap-4 rounded-2xl border border-blue-700 bg-blue-800/60 p-4 text-center shadow-xl transition duration-300 hover:-translate-y-1 hover:shadow-2xl xs:gap-5 xs:p-5 sm:flex-row sm:rounded-3xl sm:text-left">
-                  <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-white/20 bg-blue-700 shadow-xl ring-4 ring-blue-600/40 xs:h-28 xs:w-28 sm:h-32 sm:w-32">
+                <div key={doctor.id} className="group flex flex-col items-center gap-3 rounded-2xl border border-blue-700 bg-blue-800/60 p-4 text-center shadow-xl transition duration-300 hover:-translate-y-1 hover:shadow-2xl xs:gap-4 xs:p-4 sm:flex-row sm:rounded-3xl sm:text-left">
+                  <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-white/20 bg-blue-700 shadow-xl ring-4 ring-blue-600/40 xs:h-24 xs:w-24 sm:h-28 sm:w-28">
                     <SeniorDoctorImage doctor={doctor} />
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <h2 className="truncate text-base font-black text-white xs:text-lg sm:text-xl">
+                    <h2 className="truncate text-sm font-black text-white xs:text-base sm:text-lg">
                       DR. {doctor.user?.name?.toUpperCase() || "UNKNOWN"}
                     </h2>
-                    <p className="mt-1 truncate text-xs font-semibold text-blue-300 xs:text-sm">
+                    <p className="mt-0.5 truncate text-[10px] font-semibold text-blue-300 xs:text-xs">
                       {doctor.education || "Senior Specialist"}
                     </p>
                     <p className="mt-1 text-xs font-bold uppercase text-cyan-400 xs:text-sm">
@@ -141,7 +151,7 @@ export const SeniorDoctors = () => {
                         isChecking={availabilityLoading[String(doctor.id)] ?? false}/>
                     </div>
                     <div className="mt-3 flex justify-center xs:mt-4 sm:justify-start">
-                      <button onClick={() => { window.scrollTo({ top: 0, behavior: "instant" }); navigate(`/doctor-details/${doctor.id}`); }} className="flex h-10 cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-4 text-xs font-bold text-blue-900 shadow-lg transition-all duration-300 hover:bg-blue-50 xs:h-11 xs:px-5 xs:text-sm">
+                      <button onClick={() => { window.scrollTo({ top: 0, behavior: "instant" }); navigate(`/doctor-details/${doctor.id}`); }} className="flex h-8 cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-4 text-xs font-bold text-blue-900 shadow-lg transition-all duration-300 hover:bg-blue-50  xs:h-9 xs:px-4 xs:text-xs">
                         <FaUserCircle className="text-lg xs:text-xl" />
                         View Details
                       </button>

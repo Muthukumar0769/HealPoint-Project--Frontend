@@ -9,6 +9,8 @@ import usePageTitle from "../../hooks/usePageTitle";
 
 const BASE_URL = "http://localhost:5000";
 
+//----------Get a image or upload a image-------------
+
 const getImageUrl = (image?: string | null) => {
   if (!image) return "";
   if (image.startsWith("blob:")) return image;
@@ -16,6 +18,8 @@ const getImageUrl = (image?: string | null) => {
   if (image.startsWith("/uploads")) return `${BASE_URL}${image}`;
   return `${BASE_URL}/uploads/${image}`;
 };
+
+//----------Main Component---------------
 
 export const MyProfile = () => {
   usePageTitle("My Profile");
@@ -33,6 +37,8 @@ export const MyProfile = () => {
     blood_group: "",
     profile_picture: "",
   });
+
+//-----------Fetch the profile for that patient-----------------
 
   const fetchProfile = async () => {
     try {
@@ -157,7 +163,7 @@ export const MyProfile = () => {
   const imageUrl = getImageUrl(profile.profile_picture);
 
   return (
-    <main className="min-h-screen bg-[#f0f4fb] px-4 py-8 pt-24 sm:px-6 lg:px-8 lg:pt-28">
+    <main className="min-h-screen bg-[#f0f4fb] px-4 py-8 pt-24 sm:px-6 lg:px-8 lg:pt-20 xl:px-10">
       <div className="mx-auto max-w-7xl">
         <div className="text-center sm:text-left">
           <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">

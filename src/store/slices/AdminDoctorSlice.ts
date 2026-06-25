@@ -12,6 +12,7 @@ type AdminDoctorsState = {
   currentPage: number;
   direction: number;
   searchSpecialization: string;
+  pageSize: number;
 };
 
 const initialState: AdminDoctorsState = {
@@ -23,18 +24,21 @@ const initialState: AdminDoctorsState = {
   currentPage: 1,
   direction: 1,
   searchSpecialization: "",
+  pageSize: 6,
 };
+
+//----------Fetch doctors with pagination and search functionalities-------------------
 
 export const fetchAdminDoctors = createAsyncThunk("adminDoctors/fetchAdminDoctors",
   async (_, { getState, rejectWithValue }) => {
     const state = getState() as { adminDoctors: AdminDoctorsState };
-    const { currentPage, searchSpecialization } = state.adminDoctors;
+    const { currentPage, searchSpecialization, pageSize } = state.adminDoctors;
 
     try {
       const res = await API.get("/doctors", {
         params: {
           page: currentPage,
-          limit: 6,
+          limit: pageSize,
           specialization: searchSpecialization.trim() || undefined,
         },
       });
@@ -56,12 +60,14 @@ export const fetchAdminDoctors = createAsyncThunk("adminDoctors/fetchAdminDoctor
   }
 );
 
+//-----------Delete the doctor------------------
+
 export const deleteAdminDoctor = createAsyncThunk(
   "adminDoctors/deleteAdminDoctor",
   async (doctorId: number, { dispatch, rejectWithValue }) => {
     try {
       await API.delete(`/doctors/${doctorId}`);
-      dispatch(fetchAdminDoctors()); 
+      dispatch(fetchAdminDoctors());
       return doctorId;
     } catch (error: any) {
       return rejectWithValue(
@@ -70,6 +76,8 @@ export const deleteAdminDoctor = createAsyncThunk(
     }
   }
 );
+
+//-------Reducers-----------------
 
 const adminDoctorsSlice = createSlice({
   name: "adminDoctors",
@@ -93,6 +101,10 @@ const adminDoctorsSlice = createSlice({
     ) => {
       state.currentPage = action.payload.page;
       state.direction = action.payload.dir;
+    },
+    setPageSize: (state, action: PayloadAction<number>) => {
+      state.pageSize = action.payload;
+      state.currentPage = 1;
     },
   },
 
@@ -118,5 +130,5 @@ const adminDoctorsSlice = createSlice({
   },
 });
 
-export const {setSearchSpecialization,clearSearch,setPage} = adminDoctorsSlice.actions;
+export const { setSearchSpecialization, clearSearch, setPage,setPageSize, } = adminDoctorsSlice.actions;
 export default adminDoctorsSlice.reducer;

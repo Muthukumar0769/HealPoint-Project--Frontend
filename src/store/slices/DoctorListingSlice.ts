@@ -12,6 +12,7 @@ type DoctorListingState = {
   currentPage: number;
   totalPages: number;
   totalDoctors: number;
+  limit: number;
   direction: number;
   loading: boolean;
   firstLoad: boolean;
@@ -30,6 +31,7 @@ const initialState: DoctorListingState = {
   currentPage: 1,
   totalPages: 1,
   totalDoctors: 0,
+  limit: 6,
   direction: 1,
   loading: false,
   firstLoad: true,
@@ -48,6 +50,8 @@ const initialState: DoctorListingState = {
     selectedStatus: "",
   },
 };
+
+//-------fetch the departments for filter section---------------
 
 export const fetchDepartments = createAsyncThunk("doctorListing/fetchDepartments",
   async (_, { rejectWithValue }) => {
@@ -74,18 +78,22 @@ export const fetchDepartments = createAsyncThunk("doctorListing/fetchDepartments
   }
 );
 
+//----------Fetch the Doctors with pagination and search Functionalities----------
+
 export const fetchDoctors = createAsyncThunk("doctorListing/fetchDoctors",
   async (_, { getState, rejectWithValue }) => {
     const state = getState() as { doctorListing: DoctorListingState };
-    const { currentPage, filters } = state.doctorListing;
+    const { currentPage, limit, filters } = state.doctorListing;
     const { search, selectedSpecialization, selectedExperience, selectedGender,
-      selectedFees } = filters;
+      selectedFees, selectedStatus } = filters;
     const feesMax = selectedFees ? selectedFees.split("-")[1] : undefined;
+    const isStatusFilterActive = Boolean(selectedStatus);
+
     try {
       const res = await API.get("/doctors", {
         params: {
-          page: currentPage,
-          limit: 6,
+          page: isStatusFilterActive ? 1 : currentPage,
+          limit: isStatusFilterActive ? 1000 : limit,
           specialization: selectedSpecialization || search.trim() || undefined,
           gender: selectedGender || undefined,
           experience_years: selectedExperience || undefined,
@@ -99,14 +107,16 @@ export const fetchDoctors = createAsyncThunk("doctorListing/fetchDoctors",
 
       return {
         doctors: Array.isArray(data) ? data : [],
-        totalPages: res.data?.data?.totalPages || res.data?.totalPages || 1,
-        totalDoctors: res.data?.data?.total || res.data?.total || data.length || 0,
+        totalPages: isStatusFilterActive ? 1 : (res.data?.data?.totalPages || res.data?.totalPages || 1),
+        totalDoctors: isStatusFilterActive ? data.length : (res.data?.data?.total || res.data?.total || data.length || 0),
       };
     } catch {
       return rejectWithValue("Failed to fetch doctors");
     }
   }
 );
+
+//-----------Fetch the doctor by id for their details------------------
 
 export const fetchDoctorById = createAsyncThunk("doctorListing/fetchDoctorById",
   async (id: string, { rejectWithValue }) => {
@@ -120,6 +130,8 @@ export const fetchDoctorById = createAsyncThunk("doctorListing/fetchDoctorById",
     }
   }
 );
+
+//-------Check doctor availablity based on slots----------------
 
 export const checkDoctorAvailability = createAsyncThunk(
   "doctorListing/checkDoctorAvailability",
@@ -137,13 +149,15 @@ export const checkDoctorAvailability = createAsyncThunk(
         res.data ||
         [];
 
-      const hasSlots = Array.isArray(raw) && raw.filter(isBookableSlot).length > 0
+      const hasSlots = Array.isArray(raw) && raw.filter(isBookableSlot).length > 0;
       return { doctorId, available: hasSlots };
     } catch {
       return rejectWithValue({ doctorId, available: false });
     }
   }
 );
+
+//---------Check all doctors availabilty show in doctor listing cards----------
 
 export const checkAllDoctorsAvailability = createAsyncThunk("doctorListing/checkAllDoctorsAvailability",
   async (doctorIds: string[], { dispatch }) => {
@@ -152,6 +166,8 @@ export const checkAllDoctorsAvailability = createAsyncThunk("doctorListing/check
     );
   }
 );
+
+//-------Reducers--------------
 
 const doctorListingSlice = createSlice({
   name: "doctorListing",
@@ -180,6 +196,11 @@ const doctorListingSlice = createSlice({
       state.direction = action.payload.dir;
     },
     resetPage: (state) => {
+      state.currentPage = 1;
+      state.direction = 1;
+    },
+    setLimit: (state, action: PayloadAction<number>) => {
+      state.limit = action.payload;
       state.currentPage = 1;
       state.direction = 1;
     },
@@ -243,5 +264,5 @@ const doctorListingSlice = createSlice({
 });
 
 export const { setFilter, clearFilters, setOpenFilter, setOpenMobileFilter, setPage,
-  resetPage } = doctorListingSlice.actions;
+  resetPage, setLimit } = doctorListingSlice.actions;
 export default doctorListingSlice.reducer;

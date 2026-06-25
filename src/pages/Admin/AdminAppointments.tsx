@@ -1,12 +1,16 @@
 import { useEffect, useState, useCallback } from "react";
 import { AdminSidebar } from "./AdminSidebar";
-import {FaCalendarAlt,FaCheckCircle,FaClock,FaTimes,FaUserMd,FaSearch,FaChevronRight,FaSpinner,FaEye,
-  FaEnvelope,FaVenusMars,FaStethoscope,FaMoneyBillWave,FaCalendarCheck} from "react-icons/fa";
+import {
+  FaCalendarAlt, FaCheckCircle, FaClock, FaTimes, FaUserMd, FaSearch, FaChevronRight, FaSpinner, FaEye,
+  FaEnvelope, FaVenusMars, FaStethoscope, FaMoneyBillWave, FaCalendarCheck
+} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import type { StatCardProps } from "../../types/admin.ts";
 import API from "../../api/axios";
-import type { DashboardOverview,DashboardInsights,AppointmentRow } from "../../types/admin.ts";
+import type { DashboardOverview, DashboardInsights, AppointmentRow } from "../../types/admin.ts";
 import usePageTitle from "../../hooks/usePageTitle";
+
+//-----Helper Functions---------------
 
 const STATUS_CONFIG: Record<string, { bg: string; text: string; dot: string; border: string }> = {
   confirmed: { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-400", border: "border-emerald-200" },
@@ -55,6 +59,8 @@ function formatTime(timeStr: string) {
   const displayHour = hour % 12 || 12;
   return `${displayHour}:${m} ${ampm}`;
 }
+
+//------Separate component for appointment details-----------
 
 const AppointmentModal = ({ item, onClose }: { item: AppointmentRow; onClose: () => void }) => {
   const sc = STATUS_CONFIG[item.status] ?? defaultStatusConfig;
@@ -160,6 +166,8 @@ const AppointmentModal = ({ item, onClose }: { item: AppointmentRow; onClose: ()
   );
 };
 
+//----------Main Component----------
+
 export const AdminAppointments = () => {
   usePageTitle("All Appointments");
   const navigate = useNavigate();
@@ -175,8 +183,10 @@ export const AdminAppointments = () => {
   const [doctorSearch, setDoctorSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [selectedAppointment, setSelectedAppointment] = useState<AppointmentRow | null>(null);
-  const limit = 10;
+  const [limit, setLimit] = useState(10);
   const totalPages = Math.ceil(totalCount / limit);
+
+  //-----------fetch the appointments stats logic--------------
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -196,6 +206,8 @@ export const AdminAppointments = () => {
     fetchDashboard();
   }, []);
 
+  //-----fetch the all doctor appointments with details with search and pagination filter------
+
   const fetchAppointments = useCallback(async () => {
     setTableLoading(true);
     try {
@@ -208,7 +220,7 @@ export const AdminAppointments = () => {
         const fetched: AppointmentRow[] = res.data.appointments ?? [];
         const filtered = patientSearch || doctorSearch
           ? fetched.filter((a) => (!patientSearch || (a.patient?.name ?? "").toLowerCase().includes(patientSearch.toLowerCase())) &&
-              (!doctorSearch || (a.doctor?.name ?? "").toLowerCase().includes(doctorSearch.toLowerCase()))): fetched;
+            (!doctorSearch || (a.doctor?.name ?? "").toLowerCase().includes(doctorSearch.toLowerCase()))) : fetched;
         setAppointments(filtered);
         setTotalCount(res.data.totalRecords ?? 0);
       }
@@ -217,19 +229,22 @@ export const AdminAppointments = () => {
     } finally {
       setTableLoading(false);
     }
-  }, [page, patientSearch, doctorSearch, statusFilter]);
+  }, [page, limit, patientSearch, doctorSearch, statusFilter]);
 
   useEffect(() => { fetchAppointments(); }, [fetchAppointments]);
+
+  //----------Debounce search logic-------------
+
   useEffect(() => {
     const timer = setTimeout(() => setPage(1), 400);
     return () => clearTimeout(timer);
   }, [patientSearch, doctorSearch, statusFilter]);
 
   return (
-    <div className="flex min-h-screen bg-[#f0f4fb] pt-14 sm:pt-16 md:pt-20">
+    <div className="flex min-h-screen bg-[#f0f4fb] pt-14 sm:pt-16 md:pt-16">
       <AdminSidebar />
-      <main className="flex-1 min-w-0 px-3 py-3 sm:px-4 sm:py-4 lg:px-5 lg:py-5">
-        <div className="mx-auto w-full max-w-xs xs:max-w-sm sm:max-w-2xl md:max-w-3xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl">
+      <main className="flex-1 min-w-0 px-3 py-3 sm:px-4 sm:py-4 lg:px-5 lg:py-5 xl:px-7">
+        <div className="mx-auto w-full max-w-screen-lg">
           <div className="mb-3 flex flex-col gap-3 sm:mb-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between sm:gap-4">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-widest text-blue-500 mb-0.5 sm:text-xs sm:mb-1">Admin Panel</p>
@@ -260,12 +275,12 @@ export const AdminAppointments = () => {
               <div className="relative flex-1">
                 <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] sm:text-xs" />
                 <input type="text" placeholder="Search patient…" value={patientSearch} onChange={(e) => setPatientSearch(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-white pl-8 pr-3 py-2 text-xs outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition sm:pl-9 sm:text-sm"/>
+                  className="w-full rounded-xl border border-gray-200 bg-white pl-8 pr-3 py-2 text-xs outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition sm:pl-9 sm:text-sm" />
               </div>
               <div className="relative flex-1">
                 <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] sm:text-xs" />
                 <input type="text" placeholder="Search doctor…" value={doctorSearch}
-                  onChange={(e) => setDoctorSearch(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white pl-8 pr-3 py-2 text-xs outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition sm:pl-9 sm:text-sm"/>
+                  onChange={(e) => setDoctorSearch(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white pl-8 pr-3 py-2 text-xs outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition sm:pl-9 sm:text-sm" />
               </div>
               <div className="flex-1">
                 <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
@@ -432,31 +447,50 @@ export const AdminAppointments = () => {
               </div>
             </div>
             <div className="flex flex-col gap-2 border-t border-gray-100 bg-gray-50/60 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-              <p className="text-[11px] text-gray-500 sm:text-sm">
-                Showing{" "}
-                <span className="font-semibold text-gray-800">
-                  {appointments.length === 0 ? 0 : (page - 1) * limit + 1}–{(page - 1) * limit + appointments.length}
-                </span>{" "}
-                of <span className="font-semibold text-gray-800">{totalCount}</span> results
+              <p className="text-xs text-gray-500">
+                Showing <span className="font-semibold text-gray-800">{appointments.length === 0 ? 0 : (page - 1) * limit + 1}–{(page - 1) * limit + appointments.length}</span> of <span className="font-semibold text-gray-800">{totalCount}</span> results
               </p>
-              <div className="flex gap-1 sm:gap-1.5">
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
-                  className="h-7 w-7 cursor-pointer rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-100 transition disabled:opacity-40 disabled:cursor-not-allowed sm:h-8 sm:w-8 sm:rounded-xl sm:text-sm">
-                  ‹
+                  className="h-8 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 transition">
+                  ← Prev
                 </button>
-                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                  const pageNum = i + 1;
-                  return (
-                    <button key={pageNum} onClick={() => setPage(pageNum)} className={`h-7 w-7 cursor-pointer rounded-lg text-xs font-bold transition sm:h-8 sm:w-8 sm:rounded-xl sm:text-sm ${
-                        page === pageNum ? "bg-blue-600 text-white shadow-sm" : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-100"}`}>
-                      {pageNum}
-                    </button>
+                {(() => {
+                  const pages: (number | string)[] = [];
+                  if (totalPages <= 7) {
+                    for (let i = 1; i <= totalPages; i++) pages.push(i);
+                  } else {
+                    pages.push(1);
+                    if (page > 3) pages.push("...");
+                    for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) pages.push(i);
+                    if (page < totalPages - 2) pages.push("...");
+                    pages.push(totalPages);
+                  }
+                  return pages.map((p, i) =>
+                    p === "..." ? (
+                      <button key={`dot-${i}`} onClick={() => setPage(i === 1 ? Math.max(1, page - 5) : Math.min(totalPages, page + 5))}
+                        className="h-8 w-8 cursor-pointer flex items-center justify-center rounded-lg border border-slate-200 bg-white text-xs text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition">
+                        …
+                      </button>
+                    ) : (
+                      <button key={p} onClick={() => setPage(Number(p))} className={`h-8 w-8 cursor-pointer rounded-lg border text-xs font-bold transition
+                        ${page === p ? "border-blue-600 bg-blue-600 text-white shadow-sm" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}>
+                        {p}
+                      </button>
+                    )
                   );
-                })}
+                })()}
                 <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages || totalPages === 0}
-                  className="h-7 w-7 cursor-pointer rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-100 transition disabled:opacity-40 disabled:cursor-not-allowed sm:h-8 sm:w-8 sm:rounded-xl sm:text-sm">
-                  ›
+                  className="h-8 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 transition">
+                  Next →
                 </button>
+                <div className="ml-1 flex items-center gap-1.5">
+                  <select value={limit} onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}
+                    className="h-8 cursor-pointer rounded-lg border border-slate-200 bg-white px-2 text-xs font-medium text-slate-600 outline-none">
+                    {[5, 10, 15, 20].map((o) => <option key={o} value={o}>{o}</option>)}
+                  </select>
+                  <span className="text-xs text-slate-400">/ page</span>
+                </div>
               </div>
             </div>
           </div>
@@ -470,22 +504,29 @@ export const AdminAppointments = () => {
   );
 };
 
-const StatCard = ({ icon, title, value, trend, trendUp, gradient }: StatCardProps) => (
-  <div className="group relative overflow-hidden rounded-xl bg-white p-3 shadow-sm border border-gray-100 hover:shadow-md hover:border-blue-100 transition-all duration-200 sm:rounded-2xl sm:p-4">
-    <div className={`absolute -right-4 -top-4 h-16 w-16 rounded-full bg-gradient-to-br ${gradient} opacity-10 group-hover:opacity-20 transition-opacity sm:h-20 sm:w-20`} />
-    <div className="flex items-start justify-between">
-      <div className={`flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br ${gradient} text-sm text-white shadow-sm sm:h-9 sm:w-9 sm:text-base`}>
-        {icon}
+//--------Separate component for Stats---------------
+
+const StatCard = ({ icon, title, value, trend, trendUp, gradient }: StatCardProps) => {
+  const iconTint = gradient.includes("emerald") ? "bg-emerald-50 text-emerald-600"
+    : gradient.includes("amber") || gradient.includes("orange") ? "bg-amber-50 text-amber-600"
+    : gradient.includes("violet") ? "bg-violet-50 text-violet-600" : "bg-blue-50 text-blue-600";
+
+  return (
+    <div className="group relative overflow-hidden rounded-xl bg-white p-3 shadow-sm border border-gray-100 border-t-2 border-t-blue-500 hover:shadow-md transition-all duration-200 sm:rounded-2xl sm:p-4">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold text-blue-500/80 uppercase tracking-wide sm:text-xs">{title}</p>
+          <h2 className="mt-1 text-xl font-extrabold tracking-tight text-gray-900 sm:mt-1.5 sm:text-2xl">{value}</h2>
+          {trend && (
+            <span className={`mt-1.5 inline-block rounded-full px-2 py-0.5 text-[9px] font-semibold sm:text-[11px] ${trendUp ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"}`}>
+              {trend}
+            </span>
+          )}
+        </div>
+        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm shadow-sm sm:h-11 sm:w-11 sm:text-base ${iconTint}`}>
+          {icon}
+        </div>
       </div>
-      {trend && (
-        <span className={`rounded-full px-2 py-0.5 text-[9px] font-semibold sm:px-2.5 sm:text-[11px] ${trendUp ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"}`}>
-          {trend}
-        </span>
-      )}
     </div>
-    <div className="mt-2 sm:mt-3">
-      <p className="text-[9px] font-semibold text-gray-500 uppercase tracking-wide sm:text-xs">{title}</p>
-      <h2 className="mt-0.5 text-lg font-extrabold tracking-tight text-gray-900 sm:mt-1 sm:text-xl">{value}</h2>
-    </div>
-  </div>
-);
+  );
+};

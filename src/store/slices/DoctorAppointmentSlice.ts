@@ -10,6 +10,7 @@ const initialState: DoctorAppointmentsState = {
     accepted: 0,
     completed: 0,
     cancelled: 0,
+    missed: 0,
   },
   loading: false,
   statsLoading: false,
@@ -105,7 +106,7 @@ const mapAppointment = (item: any): DoctorAppointmentItem => {
 
 const extractRows = (res: any): any[] => {
   const d = res.data;
-  if (Array.isArray(d?.appointments)) return d.appointments; 
+  if (Array.isArray(d?.appointments)) return d.appointments;
   if (Array.isArray(d?.data?.rows)) return d.data.rows;
   if (Array.isArray(d?.rows)) return d.rows;
   if (Array.isArray(d?.data?.appointments)) return d.data.appointments;
@@ -116,13 +117,15 @@ const extractRows = (res: any): any[] => {
 
 const extractTotal = (res: any): number => {
   const d = res.data;
-  if (d?.totalRecords !== undefined) return Number(d.totalRecords);  
+  if (d?.totalRecords !== undefined) return Number(d.totalRecords);
   if (d?.data?.count !== undefined) return Number(d.data.count);
   if (d?.count !== undefined) return Number(d.count);
   if (d?.data?.total !== undefined) return Number(d.data.total);
   if (d?.total !== undefined) return Number(d.total);
   return extractRows(res).length;
 };
+
+//-------------Fetch the doctor appointments with pagination and month and year--------------
 
 export const fetchDoctorAppointments = createAsyncThunk(
   "doctorAppointments/fetchDoctorAppointments",
@@ -151,12 +154,11 @@ export const fetchDoctorAppointments = createAsyncThunk(
   }
 );
 
+//-----------Fetch the doctor appointments stats---------------
+
 export const fetchDoctorAppointmentStats = createAsyncThunk(
   "doctorAppointments/fetchDoctorAppointmentStats",
-  async (
-    params: { month?: number; year?: number },
-    { rejectWithValue }
-  ) => {
+  async (params: { month?: number; year?: number }, { rejectWithValue }) => {
     try {
       const res = await API.get("/doctor/my-appointments", {
         params: { page: 1, limit: 9999, month: params.month, year: params.year },
@@ -167,14 +169,15 @@ export const fetchDoctorAppointmentStats = createAsyncThunk(
         accepted: all.filter((item) => item.status === "Accepted").length,
         completed: all.filter((item) => item.status === "Completed").length,
         cancelled: all.filter((item) => item.status === "Cancelled").length,
+        missed: all.filter((item) => item.status === "Missed").length,
       };
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || "Failed to fetch stats"
-      );
+      return rejectWithValue(error.response?.data?.message || "Failed to fetch stats");
     }
   }
 );
+
+//----------Update the doctor appointments with status-----------
 
 export const updateDoctorAppointmentStatus = createAsyncThunk(
   "doctorAppointments/updateDoctorAppointmentStatus",
@@ -194,6 +197,8 @@ export const updateDoctorAppointmentStatus = createAsyncThunk(
     }
   }
 );
+
+//-----------Reducers--------------
 
 const doctorAppointmentsSlice = createSlice({
   name: "doctorAppointments",
@@ -221,6 +226,10 @@ const doctorAppointmentsSlice = createSlice({
       state.slideDirection = action.payload > state.currentPage ? "right" : "left";
       state.currentPage = action.payload;
     },
+    setLimit: (state, action: PayloadAction<number>) => {
+           state.limit = action.payload;
+           state.currentPage = 1;
+         },
     setViewAppointment: (
       state,
       action: PayloadAction<DoctorAppointmentItem | null>
@@ -271,6 +280,6 @@ const doctorAppointmentsSlice = createSlice({
   },
 });
 
-export const {setActiveTab,setSearch,setDebouncedSearch,setSelectedMonth,clearSelectedMonth,
-  setPage,setViewAppointment,} = doctorAppointmentsSlice.actions;
+export const { setActiveTab, setSearch, setDebouncedSearch, setSelectedMonth, clearSelectedMonth,
+  setPage, setViewAppointment,setLimit  } = doctorAppointmentsSlice.actions;
 export default doctorAppointmentsSlice.reducer;

@@ -21,32 +21,38 @@ const avatarColors = [
 
 const getAvatarColor = (name: string) => avatarColors[name.charCodeAt(0) % avatarColors.length];
 
+//--------Get a Image-----------
+
 const DoctorImage = ({ doctor }: { doctor: AdminDoctor }) => {
-  const [src, setSrc] = useState<string>("");
   const [error, setError] = useState(false);
-  useEffect(() => {
-    const raw = doctor.user?.profile_picture || doctor.image || "";
-    if (!raw) return;
-    const normalized = raw.replace(/^http:\/\//, "https://");
-    fetch(normalized, { headers: { "ngrok-skip-browser-warning": "true" } })
-      .then((res) => { if (!res.ok) throw new Error("Failed"); return res.blob(); })
-      .then((blob) => setSrc(URL.createObjectURL(blob)))
-      .catch(() => setError(true));
-  }, [doctor]);
+
+  const raw = doctor.user?.profile_picture || doctor.image || "";
+
+  const src = raw.startsWith("http")
+    ? raw.replace(/^http:\/\//, "https://")
+    : raw
+      ? `${import.meta.env.VITE_IMAGE_BASE_URL}/uploads/${raw}`
+      : "";
 
   if (!src || error) {
     return (
       <div className="flex h-full w-full items-center justify-center bg-blue-50">
-        <FaUserMd className="text-5xl text-blue-300 sm:text-6xl" />
+        <FaUserMd className="text-3xl text-blue-300" />
       </div>
     );
   }
+
   return (
-    <img src={src} alt={doctor.user?.name || "Doctor"} className="h-full w-full object-cover object-top"
-      onError={() => setError(true)} />
+    <img
+      src={src}
+      alt={doctor.user?.name || "Doctor"}
+      className="h-full w-full object-cover object-top"
+      onError={() => setError(true)}
+    />
   );
 };
 
+//--------Display the star rating in details card-----------
 
 const StarDisplay = ({ rating, max = 5 }: { rating: number; max?: number }) => (
   <div className="flex items-center gap-0.5">
@@ -72,6 +78,8 @@ const StarDisplayLg = ({ rating, max = 5 }: { rating: number; max?: number }) =>
   </div>
 );
 
+//-----Separate Component for Reviews section if patient gives any reviews means the reviews show in this page---------
+
 const ReviewsSection = ({ reviews, loading, }: {
   reviews: Review[];
   loading: boolean;
@@ -84,10 +92,10 @@ const ReviewsSection = ({ reviews, loading, }: {
     });
 
   return (
-    <section className="mt-6 rounded-2xl bg-white shadow-lg shadow-sky-100 overflow-hidden">
-      <button onClick={() => setOpen((v) => !v)} className="w-full flex items-center justify-between px-5 py-4 sm:px-6 cursor-pointer hover:bg-slate-50 transition">
+    <section className="mt-4 rounded-2xl bg-white shadow-lg shadow-sky-100 overflow-hidden">
+      <button onClick={() => setOpen((v) => !v)} className="w-full flex items-center justify-between px-4 py-3 sm:px-5 cursor-pointer hover:bg-slate-50 transition">
         <div className="flex items-center gap-3">
-          <h3 className="text-base font-extrabold text-slate-900">Patient Reviews</h3>
+          <h3 className="text-sm font-extrabold text-slate-900">Patient Reviews</h3>
           <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-600">
             {reviews.length}
           </span>
@@ -102,7 +110,7 @@ const ReviewsSection = ({ reviews, loading, }: {
         {open ? <FaChevronUp className="text-slate-400 text-sm" /> : <FaChevronDown className="text-slate-400 text-sm" />}
       </button>
       {open && (
-        <div className="px-5 pb-5 sm:px-6 sm:pb-6">
+        <div className="px-4 pb-4 sm:px-5 sm:pb-5">
           {loading ? (
             <div className="py-8 text-center text-sm text-slate-400">Loading reviews…</div>
           ) : reviews.length === 0 ? (
@@ -114,8 +122,8 @@ const ReviewsSection = ({ reviews, loading, }: {
                 const initial = name.charAt(0).toUpperCase();
                 const avatarBg = getAvatarColor(name);
                 return (
-                  <div key={r.id} className="flex gap-3 rounded-xl bg-slate-50 p-4">
-                    <div className={`shrink-0 h-9 w-9 rounded-full ${avatarBg} flex items-center justify-center text-white text-sm font-bold`}>
+                  <div key={r.id} className="flex gap-2.5 rounded-xl bg-slate-50 p-3">
+                    <div className={`shrink-0 h-8 w-8 rounded-full ${avatarBg} flex items-center justify-center text-white text-xs font-bold`}>
                       {initial}
                     </div>
                     <div className="min-w-0 flex-1">
@@ -133,7 +141,7 @@ const ReviewsSection = ({ reviews, loading, }: {
                         <StarDisplay rating={r.rating} />
                       </div>
                       {r.review && (
-                        <p className="mt-1.5 text-sm text-slate-600 leading-relaxed">{r.review}</p>
+                        <p className="mt-1 text-xs text-slate-600 leading-relaxed">{r.review}</p>
                       )}
                     </div>
                   </div>
@@ -146,6 +154,8 @@ const ReviewsSection = ({ reviews, loading, }: {
     </section>
   );
 };
+
+//----Main Component---------
 
 export const DoctorDetails = () => {
   usePageTitle("Doctor Details");
@@ -160,6 +170,8 @@ export const DoctorDetails = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (id) dispatch(fetchDoctorById(id));
   }, [id, dispatch]);
+
+  //--------Fetch the Reviews----------
 
   useEffect(() => {
     if (!doctor?.id) return;
@@ -176,6 +188,8 @@ export const DoctorDetails = () => {
     };
     fetchReviews();
   }, [doctor?.id]);
+
+  //-------Calculate the ratings average----------
 
   const avgRating = reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
   if (loading) {
@@ -209,21 +223,21 @@ export const DoctorDetails = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f0f4fb] px-4 pb-12 pt-24 sm:px-6 lg:px-8 lg:pt-28">
+    <div className="min-h-screen xl:max-w-screen-2xl bg-[#f0f4fb] px-4 pb-8 pt-20 sm:px-6 lg:px-8 lg:pt-20 xl:px-7">
       <div className="mx-auto max-w-6xl">
-        <button onClick={() => navigate("/doctors")} className="mb-5 flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-blue-600 transition hover:bg-blue-50 sm:px-4">
+        <button onClick={() => navigate("/doctors")} className="mb-3 flex cursor-pointer items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-semibold text-blue-600 transition hover:bg-blue-50 sm:px-4">
           <FaArrowLeft />
           Back to Doctors
         </button>
 
         <section className="overflow-hidden rounded-3xl bg-white shadow-xl shadow-sky-100">
-          <div className="grid gap-6 p-5 sm:p-6 md:grid-cols-[220px_1fr] lg:grid-cols-[220px_1fr_260px] lg:items-center lg:p-8">
-            <div className="mx-auto h-64 w-full max-w-[240px] overflow-hidden rounded-2xl border border-slate-100 bg-blue-50 shadow-md md:h-64 md:w-full lg:mx-0">
+          <div className="grid gap-4 p-4 sm:p-5 md:grid-cols-[190px_1fr] lg:grid-cols-[190px_1fr_230px] lg:items-center lg:p-6">
+            <div className="mx-auto h-48 w-full max-w-[190px] overflow-hidden rounded-2xl border border-slate-100 bg-blue-50 shadow-md md:h-52 md:w-full lg:mx-0">
               <DoctorImage doctor={doctor} />
             </div>
             <div className="min-w-0 text-center md:text-left">
               <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
-                <h1 className="text-2xl font-extrabold text-slate-900 sm:text-3xl">
+                <h1 className="text-xl font-extrabold text-slate-900 sm:text-2xl">
                   Dr. {doctor.user?.name || "Unknown"}
                 </h1>
                 <FaCheckCircle className="text-blue-500" />
@@ -231,10 +245,10 @@ export const DoctorDetails = () => {
                   {doctor.specialization}
                 </span>
               </div>
-              <p className="mt-2 text-sm text-slate-400">
+              <p className="mt-1 text-xs text-slate-400">
                 {doctor.education || "Medical Specialist"}
               </p>
-              <div className="mt-3 flex items-center justify-center gap-1.5 md:justify-start">
+              <div className="mt-2 flex items-center justify-center gap-1.5 md:justify-start">
                 {reviewsLoading ? (
                   <span className="text-xs text-slate-400">Loading rating…</span>
                 ) : reviews.length > 0 ? (
@@ -250,7 +264,7 @@ export const DoctorDetails = () => {
                 )}
               </div>
 
-              <div className="mt-4 flex flex-wrap justify-center gap-2 md:justify-start">
+              <div className="mt-3 flex flex-wrap justify-center gap-1.5 md:justify-start">
                 <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">
                   {doctor.experience_years}+ yrs experience
                 </span>
@@ -263,9 +277,9 @@ export const DoctorDetails = () => {
               </div>
             </div>
             <div className="flex flex-col gap-3 md:col-span-2 lg:col-span-1">
-              <div className="rounded-2xl bg-blue-50 px-6 py-4 text-center">
+              <div className="rounded-2xl bg-blue-50 px-4 py-3 text-center">
                 <p className="text-xs font-semibold text-slate-500">Consultation Fee</p>
-                <p className="text-3xl font-extrabold text-blue-600">₹{doctor.consultation_fee}</p>
+                <p className="text-2xl font-extrabold text-blue-600">₹{doctor.consultation_fee}</p>
               </div>
               <button onClick={() => {
                 const token = localStorage.getItem("accessToken");
@@ -276,35 +290,35 @@ export const DoctorDetails = () => {
                 }
                 navigate(`/doctors/doctor-details/book-appointment/${doctor.id}`, { state: { doctor } });
               }}
-                className="h-11 rounded-xl bg-blue-600 cursor-pointer px-6 text-sm font-bold text-white shadow-md shadow-blue-100 transition hover:scale-[1.02] hover:bg-blue-700">
+                className="h-9 rounded-xl bg-blue-600 cursor-pointer px-5 text-xs font-bold text-white shadow-md shadow-blue-100 transition hover:scale-[1.02] hover:bg-blue-700">
                 Book Appointment
               </button>
             </div>
           </div>
         </section>
-        <section className="mt-6 rounded-2xl bg-white p-5 shadow-lg shadow-sky-100 sm:p-6">
+        <section className="mt-4 rounded-2xl bg-white p-4 shadow-lg shadow-sky-100 sm:p-5">
           <h2 className="text-base font-extrabold text-slate-900">About Doctor</h2>
-          <p className="mt-3 text-sm leading-7 text-slate-600">
+          <p className="mt-2 text-xs leading-6 text-slate-600">
             {doctor.bio || `Dr. ${doctor.user?.name || "Doctor"} is an experienced ${doctor.specialization} specialist focused on patient-friendly care, clear diagnosis, and proper treatment guidance.`}
           </p>
-          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <InfoBox icon={<FaClock />} title="Availability" text="Morning & evening slots" color="blue" />
             <InfoBox icon={<FaShieldAlt />} title="Trusted Care" text="Safe and patient-first" color="emerald" />
             <InfoBox icon={<FaHospitalUser />} title="Patients" text="500+ happy patients" color="cyan" />
             <InfoBox icon={<FaLanguage />} title="Languages" text="English / Tamil" color="violet" />
           </div>
         </section>
-        <section className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <div className="rounded-2xl bg-white p-5 shadow-lg shadow-sky-100 sm:p-6">
-            <h3 className="mb-4 flex items-center gap-2 text-base font-extrabold text-slate-900">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+        <section className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div className="rounded-2xl bg-white p-4 shadow-lg shadow-sky-100 sm:p-5">
+            <h3 className="mb-3 flex items-center gap-2 text-sm font-extrabold text-slate-900">
+              <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
                 <FaNotesMedical />
               </span>
               Services Offered
             </h3>
             <div className="space-y-3">
               {services.map((service) => (
-                <div key={service} className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
+                <div key={service} className="flex items-center gap-2.5 rounded-xl bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700">
                   <FaCheckCircle className="shrink-0 text-emerald-500" />
                   {service}
                 </div>
@@ -326,7 +340,7 @@ export const DoctorDetails = () => {
                 { label: "Mode", value: "In-clinic & video consultation" },
                 { label: "Follow-up", value: "Available after confirmation" },
               ].map((item) => (
-                <div key={item.label} className="flex flex-col gap-1 rounded-xl bg-slate-50 px-4 py-3 text-sm sm:flex-row sm:items-start sm:justify-between">
+                <div key={item.label} className="flex flex-col gap-0.5 rounded-xl bg-slate-50 px-3 py-2 text-xs sm:flex-row sm:items-start sm:justify-between">
                   <span className="font-semibold text-slate-500">{item.label}</span>
                   <span className="break-words font-medium text-slate-700 sm:ml-4 sm:text-right">
                     {item.value}
@@ -350,8 +364,8 @@ const colorMap = {
 };
 
 const InfoBox = ({ icon, title, text, color }: InfoBoxProps) => (
-  <div className="rounded-2xl bg-slate-50 p-4 text-center sm:text-left">
-    <div className={`mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl text-lg sm:mx-0 ${colorMap[color]}`}>
+  <div className="rounded-xl bg-slate-50 p-3 text-center sm:text-left">
+    <div className={`mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-xl text-base sm:mx-0 ${colorMap[color]}`}>
       {icon}
     </div>
     <h3 className="text-sm font-bold text-slate-800">{title}</h3>

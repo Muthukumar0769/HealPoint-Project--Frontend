@@ -11,6 +11,8 @@ const initialState: InitialState = {
   error: null,
 };
 
+//---------create a availabilty for that day in every week---------------
+
 export const createAvailability = createAsyncThunk("schedule/createAvailability",
   async (
     data: {
@@ -32,6 +34,8 @@ export const createAvailability = createAsyncThunk("schedule/createAvailability"
   }
 );
 
+//--------Create a special availability----------------
+
 export const createSpecialAvailability = createAsyncThunk("schedule/createSpecialAvailability",
   async (
     data: { date: string; start_time: string; end_time: string; slot_duration: number },
@@ -45,6 +49,8 @@ export const createSpecialAvailability = createAsyncThunk("schedule/createSpecia
     }
   }
 );
+
+//----------create a unavailability ----------------
 
 export const createUnavailability = createAsyncThunk("schedule/createUnavailability",
   async (
@@ -66,6 +72,7 @@ export const createUnavailability = createAsyncThunk("schedule/createUnavailabil
   }
 );
 
+//----------Fetch the schedules------------------
 
 export const fetchNormalSchedules = createAsyncThunk("schedule/fetchNormalSchedules",
   async (_, thunkAPI) => {
@@ -142,6 +149,8 @@ export const fetchAllSchedules = createAsyncThunk("schedule/fetchAllSchedules",
   }
 );
 
+//----------Delete the schedules-------------
+
 export const deleteNormalSchedule = createAsyncThunk("schedule/deleteNormalSchedule",
   async (id: number, thunkAPI) => {
     try {
@@ -174,6 +183,8 @@ export const deleteLeave = createAsyncThunk("schedule/deleteLeave",
     }
   }
 );
+
+//---------Reducers--------------------
 
 const doctorScheduleSlice = createSlice({
   name: "doctorSchedule",

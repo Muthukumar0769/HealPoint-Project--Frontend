@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { FaUserMd, FaBriefcase, FaMoneyBillWave, FaImage, FaEnvelope, FaLock, FaUser, FaEyeSlash, FaEye, FaPlus, } from "react-icons/fa";
+import { FaUserMd, FaBriefcase, FaMoneyBillWave, FaImage, FaEnvelope, FaUser, FaPlus, } from "react-icons/fa";
 import { MdMedicalServices } from "react-icons/md";
 import { AdminSidebar } from "../../pages/Admin/AdminSidebar";
-import API from "../../api/axios";
+import API, { IMAGE_BASE_URL } from "../../api/axios";
 import toast from "react-hot-toast";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import type { Department, InputBoxProps, SelectBoxProps } from "../../types/admin.ts";
@@ -10,7 +10,8 @@ import type { DoctorData } from "../../types/doctor.ts";
 import usePageTitle from "../../hooks/usePageTitle";
 
 
-const BASE_URL = "http://localhost:5000";
+//-------Main Component---------
+
 export const AddDoctor = () => {
   const { id } = useParams();
   usePageTitle(id ? "Update Doctor" : "Add Doctor");
@@ -19,22 +20,24 @@ export const AddDoctor = () => {
   const doctorFromState = location.state?.doctor as DoctorData | undefined;
   const isEditMode = Boolean(id);
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [showNewSpecialization, setShowNewSpecialization] = useState(false);
+
+  // Controls the dropdown list of existing specializations
+  const [showSpecializationList, setShowSpecializationList] = useState(false);
+  // Controls the "Add New Specialization" form
+  const [showAddDepartment, setShowAddDepartment] = useState(false);
+
   const [newDepartment, setNewDepartment] = useState({
     name: "",
     description: "",
   });
 
-  const [showPassword, setShowPassword] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photo, setPhoto] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [, setShowAddDepartment] = useState(false);
   const [form, setForm] = useState({
     name: "",
     email: "",
     gender: "",
-    password: "",
     role: "doctor",
     specialization: "",
     experience_years: "",
@@ -42,25 +45,43 @@ export const AddDoctor = () => {
     bio: "",
   });
 
+  //----Get a image from doctors page or upload new image---------------
+
   const getImageUrl = (image?: string | null) => {
     if (!image) return "";
+
     const cleanImage = image.trim();
-    if (cleanImage.startsWith("http://") || cleanImage.startsWith("https://")) {
-      return cleanImage;
+
+    if (cleanImage.startsWith("http")) {
+      return cleanImage.replace(/^http:\/\//, "https://");
     }
 
     if (cleanImage.startsWith("/uploads/")) {
-      return `${BASE_URL}${cleanImage}`;
+      return `${IMAGE_BASE_URL}${cleanImage}`;
     }
-    return `${BASE_URL}/uploads/${cleanImage}`;
+
+    return `${IMAGE_BASE_URL}/uploads/${cleanImage}`;
   };
 
-  const normalizeDepartment = (item: any): Department => ({
-    id: Number(item.id || item.department_id || item._id),
-    name: item.name || item.specialization || item.department_name || "",
-    description: item.description || item.sdescription || "",
-    doctors: item.doctors || item.doctor_count || 0,
-  });
+  const normalizeDepartment = (item: any): Department => {
+    const name =
+      typeof item?.name === "string" && item.name.trim()
+        ? item.name
+        : typeof item?.specialization === "string" && item.specialization.trim()
+          ? item.specialization
+          : typeof item?.department_name === "string"
+            ? item.department_name
+            : "";
+
+    return {
+      id: Number(item?.id || item?.department_id || item?._id),
+      name,
+      description: item?.description || item?.sdescription || "",
+      doctors: item?.doctors || item?.doctor_count || 0,
+    };
+  };
+
+  //-------Fetch the departments logic with pagination-----------
 
   const fetchDepartments = async () => {
     try {
@@ -90,6 +111,8 @@ export const AddDoctor = () => {
     fetchDepartments();
   }, []);
 
+  //---------update the doctor details logic in same add doctor page used the location -------------
+
   useEffect(() => {
     const loadDoctorForEdit = async () => {
       if (!isEditMode || !id) return;
@@ -110,7 +133,6 @@ export const AddDoctor = () => {
           name: doctorData.user?.name || "",
           email: doctorData.user?.email || "",
           gender: doctorData.user?.gender || "",
-          password: "",
           role: doctorData.user?.role || "doctor",
           specialization: doctorData.specialization || "",
           experience_years: String(doctorData.experience_years || ""),
@@ -144,6 +166,8 @@ export const AddDoctor = () => {
     });
   };
 
+  //------Add the new specilaization logic,the specilaization get from specialization page---------
+
   const handleAddNewSpecialization = async () => {
     if (!newDepartment.name.trim()) {
       toast.error("Specialization name is required");
@@ -162,18 +186,26 @@ export const AddDoctor = () => {
         description: newDepartment.description.trim(),
       });
 
-      const createdDepartment = res.data?.data?.department ||
-        res.data?.department || res.data?.data || res.data;
+      // API actually returns: { success, message, specialization: {...} }
+      const createdDepartment =
+        res.data?.data?.department ||
+        res.data?.department ||
+        res.data?.specialization ||
+        res.data?.data?.specialization ||
+        res.data?.data ||
+        res.data;
+
       const department = normalizeDepartment(createdDepartment);
+
       await fetchDepartments();
+
       setForm((prev) => ({
         ...prev,
         specialization: department.name || newDepartment.name.trim(),
       }));
 
       setNewDepartment({ name: "", description: "" });
-
-      setShowNewSpecialization(false);
+      setShowAddDepartment(false);
       toast.success("Specialization added successfully");
     } catch (error: any) {
       console.log("Add specialization error:", error);
@@ -190,6 +222,8 @@ export const AddDoctor = () => {
       setPhotoPreview(URL.createObjectURL(file));
     }
   };
+
+  //---------Form submit logic-------------
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -211,10 +245,6 @@ export const AddDoctor = () => {
           consultation_fee: Number(form.consultation_fee),
           bio: form.bio,
         };
-        if (form.password.trim()) {
-          updateData.password = form.password;
-          
-        }
         await API.put(`/doctors/${id}`, updateData, {
           headers: {
             "Content-Type": "application/json",
@@ -240,7 +270,6 @@ export const AddDoctor = () => {
       formData.append("name", form.name);
       formData.append("email", form.email);
       formData.append("gender", form.gender);
-      formData.append("password", form.password);
       formData.append("role", form.role);
       formData.append("specialization", form.specialization);
       formData.append("experience_years", form.experience_years);
@@ -279,7 +308,7 @@ export const AddDoctor = () => {
   return (
     <div className="flex min-h-screen bg-[#f0f4fb] pt-16">
       <AdminSidebar />
-      <main className="flex-1 p-4 lg:p-6">
+      <main className="flex-1 p-4 lg:p-4 xl:px-4">
         <div className="mx-auto max-w-4xl rounded-2xl bg-white p-5 lg:p-6 shadow-lg">
           <h1 className="text-xl font-bold text-gray-900">
             {isEditMode ? "Update Doctor" : "Add Doctor"}
@@ -292,7 +321,10 @@ export const AddDoctor = () => {
               <label className="relative flex h-28 w-28 cursor-pointer items-center justify-center overflow-hidden rounded-full border-4 border-white bg-blue-50 shadow-xl ring-4 ring-blue-100">
                 {photoPreview ? (
                   <img src={photoPreview} alt="doctor" className="h-full w-full rounded-full object-cover object-top"
-                    onError={() => setPhotoPreview(null)} />
+                    onError={(e) => {
+                      console.log("Image failed:", photoPreview);
+                      e.currentTarget.src = "";
+                      setPhotoPreview(null);}}/>
                 ) : (
                   <div className="text-center text-blue-600">
                     <FaImage className="mx-auto text-3xl" />
@@ -307,20 +339,6 @@ export const AddDoctor = () => {
             <InputBox icon={<FaEnvelope />} label="Email" name="email" type="email" value={form.email} onChange={handleChange}
               placeholder="Enter email" />
             <div>
-              <label className="mb-2 block font-semibold text-gray-700">
-                Password {isEditMode && "(optional)"}
-              </label>
-              <div className="flex items-center gap-3 rounded-xl border border-gray-300 px-4 py-3 focus-within:border-blue-500">
-                <span className="text-blue-600"><FaLock /></span>
-                <input type={showPassword ? "text" : "password"} name="password" value={form.password} onChange={handleChange}
-                  placeholder={isEditMode ? "Leave empty if no change" : "Enter password"}
-                  className="w-full bg-transparent outline-none" required={!isEditMode} />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-gray-500">
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
-                </button>
-              </div>
-            </div>
-            <div>
               <label className="mb-2 block font-semibold text-gray-700">Gender</label>
               <div className="flex flex-wrap items-center gap-8 px-5 py-4">
                 {["Male", "Female", "Others"].map((gender) => (
@@ -331,11 +349,16 @@ export const AddDoctor = () => {
               </div>
             </div>
             <SelectBox icon={<FaUser />} label="Role" name="role" value={form.role} onChange={handleChange} options={["doctor"]} />
+
+            {/* -------- Specialization Section -------- */}
             <div className="relative">
               <label className="mb-2 block font-semibold text-gray-700">Specialization</label>
               <div className="rounded-2xl border border-gray-300 bg-white shadow-sm">
-                <button type="button" onClick={() => setShowNewSpecialization(!showNewSpecialization)}
-                  className="flex w-full items-center justify-between px-5 py-4">
+                <button type="button" onClick={() => {
+                  setShowSpecializationList(!showSpecializationList);
+                  setShowAddDepartment(false);
+                }}
+                  className="flex w-full items-center justify-between px-5 py-4" >
                   <div className="flex items-center gap-3">
                     <span className="rounded-xl bg-blue-100 p-3 text-blue-600">
                       <MdMedicalServices className="text-lg" />
@@ -350,28 +373,31 @@ export const AddDoctor = () => {
                   <div className="flex items-center gap-3">
                     <button type="button" onClick={(e) => {
                       e.stopPropagation();
-                      setShowNewSpecialization(false);
+                      setShowSpecializationList(false);
                       setShowAddDepartment(true);
-                    }} className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">
+                    }}
+                      className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">
                       <FaPlus />
                     </button>
-                    <span className={`transition-transform duration-300 ${showNewSpecialization ? "rotate-180" : ""}`}>▼</span>
+                    <span className={`transition-transform duration-300 ${showSpecializationList ? "rotate-180" : ""}`}>▼</span>
                   </div>
                 </button>
-                {showNewSpecialization && (
+
+                {showSpecializationList && (
                   <div className="border-t border-gray-200 bg-gray-50 p-3">
                     <div className="max-h-64 overflow-y-auto rounded-2xl">
                       <div className="space-y-2">
                         {departments.map((dept) => {
                           const isSelected = form.specialization === dept.name;
                           return (
-                            <button key={dept.id} type="button" onClick={() => {
-                              setForm((prev) => ({
-                                ...prev,
-                                specialization: dept.name,
-                              }));
-                              setShowNewSpecialization(false);
-                            }}
+                            <button key={dept.id} type="button"
+                              onClick={() => {
+                                setForm((prev) => ({
+                                  ...prev,
+                                  specialization: dept.name,
+                                }));
+                                setShowSpecializationList(false);
+                              }}
                               className={`flex w-full items-center justify-between rounded-xl border p-4 text-left transition-all duration-300 ${isSelected
                                 ? "border-blue-600 bg-blue-600 text-white" : "border-gray-200 bg-white hover:border-blue-400 hover:bg-blue-50"}`}>
                               <div>
@@ -380,6 +406,9 @@ export const AddDoctor = () => {
                             </button>
                           );
                         })}
+                        {departments.length === 0 && (
+                          <p className="p-3 text-sm text-gray-500">No specializations found. Use the + button to add one.</p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -393,7 +422,9 @@ export const AddDoctor = () => {
                 </div>
               )}
             </div>
-            {showNewSpecialization && (
+
+            {/* -------- Add New Specialization Form -------- */}
+            {showAddDepartment && (
               <div className="rounded-2xl border border-blue-100 bg-blue-50 p-5">
                 <h2 className="mb-4 text-xl font-bold text-gray-900">Add New Specialization</h2>
                 <div className="grid gap-4 md:grid-cols-2">
@@ -402,7 +433,15 @@ export const AddDoctor = () => {
                   <input type="text" name="description" value={newDepartment.description} onChange={handleNewDepartmentChange} placeholder="Description"
                     className="h-12 rounded-xl border border-gray-300 px-4 outline-none focus:border-blue-600" />
                 </div>
-                <div className="mt-4 flex justify-end">
+                <div className="mt-4 flex justify-end gap-3">
+                  <button type="button"
+                    onClick={() => {
+                      setShowAddDepartment(false);
+                      setNewDepartment({ name: "", description: "" });
+                    }}
+                    className="rounded-xl border border-gray-300 px-6 py-3 font-semibold text-gray-700 hover:bg-gray-100">
+                    Cancel
+                  </button>
                   <button type="button" onClick={handleAddNewSpecialization} disabled={loading}
                     className="rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white disabled:opacity-60">
                     {loading ? "Adding..." : "Add Specialization"}
@@ -410,6 +449,7 @@ export const AddDoctor = () => {
                 </div>
               </div>
             )}
+
             <InputBox icon={<FaBriefcase />} label="Experience Years" name="experience_years" type="number" value={form.experience_years}
               onChange={handleChange} placeholder="Example: 10" />
             <InputBox icon={<FaMoneyBillWave />} label="Consultation Fee" name="consultation_fee" type="number" value={form.consultation_fee}

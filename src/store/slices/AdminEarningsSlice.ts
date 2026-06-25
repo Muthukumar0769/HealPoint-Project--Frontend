@@ -2,54 +2,38 @@ import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/tool
 import API from "../../api/axios";
 import type { EarningsState } from '../../types/admin'
 
-const initialState: EarningsState & { offset: number } = {
+interface AdminEarningsSliceState extends Omit<EarningsState, "filter" | "page"> {
+    year: string;
+}
+
+const currentYear = new Date().getFullYear();
+
+const initialState: AdminEarningsSliceState = {
     data: null,
     loading: false,
     error: null,
-    filter: "month",
-    page: 1,
-    offset: 0,
+    year: String(currentYear),
 };
 
-export const fetchEarningsDashboard = createAsyncThunk("adminEarnings/fetchDashboard",
-    async ({ filter }: { filter: string; page: number }, { rejectWithValue }) => {
+//-------------Fetch the Earnings Reports data for a given year---------------
+
+export const fetchEarningsDashboard = createAsyncThunk(
+    "adminEarnings/fetchDashboard",
+    async ({ year }: { year: string }, { rejectWithValue }) => {
         try {
-            const res = await API.get(`/admin/dashboard/earnings-report?period=${filter}`);
+            const res = await API.get(`/admin/dashboard/earnings-report?period=year&year=${year}`);
             const d = res.data.data;
             const recentConsultations = d.recentConsultations ?? [];
             const videoCall = recentConsultations.filter((r: any) =>
                 r.consultationType?.toLowerCase().includes("video")
             );
             const videoCallRevenue = videoCall.reduce((sum: number, r: any) => sum + r.amount, 0);
-
-            let trendData: { label: string; videoCall: number; clinicVisit: number }[] = [];
-
-            if (filter === "month") {
-                // Use revenueTrend from API — each entry has month label + revenue
-                trendData = (d.revenueTrend ?? []).map((t: any) => ({
-                    label: t.label ?? t.month ?? t.day ?? t.week,
-                    videoCall: Number(t.revenue),
+            const trendData: { label: string; videoCall: number; clinicVisit: number }[] =
+                (d.revenueTrend ?? []).map((t: any) => ({
+                    label: t.label ?? t.month ?? t.year ?? "",
+                    videoCall: Number(t.revenue) || 0,
                     clinicVisit: 0,
                 }));
-            } else if (filter === "year") {
-                // Build yearly trend from recentConsultations appointment dates
-                const yearMap: Record<string, number> = {};
-                recentConsultations.forEach((r: any) => {
-                    const date = r.appointmentDate ?? r.appointment_date ?? "";
-                    if (!date) return;
-                    const year = new Date(date).getFullYear();
-                    if (isNaN(year)) return;
-                    const key = String(year);
-                    yearMap[key] = (yearMap[key] ?? 0) + (r.amount ?? 0);
-                });
-                trendData = Object.entries(yearMap)
-                    .sort(([a], [b]) => Number(a) - Number(b))
-                    .map(([year, revenue]) => ({
-                        label: year,
-                        videoCall: revenue,
-                        clinicVisit: 0,
-                    }));
-            }
 
             return {
                 summary: {
@@ -98,20 +82,14 @@ export const fetchEarningsDashboard = createAsyncThunk("adminEarnings/fetchDashb
     }
 );
 
+//------------Reducers-----------------
+
 const adminEarningsSlice = createSlice({
     name: "adminEarnings",
     initialState,
     reducers: {
-        setFilter(state, action: PayloadAction<"month" | "year">) {
-            state.filter = action.payload;
-            state.page = 1;
-            state.offset = 0;
-        },
-        setPage(state, action: PayloadAction<number>) {
-            state.page = action.payload;
-        },
-        setOffset(state, action: PayloadAction<number>) {
-            state.offset = action.payload;
+        setYear(state, action: PayloadAction<string>) {
+            state.year = action.payload;
         },
     },
     extraReducers: (builder) => {
@@ -131,5 +109,5 @@ const adminEarningsSlice = createSlice({
     },
 });
 
-export const { setFilter, setPage, setOffset } = adminEarningsSlice.actions;
+export const { setYear } = adminEarningsSlice.actions;
 export default adminEarningsSlice.reducer;

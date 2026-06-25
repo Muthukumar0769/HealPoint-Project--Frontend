@@ -92,6 +92,7 @@ export type AdminSpecializationState = {
   totalPages: number;
   totalDepartments: number;
   direction: number;
+  pageSize:number;
 };
 
 //Admin appointments types

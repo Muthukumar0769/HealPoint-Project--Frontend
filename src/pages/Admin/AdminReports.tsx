@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import {FaCalendarAlt, FaCheckCircle, FaChevronLeft, FaChevronRight, FaDownload,
-  FaExclamationTriangle, FaSpinner, FaTimesCircle, FaUserMd, FaBed, FaSyncAlt,} from "react-icons/fa";
+import {
+  FaCalendarAlt, FaCheckCircle, FaChevronLeft, FaChevronRight, FaDownload,
+  FaExclamationTriangle, FaSpinner, FaTimesCircle, FaUserMd, FaBed, FaSyncAlt,
+} from "react-icons/fa";
 import { Cell, PieChart, Pie, ResponsiveContainer, Tooltip } from "recharts";
 import { AdminSidebar } from "./AdminSidebar";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { fetchAvailabilityDashboard, setActiveTab, setPage, setSelectedDate,} from "../../store/slices/AdminReportsSlice";
+import { fetchAvailabilityDashboard, setActiveTab, setPage, setPageSize, setSelectedDate, } from "../../store/slices/AdminReportsSlice";
 import type { AvailableDoctor, UnavailableDoctor, LeaveDoctor } from "../../types/admin";
 import usePageTitle from "../../hooks/usePageTitle";
+
+//-------Helper Functions---------------
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 const COLORS = ["#1ab854", "#d73205", "#f59e0b"];
@@ -23,18 +27,22 @@ const formatTime = (time: string) => {
   return `${hour}:${String(m).padStart(2, "0")} ${ampm}`;
 };
 
+//--------------Get a doctor image--------------
+
 const getImageUrl = (pic: string) => pic?.startsWith("http") ? pic : `${BASE_URL}/uploads/${pic}`;
 const fallback = (name: string) => `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=dbeafe&color=1d4ed8`;
+
+//-----Main Component----------
 
 export const AdminReports = () => {
   usePageTitle("Leave Reports");
   const dispatch = useAppDispatch();
-  const { data, loading, error, selectedDate, activeTab, page } = useAppSelector((s) => s.adminReports);
+  const { data, loading, error, selectedDate, activeTab, page, pageSize } = useAppSelector((s) => s.adminReports);
   const [slideDir, setSlideDir] = useState<"left" | "right" | null>(null);
   const [animating, setAnimating] = useState(false);
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
   const tableWrapperRef = useRef<HTMLDivElement>(null);
-
+  
   const doFetch = useCallback(() => {
     dispatch(fetchAvailabilityDashboard({ date: selectedDate }));
     setLastRefreshed(new Date());
@@ -50,14 +58,18 @@ export const AdminReports = () => {
   const summary = data?.summary;
   const activeRows =
     activeTab === "available" ? data?.availableDoctors :
-    activeTab === "unavailable" ? data?.unavailableDoctors :
-    data?.onLeaveDoctors;
+      activeTab === "unavailable" ? data?.unavailableDoctors :
+        data?.onLeaveDoctors;
+
+  //-----logic for Pie chart-------------
 
   const chartData = [
-    { name: "Available",   value: data?.chartData.available  ?? 0 },
+    { name: "Available", value: data?.chartData.available ?? 0 },
     { name: "Unavailable", value: data?.chartData.unavailable ?? 0 },
-    { name: "On Leave",    value: data?.chartData.onLeave     ?? 0 },
+    { name: "On Leave", value: data?.chartData.onLeave ?? 0 },
   ];
+
+  //-----------Pagination logic------------
 
   const goToPage = (nextPage: number) => {
     if (animating || nextPage === page) return;
@@ -75,11 +87,13 @@ export const AdminReports = () => {
     }, 200);
   };
 
+  //-----------To generate a PDF using jsPDF--------------
+
   const handleExport = async () => {
     const rows =
-      activeTab === "available"   ? data?._allAvailable   ?? [] :
-      activeTab === "unavailable" ? data?._allUnavailable ?? [] :
-      data?._allLeave ?? [];
+      activeTab === "available" ? data?._allAvailable ?? [] :
+        activeTab === "unavailable" ? data?._allUnavailable ?? [] :
+          data?._allLeave ?? [];
     if (!rows.length) return;
 
     const { default: jsPDF } = await import("jspdf");
@@ -87,9 +101,9 @@ export const AdminReports = () => {
     const now = new Date().toLocaleString("en-IN");
     const receiptNo = `RPT-${Date.now()}`;
     const title =
-      activeTab === "available"   ? "Available Doctors" :
-      activeTab === "unavailable" ? "Unavailable Doctors" :
-      "On Leave Doctors";
+      activeTab === "available" ? "Available Doctors" :
+        activeTab === "unavailable" ? "Unavailable Doctors" :
+          "On Leave Doctors";
 
     doc.setFillColor(37, 99, 235); doc.rect(0, 0, 210, 35, "F");
     doc.setTextColor(255, 255, 255);
@@ -118,10 +132,10 @@ export const AdminReports = () => {
 
     secTitle("Summary");
     infoRow("Report Type", title);
-    infoRow("Total Doctors",  String(data?.summary.totalDoctors      ?? 0));
-    infoRow("Available",      String(data?.summary.availableDoctors  ?? 0));
-    infoRow("Unavailable",    String(data?.summary.unavailableDoctors ?? 0));
-    infoRow("On Leave",       String(data?.summary.onLeaveDoctors    ?? 0));
+    infoRow("Total Doctors", String(data?.summary.totalDoctors ?? 0));
+    infoRow("Available", String(data?.summary.availableDoctors ?? 0));
+    infoRow("Unavailable", String(data?.summary.unavailableDoctors ?? 0));
+    infoRow("On Leave", String(data?.summary.onLeaveDoctors ?? 0));
     y += 6;
     secTitle(`${title} — ${rows.length} Record${rows.length !== 1 ? "s" : ""}`);
 
@@ -172,8 +186,8 @@ export const AdminReports = () => {
         doc.setFont("helvetica", "bold");
         doc.setTextColor(
           r.slots_status === "slots_full" ? 234 : 22,
-          r.slots_status === "slots_full" ? 88  : 163,
-          r.slots_status === "slots_full" ? 12  : 74
+          r.slots_status === "slots_full" ? 88 : 163,
+          r.slots_status === "slots_full" ? 12 : 74
         );
         doc.text(r.slots_status === "slots_full" ? "Today slots finished" : "Available", cols[3], y + 2);
         y += 9;
@@ -205,7 +219,7 @@ export const AdminReports = () => {
   return (
     <div className="flex min-h-screen bg-[#f0f4fb]">
       <AdminSidebar />
-      <main className="min-w-0 flex-1 overflow-x-hidden px-3 pb-10 pt-20 sm:px-5 sm:pt-24 lg:px-8">
+      <main className="min-w-0 flex-1 overflow-x-hidden px-3 pb-10 pt-20 sm:px-5 sm:pt-24 lg:px-8 xl:px-7">
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h1 className="flex flex-wrap items-center gap-2 text-lg sm:text-2xl font-extrabold text-slate-900">
@@ -235,11 +249,9 @@ export const AdminReports = () => {
             </div>
           </div>
         </div>
-
-        {/* Stat Cards */}
         <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard title="Total Doctors" value={summary?.totalDoctors ?? 0} icon={<FaUserMd />} color="blue"   />
-          <StatCard title="Available" value={summary?.availableDoctors ?? 0} icon={<FaCheckCircle />} color="green"  />
+          <StatCard title="Total Doctors" value={summary?.totalDoctors ?? 0} icon={<FaUserMd />} color="blue" />
+          <StatCard title="Available" value={summary?.availableDoctors ?? 0} icon={<FaCheckCircle />} color="green" />
           <StatCard title="Unavailable" value={summary?.unavailableDoctors ?? 0} icon={<FaTimesCircle />} color="orange" />
           <StatCard title="On Leave" value={summary?.onLeaveDoctors ?? 0} icon={<FaBed />} color="yellow" />
         </div>
@@ -411,16 +423,41 @@ export const AdminReports = () => {
                       <PageBtn disabled={page <= 1} onClick={() => goToPage(page - 1)}>
                         <FaChevronLeft className="text-[10px]" />
                       </PageBtn>
-                      {Array.from({ length: activeRows?.totalPages ?? 0 }, (_, i) => i + 1).map((p) => (
-                        <button key={p} onClick={() => goToPage(p)}
-                          className={`h-7 w-7 sm:h-8 sm:w-8 cursor-pointer rounded-xl text-[10px] sm:text-xs font-bold transition-all duration-200 ${
-                            p === page ? "bg-blue-600 text-white" : "border border-slate-200 text-slate-600 hover:bg-slate-50"}`}>
-                          {p}
-                        </button>
-                      ))}
+                      {(() => {
+                        const total = activeRows?.totalPages ?? 0;
+                        const pages: (number | string)[] = [];
+                        if (total <= 7) {
+                          for (let i = 1; i <= total; i++) pages.push(i);
+                        } else {
+                          pages.push(1);
+                          if (page > 3) pages.push("...");
+                          for (let i = Math.max(2, page - 1); i <= Math.min(total - 1, page + 1); i++) pages.push(i);
+                          if (page < total - 2) pages.push("...");
+                          pages.push(total);
+                        }
+                        return pages.map((p, i) =>
+                          p === "..." ? (
+                            <button key={`dot-${i}`} onClick={() => goToPage(i === 1 ? Math.max(1, page - 5) : Math.min(total, page + 5))}
+                              className="h-7 w-7 sm:h-8 sm:w-8 cursor-pointer flex items-center justify-center rounded-xl border border-slate-200 text-[10px] sm:text-xs text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition">
+                              …
+                            </button>
+                          ) : (
+                            <button key={p} onClick={() => goToPage(Number(p))} className={`h-7 w-7 sm:h-8 sm:w-8 cursor-pointer rounded-xl text-[10px] sm:text-xs font-bold transition-all duration-200 ${p === page ? "bg-blue-600 text-white" : "border border-slate-200 text-slate-600 hover:bg-slate-50"}`}>
+                              {p}
+                            </button>
+                          )
+                        );
+                      })()}
                       <PageBtn disabled={page >= (activeRows?.totalPages ?? 1)} onClick={() => goToPage(page + 1)}>
                         <FaChevronRight className="text-[10px]" />
                       </PageBtn>
+                      <div className="ml-1 flex items-center gap-1.5">
+                        <select value={pageSize} onChange={(e) => dispatch(setPageSize(Number(e.target.value)))}
+                          className="h-7 sm:h-8 cursor-pointer rounded-lg border border-slate-200 bg-white px-2 text-[10px] sm:text-xs font-medium text-slate-600 outline-none">
+                          {[5, 10, 15, 20].map((o) => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                        <span className="text-slate-400">/ page</span>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -441,9 +478,9 @@ export const AdminReports = () => {
                 </ResponsiveContainer>
               </div>
               <div className="mt-3 space-y-2">
-                <StatusItem color="bg-green-500"  label="Available"   value={data?.chartData.available  ?? 0} />
-                <StatusItem color="bg-red-500"    label="Unavailable" value={data?.chartData.unavailable ?? 0} />
-                <StatusItem color="bg-yellow-400" label="On Leave"    value={data?.chartData.onLeave     ?? 0} />
+                <StatusItem color="bg-green-500" label="Available" value={data?.chartData.available ?? 0} />
+                <StatusItem color="bg-red-500" label="Unavailable" value={data?.chartData.unavailable ?? 0} />
+                <StatusItem color="bg-yellow-400" label="On Leave" value={data?.chartData.onLeave ?? 0} />
               </div>
             </div>
 
@@ -451,9 +488,9 @@ export const AdminReports = () => {
               <h2 className="text-sm sm:text-base font-extrabold text-slate-900">Quick Summary</h2>
               <p className="mt-1 text-[11px] sm:text-xs text-slate-400">{formatDate(selectedDate)}</p>
               <div className="mt-4 space-y-3">
-                <SummaryBox title="Available Today"   value={data?.quickSummary.availableToday   ?? 0} color="text-green-600"  bg="bg-green-50"  />
-                <SummaryBox title="Unavailable Today" value={data?.quickSummary.unavailableToday ?? 0} color="text-red-600"    bg="bg-red-50"    />
-                <SummaryBox title="On Leave Today"    value={data?.quickSummary.onLeaveToday     ?? 0} color="text-yellow-600" bg="bg-yellow-50" />
+                <SummaryBox title="Available Today" value={data?.quickSummary.availableToday ?? 0} color="text-green-600" bg="bg-green-50" />
+                <SummaryBox title="Unavailable Today" value={data?.quickSummary.unavailableToday ?? 0} color="text-red-600" bg="bg-red-50" />
+                <SummaryBox title="On Leave Today" value={data?.quickSummary.onLeaveToday ?? 0} color="text-yellow-600" bg="bg-yellow-50" />
               </div>
             </div>
           </aside>
@@ -463,10 +500,11 @@ export const AdminReports = () => {
   );
 };
 
+//------Separate component for buttons-----------
+
 const TabBtn = ({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) => (
   <button onClick={onClick}
-    className={`cursor-pointer rounded-xl px-3 sm:px-4 py-2 text-[11px] sm:text-xs font-extrabold transition ${
-      active ? "bg-blue-600 text-white shadow shadow-blue-200" : "bg-slate-100 text-slate-500 hover:bg-blue-50 hover:text-blue-600"}`}>
+    className={`cursor-pointer rounded-xl px-3 sm:px-4 py-2 text-[11px] sm:text-xs font-extrabold transition ${active ? "bg-blue-600 text-white shadow shadow-blue-200" : "bg-slate-100 text-slate-500 hover:bg-blue-50 hover:text-blue-600"}`}>
     {children}
   </button>
 );
@@ -479,19 +517,30 @@ const PageBtn = ({ onClick, disabled, children }: { onClick: () => void; disable
 );
 
 const StatCard = ({ title, value, icon, color }: { title: string; value: number; icon: React.ReactNode; color: "blue" | "green" | "orange" | "yellow" }) => {
-  const colors = {
-    blue:   "bg-blue-100 text-blue-600",
-    green:  "bg-green-100 text-green-600",
-    orange: "bg-orange-100 text-orange-600",
-    yellow: "bg-yellow-100 text-yellow-600",
+  const iconBg: Record<typeof color, string> = {
+    blue: "bg-blue-50 text-blue-600",
+    green: "bg-emerald-50 text-emerald-600",
+    orange: "bg-orange-50 text-orange-600",
+    yellow: "bg-yellow-50 text-yellow-600",
   };
+  const accent: Record<typeof color, string> = {
+    blue: "border-t-blue-500",
+    green: "border-t-emerald-500",
+    orange: "border-t-orange-500",
+    yellow: "border-t-yellow-400",
+  };
+
   return (
-    <div className="rounded-2xl bg-white p-3 sm:p-4 shadow shadow-blue-100">
-      <div className={`flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-2xl text-base sm:text-lg ${colors[color]}`}>
-        {icon}
+    <div className={`rounded-2xl bg-white p-3 sm:p-4 shadow shadow-blue-100 border-t-2 ${accent[color]}`}>
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-[10px] sm:text-xs font-bold text-slate-500">{title}</p>
+          <h3 className="mt-1 text-2xl sm:text-3xl font-extrabold text-slate-900">{value}</h3>
+        </div>
+        <div className={`flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-2xl text-base sm:text-lg ${iconBg[color]}`}>
+          {icon}
+        </div>
       </div>
-      <p className="mt-2 sm:mt-3 text-[10px] sm:text-xs font-bold text-slate-500">{title}</p>
-      <h3 className="mt-0.5 sm:mt-1 text-2xl sm:text-3xl font-extrabold text-slate-900">{value}</h3>
     </div>
   );
 };

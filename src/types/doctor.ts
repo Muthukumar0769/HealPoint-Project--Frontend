@@ -147,6 +147,7 @@ type Stats = {
   accepted: number;
   completed: number;
   cancelled: number;
+  missed: number;
 };
 
 export type DoctorAppointmentsState = {

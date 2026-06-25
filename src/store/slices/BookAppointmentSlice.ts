@@ -3,6 +3,8 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 import API from "../../api/axios";
 import type { Slot, DateItem, BookAppointmentState, ConsultationType,} from "../../types/patient";
 
+//-------Generate a day---------------
+
 const getDayLabel = (dateStr: string, index: number): string => {
   if (index === 0) return "Today";
   if (index === 1) return "Tomorrow";
@@ -11,6 +13,8 @@ const getDayLabel = (dateStr: string, index: number): string => {
     weekday: "short",
   });
 };
+
+//--------Generate Date for 7 days--------------
 
 export const generateNext7Days = (): DateItem[] => {
   return Array.from({ length: 7 }, (_, i) => {
@@ -45,6 +49,8 @@ const initialState: BookAppointmentState = {
   paymentSuccess: false,
 };
 
+//-----Thunk for patient select date the slots generate dynamically----------------
+
 export const fetchSlotsForDate = createAsyncThunk(
   "bookAppointment/fetchSlotsForDate",
   async (
@@ -71,6 +77,8 @@ export const fetchSlotsForDate = createAsyncThunk(
     }
   }
 );
+
+//--------Booking an appointment for doctor------------------
 
 export const submitBooking = createAsyncThunk(
   "bookAppointment/submitBooking",
@@ -104,6 +112,8 @@ export const submitBooking = createAsyncThunk(
   }
 );
 
+//---------create a razorpay order-----------------
+
 export const createRazorpayOrder = createAsyncThunk(
   "bookAppointment/createRazorpayOrder",
   async (appointmentId: number, { rejectWithValue }) => {
@@ -126,6 +136,8 @@ export const createRazorpayOrder = createAsyncThunk(
   }
 );
 
+//---------Thunk for after payment verify with id----------------
+
 export const verifyRazorpayPayment = createAsyncThunk(
   "bookAppointment/verifyRazorpayPayment",
   async (
@@ -146,6 +158,8 @@ export const verifyRazorpayPayment = createAsyncThunk(
     }
   }
 );
+
+//-------------Reducers-----------------
 
 const bookAppointmentSlice = createSlice({
   name: "bookAppointment",

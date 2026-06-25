@@ -1,8 +1,10 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import API from "../../api/axios";
 import { isBookableSlot } from "../../utils/slotHelpers";
-import type {AdminReportsState, PaginatedDoctors, LeaveDoctor,
-  AvailableDoctor, UnavailableDoctor, ReportsDashboardData,} from "../../types/admin";
+import type {
+  AdminReportsState, PaginatedDoctors, LeaveDoctor,
+  AvailableDoctor, UnavailableDoctor, ReportsDashboardData,
+} from "../../types/admin";
 
 const today = new Date().toISOString().split("T")[0]
 const initialState: AdminReportsState = {
@@ -22,10 +24,17 @@ const paginate = <T>(rows: T[], page: number, pageSize: number): PaginatedDoctor
   rows: rows.slice((page - 1) * pageSize, page * pageSize),
 });
 
+//---------Thunk for fetch the doctor available,unavailable based on slot and leave ------------
+
 export const fetchAvailabilityDashboard = createAsyncThunk(
   "adminReports/fetch",
-  async ({ date }: { date: string }, { rejectWithValue }) => {
+  async ({ date }: { date: string }, { rejectWithValue, getState }) => {
     try {
+      // Use the current pageSize from state instead of a hardcoded value,
+      // so the user's page-size selection survives a refetch.
+      const state = getState() as { adminReports: AdminReportsState };
+      const currentPageSize = state.adminReports.pageSize;
+
       const res = await API.get("/admin/doctor-availability-dashboard", {
         params: { date, page: 1, limit: 1000 },
       });
@@ -44,7 +53,10 @@ export const fetchAvailabilityDashboard = createAsyncThunk(
         status: "on_leave" as const,
       }));
 
-      const notOnLeaveRows: any[] = base.availableDoctors?.rows ?? [];
+      const notOnLeaveRows: any[] = [
+        ...(base.availableDoctors?.rows ?? []),
+        ...(base.unavailableDoctors?.rows ?? []),
+      ];
       const slotResults = await Promise.allSettled(
         notOnLeaveRows.map(async (doctor: any) => {
           try {
@@ -96,9 +108,9 @@ export const fetchAvailabilityDashboard = createAsyncThunk(
           unavailableDoctors: allUnavailable.length,
           onLeaveDoctors: allLeave.length,
         },
-        availableDoctors: paginate(allAvailable, 1, 10),
-        unavailableDoctors: paginate(allUnavailable, 1, 10),
-        onLeaveDoctors: paginate(allLeave, 1, 10),
+        availableDoctors: paginate(allAvailable, 1, currentPageSize),
+        unavailableDoctors: paginate(allUnavailable, 1, currentPageSize),
+        onLeaveDoctors: paginate(allLeave, 1, currentPageSize),
         chartData: {
           available: allAvailable.filter(d => d.slots_status === "has_slots").length,
           unavailable: allUnavailable.length,
@@ -128,6 +140,8 @@ const rebuildSummary = (d: ReportsDashboardData) => {
   d.chartData.onLeave = d._allLeave.length;
   d.quickSummary.onLeaveToday = d._allLeave.length;
 };
+
+//----------------Reducers-------------------
 
 const adminReportsSlice = createSlice({
   name: "adminReports",
@@ -162,6 +176,16 @@ const adminReportsSlice = createSlice({
         } else {
           d.onLeaveDoctors = paginate(d._allLeave, action.payload, state.pageSize);
         }
+      }
+    },
+    setPageSize: (state, action: PayloadAction<number>) => {
+      state.pageSize = action.payload;
+      state.page = 1;
+      if (state.data) {
+        const d = state.data as ReportsDashboardData;
+        d.availableDoctors = paginate(d._allAvailable, 1, action.payload);
+        d.unavailableDoctors = paginate(d._allUnavailable, 1, action.payload);
+        d.onLeaveDoctors = paginate(d._allLeave, 1, action.payload);
       }
     },
     removeLeaveByDate: (state, action: PayloadAction<string>) => {
@@ -223,6 +247,6 @@ const adminReportsSlice = createSlice({
   },
 });
 
-export const { setSelectedDate, setActiveTab, setPage, removeLeaveByDate, updateLeaveRecord } =
+export const { setSelectedDate, setActiveTab, setPage, setPageSize, removeLeaveByDate, updateLeaveRecord } =
   adminReportsSlice.actions;
 export default adminReportsSlice.reducer;

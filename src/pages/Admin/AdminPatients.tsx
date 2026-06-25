@@ -2,24 +2,28 @@ import { useEffect, useMemo, useState } from "react";
 import { AdminSidebar } from "./AdminSidebar";
 import { FaSearch, FaUserPlus, FaUsers } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
-import { fetchAdminPatients, setSearch, setGenderFilter, setBloodGroupFilter,setStatusFilter, setPage, clearFilters,} from "../../store/slices/AdminPatientSlice";
+import { fetchAdminPatients, setSearch, setGenderFilter, setBloodGroupFilter, setStatusFilter, setPage, clearFilters, setPageSize } from "../../store/slices/AdminPatientSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import type { PatientStatCardProps, FilterDropdownProps } from "../../types/admin";
 import usePageTitle from "../../hooks/usePageTitle";
+
+//-------Main component--------------
 
 export const AdminPatients = () => {
   usePageTitle("Manage Patients");
   const dispatch = useAppDispatch();
   const { patients, loading, totalPatients, totalPages, currentPage, direction,
-         search, genderFilter, bloodGroupFilter, statusFilter,} = useAppSelector((state) => state.adminPatients);
+    search, genderFilter, bloodGroupFilter, statusFilter, pageSize, } = useAppSelector((state) => state.adminPatients);
   const [openFilter, setOpenFilter] = useState<string | null>(null);
+
+//--------fetch all registerd patients with setTimeout function in 0.4 seconds---------
 
   useEffect(() => {
     const timer = setTimeout(() => {
       dispatch(fetchAdminPatients());
     }, 400);
     return () => clearTimeout(timer);
-  }, [dispatch, currentPage, search, genderFilter, bloodGroupFilter, statusFilter]);
+  }, [dispatch, currentPage, search, genderFilter, bloodGroupFilter, statusFilter, pageSize]);
 
   const changePage = (page: number) => {
     if (page < 1 || page > totalPages) return;
@@ -28,13 +32,15 @@ export const AdminPatients = () => {
     window.scrollTo({ top: 200, behavior: "smooth" });
   };
 
+//--------Filter logic for gender--------
+
   const totalMale = useMemo(() => patients.filter((p) => p.gender === "Male").length, [patients]);
   const totalFemale = useMemo(() => patients.filter((p) => p.gender === "Female").length, [patients]);
 
   return (
     <div className="flex min-h-screen bg-[#f0f4fb] pt-16">
       <AdminSidebar />
-      <main className="flex-1 overflow-y-auto p-3 sm:p-5 lg:p-7">
+      <main className="flex-1 overflow-y-auto p-3 sm:p-5 lg:p-7 xl:px-7">
         <div className="mb-4 sm:mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
@@ -117,7 +123,7 @@ export const AdminPatients = () => {
                         patients.map((patient, index) => (
                           <tr key={patient.id} className="border-b border-slate-50 text-xs sm:text-sm text-slate-600 hover:bg-blue-50/40 transition-colors">
                             <td className="px-3 sm:px-4 py-2.5 sm:py-3 font-semibold text-slate-400 whitespace-nowrap">
-                              PT{(currentPage - 1) * 10 + index + 1}
+                              PT{(currentPage - 1) * pageSize + index + 1}
                             </td>
                             <td className="px-3 sm:px-4 py-2.5 sm:py-3">
                               <div className="flex items-center gap-2">
@@ -142,8 +148,7 @@ export const AdminPatients = () => {
                             <td className="px-3 sm:px-4 py-2.5 sm:py-3 text-slate-400 whitespace-nowrap">{patient.dob}</td>
                             <td className="px-3 sm:px-4 py-2.5 sm:py-3 text-slate-400 whitespace-nowrap">{patient.registeredOn}</td>
                             <td className="px-3 sm:px-4 py-2.5 sm:py-3">
-                              <span className={`rounded-full px-2 sm:px-2.5 py-0.5 text-[10px] sm:text-xs font-semibold whitespace-nowrap ${
-                                patient.status === "Active" ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-500"}`}>
+                              <span className={`rounded-full px-2 sm:px-2.5 py-0.5 text-[10px] sm:text-xs font-semibold whitespace-nowrap ${patient.status === "Active" ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-500"}`}>
                                 {patient.status === "Active" ? "✓ " : "○ "}{patient.status}
                               </span>
                             </td>
@@ -157,24 +162,50 @@ export const AdminPatients = () => {
             </AnimatePresence>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-t border-blue-50 px-3 sm:px-4 py-3">
-            <p className="text-[11px] sm:text-xs text-slate-400">
-              {totalPatients === 0 ? "No results" : `Page ${currentPage} of ${totalPages} · ${totalPatients} patients`}
+            <p className="text-xs text-slate-500">
+              Showing <span className="font-semibold text-slate-700">{totalPatients === 0 ? 0 : (currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, totalPatients)}</span> of <span className="font-semibold text-slate-700">{totalPatients}</span> patients
             </p>
-            <div className="flex items-center gap-1 flex-wrap">
+            <div className="flex items-center gap-1.5 flex-wrap">
               <button disabled={currentPage === 1} onClick={() => changePage(currentPage - 1)}
-                className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center cursor-pointer rounded-lg border border-blue-100 text-xs text-slate-500 hover:bg-blue-50 disabled:opacity-30 transition-colors">
-                ‹
+                className="h-8 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 transition">
+                ← Prev
               </button>
-              {Array.from({ length: totalPages }, (_, i) => (
-                <button key={i} onClick={() => changePage(i + 1)} className={`h-7 w-7 sm:h-8 sm:w-8 rounded-lg cursor-pointer border text-[11px] sm:text-xs font-semibold transition-colors ${
-                    currentPage === i + 1 ? "border-blue-500 bg-blue-600 text-white" : "border-blue-100 text-slate-500 hover:bg-blue-50"}`}>
-                  {i + 1}
-                </button>
-              ))}
+              {(() => {
+                const pages: (number | string)[] = [];
+                if (totalPages <= 7) {
+                  for (let i = 1; i <= totalPages; i++) pages.push(i);
+                } else {
+                  pages.push(1);
+                  if (currentPage > 3) pages.push("...");
+                  for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) pages.push(i);
+                  if (currentPage < totalPages - 2) pages.push("...");
+                  pages.push(totalPages);
+                }
+                return pages.map((p, i) =>
+                  p === "..." ? (
+                    <button key={`dot-${i}`} onClick={() => changePage(i === 1 ? Math.max(1, currentPage - 5) : Math.min(totalPages, currentPage + 5))}
+                      className="h-8 w-8 cursor-pointer flex items-center justify-center rounded-lg border border-slate-200 bg-white text-xs text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition">
+                      …
+                    </button>
+                  ) : (
+                    <button key={p} onClick={() => changePage(Number(p))} className={`h-8 w-8 cursor-pointer rounded-lg border text-xs font-bold transition
+                      ${currentPage === p ? "border-blue-600 bg-blue-600 text-white shadow-sm" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}>
+                      {p}
+                    </button>
+                  )
+                );
+              })()}
               <button disabled={currentPage === totalPages} onClick={() => changePage(currentPage + 1)}
-                className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg border border-blue-100 text-xs text-slate-500 cursor-pointer hover:bg-blue-50 disabled:opacity-30 transition-colors">
-                ›
+                className="h-8 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 transition">
+                Next →
               </button>
+              <div className="ml-1 flex items-center gap-1.5">
+                <select value={pageSize} onChange={(e) => dispatch(setPageSize(Number(e.target.value)))}
+                  className="h-8 cursor-pointer rounded-lg border border-slate-200 bg-white px-2 text-xs font-medium text-slate-600 outline-none">
+                  {[5, 10, 15, 20].map((o) => <option key={o} value={o}>{o}</option>)}
+                </select>
+                <span className="text-xs text-slate-400">/ page</span>
+              </div>
             </div>
           </div>
         </div>
@@ -211,8 +242,7 @@ const FilterDropdown = ({ label, value, options, isOpen, onToggle, onSelect }: F
       <div className="absolute left-0 top-11 z-50 w-full overflow-hidden rounded-xl border border-blue-100 bg-white shadow-lg">
         <div className="max-h-48 overflow-y-auto p-1.5">
           {options.map((option) => (
-            <button key={option} type="button" onClick={() => onSelect(option)} className={`mb-0.5 w-full cursor-pointer rounded-lg px-3 py-2 text-left text-xs font-medium transition ${
-                value === option ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"}`}>
+            <button key={option} type="button" onClick={() => onSelect(option)} className={`mb-0.5 w-full cursor-pointer rounded-lg px-3 py-2 text-left text-xs font-medium transition ${value === option ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"}`}>
               {option}
             </button>
           ))}

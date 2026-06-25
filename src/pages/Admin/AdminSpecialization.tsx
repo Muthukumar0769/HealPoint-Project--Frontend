@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FaEdit, FaPlus, FaSearch, FaTrash, FaTimes, FaSave, FaUserMd } from "react-icons/fa";
 import { MdGridView } from "react-icons/md";
 import { motion, AnimatePresence } from "framer-motion";
@@ -7,8 +7,10 @@ import API from "../../api/axios";
 import { AdminSidebar } from "./AdminSidebar";
 import type { Specialization } from "../../types/admin";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { fetchAdminSpecializations, deleteSpecialization, setSearch, setPage } from "../../store/slices/AdminSpecializationSlice";
+import { fetchAdminSpecializations, deleteSpecialization, setSearch, setPage, setPageSize } from "../../store/slices/AdminSpecializationSlice";
 import usePageTitle from "../../hooks/usePageTitle";
+
+//------Helper Functions---------
 
 const SPEC_COLORS = [
   { icon: "bg-blue-100", text: "text-blue-600" },
@@ -19,10 +21,12 @@ const SPEC_COLORS = [
   { icon: "bg-amber-100", text: "text-amber-600" },
 ];
 
+//-----Main Component---------
+
 export const AdminSpecialization = () => {
   usePageTitle("Specializations");
   const dispatch = useAppDispatch();
-  const { specializations, loading, search, currentPage, totalPages, totalDepartments, direction } =
+  const { specializations, loading, search, currentPage, totalPages, totalDepartments, direction, pageSize } =
     useAppSelector((state) => state.adminSpecializations);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -37,7 +41,18 @@ export const AdminSpecialization = () => {
   useEffect(() => {
     const timer = setTimeout(() => { dispatch(fetchAdminSpecializations()); }, 400);
     return () => clearTimeout(timer);
-  }, [dispatch, currentPage, search]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, search]);
+
+  //-------Fetch immediately when page or page-size changes (no debounce)-----------
+  const isFirstRun = useRef(true);
+  useEffect(() => {
+    if (isFirstRun.current) {
+      isFirstRun.current = false;
+      return;
+    }
+    dispatch(fetchAdminSpecializations());
+  }, [dispatch, currentPage, pageSize]);
 
   const openAddForm = () => {
     setEditingId(null);
@@ -69,6 +84,8 @@ export const AdminSpecialization = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+
+//-------Add Speciaization button logic----------
 
   const handleSubmit = async () => {
     if (!form.name.trim()) return toast.error("Name is required");
@@ -111,7 +128,7 @@ export const AdminSpecialization = () => {
   return (
     <div className="min-h-screen bg-[#f0f4fb] pt-16 lg:flex">
       <AdminSidebar />
-      <main className="flex-1 min-w-0 px-3 py-5 sm:px-5 sm:py-6 lg:px-7">
+      <main className="flex-1 min-w-0 px-3 py-5 sm:px-5 sm:py-6 lg:px-7 xl:px-7">
         <div className="mb-4 sm:mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="mb-1 text-[10px] sm:text-sm font-semibold uppercase tracking-widest text-blue-400">
@@ -196,7 +213,7 @@ export const AdminSpecialization = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {loading ? (
+                  {loading && specializations.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-4 py-12 text-center text-xs sm:text-sm text-slate-400">
                         <span className="inline-flex items-center gap-2">
@@ -261,21 +278,52 @@ export const AdminSpecialization = () => {
           </div>
         </div>
         {totalPages > 1 && (
-          <div className="mt-4 sm:mt-5 flex items-center justify-center gap-1 sm:gap-1.5 flex-wrap">
-            <button disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)}
-              className="cursor-pointer rounded-xl border border-blue-100 bg-white px-2.5 sm:px-3 py-2 text-[11px] sm:text-sm font-semibold text-slate-500 hover:bg-blue-50 disabled:opacity-40 transition-colors">
-              Prev
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => (
-              <button key={i} onClick={() => handlePageChange(i + 1)} className={`h-8 w-8 sm:h-9 sm:w-9 cursor-pointer rounded-xl border text-[11px] sm:text-sm font-semibold transition-colors ${
-                  currentPage === i + 1 ? "border-blue-500 bg-blue-600 text-white" : "border-blue-100 bg-white text-slate-600 hover:bg-blue-50"}`}>
-                {i + 1}
+          <div className="mt-4 sm:mt-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-slate-500">
+              Showing <span className="font-semibold text-slate-700">{(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, totalDepartments)}</span> of <span className="font-semibold text-slate-700">{totalDepartments}</span> specializations
+            </p>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <button disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)}
+                className="h-8 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 transition">
+                ← Prev
               </button>
-            ))}
-            <button disabled={currentPage === totalPages} onClick={() => handlePageChange(currentPage + 1)}
-              className="cursor-pointer rounded-xl border border-blue-100 bg-white px-2.5 sm:px-3 py-2 text-[11px] sm:text-sm font-semibold text-slate-500 hover:bg-blue-50 disabled:opacity-40 transition-colors">
-              Next
-            </button>
+              {(() => {
+                const pages: (number | string)[] = [];
+                if (totalPages <= 7) {
+                  for (let i = 1; i <= totalPages; i++) pages.push(i);
+                } else {
+                  pages.push(1);
+                  if (currentPage > 3) pages.push("...");
+                  for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) pages.push(i);
+                  if (currentPage < totalPages - 2) pages.push("...");
+                  pages.push(totalPages);
+                }
+                return pages.map((p, i) =>
+                  p === "..." ? (
+                    <button key={`dot-${i}`} onClick={() => handlePageChange(i === 1 ? Math.max(1, currentPage - 5) : Math.min(totalPages, currentPage + 5))}
+                      className="h-8 w-8 cursor-pointer flex items-center justify-center rounded-lg border border-slate-200 bg-white text-xs text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition">
+                      …
+                    </button>
+                  ) : (
+                    <button key={p} onClick={() => handlePageChange(Number(p))} className={`h-8 w-8 cursor-pointer rounded-lg border text-xs font-bold transition
+                     ${currentPage === p ? "border-blue-600 bg-blue-600 text-white shadow-sm" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}>
+                      {p}
+                    </button>
+                  )
+                );
+              })()}
+              <button disabled={currentPage === totalPages} onClick={() => handlePageChange(currentPage + 1)}
+                className="h-8 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 transition">
+                Next →
+              </button>
+              <div className="ml-1 flex items-center gap-1.5">
+                <select value={pageSize} onChange={(e) => dispatch(setPageSize(Number(e.target.value)))}
+                  className="h-8 cursor-pointer rounded-lg border border-slate-200 bg-white px-2 text-xs font-medium text-slate-600 outline-none">
+                  {[6, 12, 18, 24].map((o) => <option key={o} value={o}>{o}</option>)}
+                </select>
+                <span className="text-xs text-slate-400">/ page</span>
+              </div>
+            </div>
           </div>
         )}
         <AnimatePresence>

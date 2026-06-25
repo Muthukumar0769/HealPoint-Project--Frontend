@@ -8,6 +8,8 @@ import usePageTitle from "../../hooks/usePageTitle";
 
 type Step = "email" | "otp" | "reset" | "success";
 
+//----------Main Component--------------
+
 export const ForgotPassword = () => {
     const location = useLocation();
     usePageTitle(location.pathname.includes("reset") ? "Reset Password" : "Forgot Password");

@@ -24,6 +24,8 @@ const initialState: NotificationState = {
   },
 };
 
+//--------Reducers----------
+
 const doctorNotificationSlice = createSlice({
   name: "doctorNotifications",
   initialState,

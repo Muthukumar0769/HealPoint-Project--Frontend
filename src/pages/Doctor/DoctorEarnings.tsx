@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { FaRupeeSign, FaCalendarCheck, FaCheckCircle, FaWallet, FaDownload, FaVideo, FaHospital, FaChevronLeft, FaChevronRight, FaCalendarAlt } from "react-icons/fa";
+import { FaRupeeSign, FaCalendarCheck, FaCheckCircle, FaWallet, FaDownload, FaVideo, FaHospital, FaChevronLeft, FaChevronRight, FaCalendarAlt, FaChevronDown } from "react-icons/fa";
 import { DoctorSidebar } from "./DoctorSidebar";
 import API from "../../api/axios";
 import type { Summary, Payment, MonthlyData } from "../../types/doctor";
@@ -7,8 +7,12 @@ import { useAppDispatch } from "../../store/hooks";
 import { clearEarningNotification, setEarningNotification } from "../../store/slices/NotificationSlice";
 import usePageTitle from "../../hooks/usePageTitle";
 
+//--------Helper Functions----------
+
 const SEEN_KEY = "doctor_seen_earning_ids";
-const PAGE_LIMIT = 5;
+const PAGE_OPTIONS = [5, 10, 25, 50];
+
+//------Safely access the data using this shape---------
 
 const extractArray = (res: any, key: string): any[] => {
   const d = res?.data;
@@ -24,12 +28,16 @@ const extractSummary = (res: any): Summary | null => {
   return d?.data ?? d ?? null;
 };
 
+//-----main Component-----------
+
 export const DoctorEarnings = () => {
   usePageTitle("My Earnings");
   const [summary, setSummary] = useState<Summary | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [totalPayments, setTotalPayments] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageLimit, setPageLimit] = useState(5);
+  const [showLimitDropdown, setShowLimitDropdown] = useState(false);
   const [dateFilter, setDateFilter] = useState("");
   const [monthly, setMonthly] = useState<MonthlyData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,9 +47,22 @@ export const DoctorEarnings = () => {
   const [hoveredBar, setHoveredBar] = useState<number | null>(null);
   const dispatch = useAppDispatch();
   const isOnPage = useRef(false);
-  const totalPages = Math.ceil(totalPayments / PAGE_LIMIT);
+  const totalPages = Math.ceil(totalPayments / pageLimit);
   const [slideDirection, setSlideDirection] = useState<"right" | "left">("right");
   const [animKey, setAnimKey] = useState(0);
+  const limitDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (limitDropdownRef.current && !limitDropdownRef.current.contains(e.target as Node)) {
+        setShowLimitDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  //--------Fetch the Earnings data in different APIs Parallely using Promise.all---
 
   useEffect(() => {
     const fetchSummaryAndMonthly = async () => {
@@ -68,7 +89,6 @@ export const DoctorEarnings = () => {
         });
         setMonthly(rawMonthly);
       } catch (err) {
-        console.error("Earnings fetch error:", err);
         setError("Failed to load earnings data. Please try again.");
       } finally {
         setLoading(false);
@@ -81,7 +101,7 @@ export const DoctorEarnings = () => {
     const fetchPayments = async () => {
       try {
         setPaymentsLoading(true);
-        const params: any = { page: currentPage, limit: PAGE_LIMIT };
+        const params: any = { page: currentPage, limit: pageLimit };
         if (dateFilter) params.date = dateFilter;
         const payRes = await API.get("/doctor/earnings/payments", { params });
         const rawPayments: Payment[] = payRes.data?.data?.payments ?? [];
@@ -95,7 +115,7 @@ export const DoctorEarnings = () => {
       }
     };
     fetchPayments();
-  }, [currentPage, dateFilter]);
+  }, [currentPage, dateFilter, pageLimit]);
 
   useEffect(() => {
     isOnPage.current = true;
@@ -131,6 +151,13 @@ export const DoctorEarnings = () => {
     setCurrentPage(1);
   };
 
+  const handleLimitChange = (limit: number) => {
+    setPageLimit(limit);
+    setCurrentPage(1);
+    setShowLimitDropdown(false);
+    setAnimKey(k => k + 1);
+  };
+
   const transactionTotal = payments.reduce((sum, p) => sum + p.amount, 0);
 
   const statCards = [
@@ -147,7 +174,6 @@ export const DoctorEarnings = () => {
       const res = await API.get("/doctor/earnings/payments", { params: { page: 1, limit: 10000 } });
       allPayments = res.data?.data?.payments ?? [];
     } catch (err) {
-      console.error("Export fetch error:", err);
       setExportLoading(false);
       return;
     }
@@ -212,7 +238,7 @@ export const DoctorEarnings = () => {
     const step = Math.ceil(yMax / 5 / 1000) * 1000 || 1000;
     return [0, step, step * 2, step * 3, step * 4, step * 5];
   })();
-  const chartHeight = 220;
+  const chartHeight = 200;
   const chartPadTop = 20;
   const barAreaHeight = chartHeight - chartPadTop;
 
@@ -222,48 +248,64 @@ export const DoctorEarnings = () => {
     return `₹${val}`;
   };
 
+  const rangeStart = totalPayments === 0 ? 0 : (currentPage - 1) * pageLimit + 1;
+  const rangeEnd = Math.min(currentPage * pageLimit, totalPayments);
+
+  const paginationPages = (() => {
+    const pages: (number | string)[] = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (currentPage > 3) pages.push("...");
+      for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) pages.push(i);
+      if (currentPage < totalPages - 2) pages.push("...");
+      pages.push(totalPages);
+    }
+    return pages;
+  })();
+
   return (
     <div className="flex min-h-screen bg-[#f0f4fb]">
       <DoctorSidebar />
-      <main className="min-w-0 flex-1 overflow-x-hidden px-3 pb-12 pt-18 sm:px-5 sm:pt-20 lg:px-8 lg:pt-24">
-        <div className="mb-5 sm:mb-8">
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-slate-900">
+      <main className="min-w-0 flex-1 overflow-x-hidden px-3 pb-12 pt-16 sm:px-5 sm:pt-20 lg:px-7 lg:pt-22 xl:px-7">
+        <div className="mb-4 sm:mb-6">
+          <h1 className="text-lg sm:text-xl lg:text-2xl font-extrabold tracking-tight text-slate-900">
             Payments & <span className="text-blue-600">Earnings</span>
           </h1>
-          <p className="mt-1 text-xs sm:text-sm font-medium text-slate-400">Track your consultation income and payment history.</p>
+          <p className="mt-0.5 text-xs font-medium text-slate-400">Track your consultation income and payment history.</p>
         </div>
 
         {error && (
-          <div className="mb-4 sm:mb-6 flex items-center gap-3 rounded-xl sm:rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-xs sm:text-sm font-semibold text-red-600">
-            <span>⚠</span>
-            {error}
+          <div className="mb-4 flex items-center gap-3 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-xs font-semibold text-red-600">
+            <span>⚠</span>{error}
           </div>
         )}
-        <div className="mb-5 sm:mb-8 grid grid-cols-1 gap-3 sm:gap-5 sm:grid-cols-3">
+        <div className="mb-4 sm:mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
           {statCards.map((card) => (
-            <div key={card.label} className="relative overflow-hidden rounded-xl sm:rounded-2xl border border-blue-100 bg-white px-4 sm:px-6 py-4 sm:py-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-blue-100">
+            <div key={card.label} className="relative overflow-hidden rounded-xl border border-blue-100 bg-white px-4 py-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-blue-100">
               <div className={`absolute inset-0 bg-gradient-to-br ${card.accent} opacity-60`} />
               <div className="relative flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-slate-400 mb-2 sm:mb-3">{card.label}</p>
-                  <p className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
-                    {loading ? <span className="inline-block h-7 sm:h-8 w-24 sm:w-28 animate-pulse rounded-xl bg-slate-100" /> : card.value}
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">{card.label}</p>
+                  <p className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">
+                    {loading ? <span className="inline-block h-7 w-24 animate-pulse rounded-xl bg-slate-100" /> : card.value}
                   </p>
                 </div>
-                <div className={`flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl ${card.iconBg} text-white text-sm sm:text-base shadow-sm`}>
+                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${card.iconBg} text-white text-sm shadow-sm`}>
                   {card.icon}
                 </div>
               </div>
             </div>
           ))}
         </div>
-        <div className="mb-5 sm:mb-8 rounded-xl sm:rounded-2xl border border-blue-100 bg-white p-4 sm:p-6 shadow-sm">
-          <div className="mb-4 sm:mb-6 flex items-center justify-between gap-3">
+        <div className="mb-4 sm:mb-6 rounded-xl border border-blue-100 bg-white p-4 sm:p-5 shadow-sm">
+          <div className="mb-4 flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-sm sm:text-base font-extrabold text-slate-900">Monthly Earnings</h2>
-              <p className="mt-0.5 text-[10px] sm:text-xs font-medium text-slate-400">Revenue overview · up to ₹5,00,000</p>
+              <h2 className="text-sm font-extrabold text-slate-900">Monthly Earnings</h2>
+              <p className="mt-0.5 text-[10px] font-medium text-slate-400">Revenue overview · up to ₹5,00,000</p>
             </div>
-            <span className="rounded-full border border-blue-200 bg-blue-50 px-3 sm:px-4 py-1 text-[10px] sm:text-xs font-bold text-blue-700">2026</span>
+            <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[10px] font-bold text-blue-700">2026</span>
           </div>
 
           {loading ? (
@@ -271,57 +313,50 @@ export const DoctorEarnings = () => {
               <div className="h-6 w-6 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
             </div>
           ) : monthly.length === 0 ? (
-            <div className="flex items-center justify-center text-xs sm:text-sm font-semibold text-slate-400" style={{ height: chartHeight }}>
+            <div className="flex items-center justify-center text-xs font-semibold text-slate-400" style={{ height: chartHeight }}>
               No monthly data available
             </div>
           ) : (
-            <div className="flex" style={{ height: chartHeight + 40 }}>
-              <div className="flex flex-col justify-between pr-2 sm:pr-3 pb-8" style={{ height: chartHeight }}>
+            <div className="flex" style={{ height: chartHeight + 36 }}>
+              <div className="flex flex-col justify-between pr-2 pb-7" style={{ height: chartHeight }}>
                 {[...yTicks].reverse().map((tick) => (
-                  <span key={tick} className="text-[9px] sm:text-[11px] font-semibold text-slate-400 leading-none text-right whitespace-nowrap">
+                  <span key={tick} className="text-[9px] font-semibold text-slate-400 leading-none text-right whitespace-nowrap">
                     {formatYLabel(tick)}
                   </span>
                 ))}
               </div>
-
               <div className="flex-1 relative min-w-0">
-                <div className="absolute inset-0 pb-8 pointer-events-none">
+                <div className="absolute inset-0 pb-7 pointer-events-none">
                   {[...yTicks].reverse().map((tick, i) => (
                     <div key={tick} className="absolute w-full border-t border-slate-100"
                       style={{ top: `${(i / (yTicks.length - 1)) * barAreaHeight}px` }} />
                   ))}
                 </div>
-
-                <div className="absolute top-0 left-0 right-0 flex items-end justify-around pb-8" style={{ height: chartHeight }}>
+                <div className="absolute top-0 left-0 right-0 flex items-end justify-around pb-7" style={{ height: chartHeight }}>
                   {monthly.map((m, i) => {
                     const barH = Math.max(4, (m.earnings / yMax) * barAreaHeight);
                     const isHovered = hoveredBar === i;
                     const isMax = m.earnings === maxEarnings && m.earnings > 0;
                     return (
-                      <div key={i} className="relative flex flex-col items-center flex-1 mx-0.5 sm:mx-1" onMouseEnter={() => setHoveredBar(i)}
-                        onMouseLeave={() => setHoveredBar(null)} style={{ cursor: "pointer" }}>
+                      <div key={i} className="relative flex flex-col items-center flex-1 mx-0.5"
+                        onMouseEnter={() => setHoveredBar(i)} onMouseLeave={() => setHoveredBar(null)} style={{ cursor: "pointer" }}>
                         {isHovered && (
-                          <div className="absolute z-20 whitespace-nowrap rounded-xl bg-slate-900 px-2.5 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold text-white shadow-xl pointer-events-none" style={{ bottom: barH + 10 }}>
-                            <p className="text-slate-400 text-[9px] sm:text-[10px] mb-0.5">{m.month}</p>
+                          <div className="absolute z-20 whitespace-nowrap rounded-xl bg-slate-900 px-2.5 py-1.5 text-[10px] font-bold text-white shadow-xl pointer-events-none" style={{ bottom: barH + 10 }}>
+                            <p className="text-slate-400 text-[9px] mb-0.5">{m.month}</p>
                             <p className="text-blue-300">₹{m.earnings.toLocaleString("en-IN")}</p>
                             <div className="absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 -translate-y-1 rotate-45 bg-slate-900" />
                           </div>
                         )}
-                        <div className="relative w-full max-w-[36px] sm:max-w-[48px] rounded-t-xl transition-all duration-300"
-                          style={{height: barH,background: isHovered ? "linear-gradient(180deg, #1d4ed8 0%, #3b82f6 100%)"
-                              : isMax ? "linear-gradient(180deg, #2563eb 0%, #60a5fa 100%)"
-                              : "linear-gradient(180deg, #93c5fd 0%, #bfdbfe 100%)",
-                            boxShadow: isHovered ? "0 8px 24px 0 #3b82f650" : isMax ? "0 4px 16px 0 #3b82f630" : "none",
-                            transform: isHovered ? "scaleY(1.03)" : "scaleY(1)",
-                            transformOrigin: "bottom"}}>
+                        <div className="relative w-full max-w-[32px] rounded-t-xl transition-all duration-300"
+                          style={{ height: barH, background: isHovered ? "linear-gradient(180deg, #1d4ed8 0%, #3b82f6 100%)" : isMax ? "linear-gradient(180deg, #2563eb 0%, #60a5fa 100%)" : "linear-gradient(180deg, #93c5fd 0%, #bfdbfe 100%)", boxShadow: isHovered ? "0 8px 24px 0 #3b82f650" : isMax ? "0 4px 16px 0 #3b82f630" : "none", transform: isHovered ? "scaleY(1.03)" : "scaleY(1)", transformOrigin: "bottom" }}>
                           <div className="absolute top-0 left-0 right-0 rounded-t-xl opacity-30" style={{ height: "35%", background: "linear-gradient(180deg, #fff 0%, transparent 100%)" }} />
                           {(isMax || isHovered) && (
-                            <div className="absolute -top-5 sm:-top-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] sm:text-[10px] font-extrabold text-blue-600">
+                            <div className="absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] font-extrabold text-blue-600">
                               ₹{m.earnings >= 1000 ? `${(m.earnings / 1000).toFixed(0)}k` : m.earnings}
                             </div>
                           )}
                         </div>
-                        <span className="mt-1.5 sm:mt-2 text-[9px] sm:text-[11px] font-bold text-slate-400 select-none">{m.month}</span>
+                        <span className="mt-1.5 text-[9px] font-bold text-slate-400 select-none">{m.month}</span>
                       </div>
                     );
                   })}
@@ -331,85 +366,77 @@ export const DoctorEarnings = () => {
           )}
 
           {!loading && monthly.length > 0 && (
-            <div className="mt-2 sm:mt-3 flex flex-wrap items-center gap-3 sm:gap-4 rounded-xl bg-blue-50 px-3 sm:px-4 py-2.5 sm:py-3">
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-blue-500" />
-                <span className="text-[10px] sm:text-xs text-slate-500">Total</span>
-                <b className="text-[10px] sm:text-xs text-slate-800">₹{monthly.reduce((s, m) => s + m.earnings, 0).toLocaleString("en-IN")}</b>
+            <div className="mt-2 flex flex-wrap items-center gap-3 rounded-xl bg-blue-50 px-3 py-2.5">
+              <div className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-blue-500" />
+                <span className="text-[10px] text-slate-500">Total</span>
+                <b className="text-[10px] text-slate-800">₹{monthly.reduce((s, m) => s + m.earnings, 0).toLocaleString("en-IN")}</b>
               </div>
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-blue-300" />
-                <span className="text-[10px] sm:text-xs text-slate-500">Peak</span>
-                <b className="text-[10px] sm:text-xs text-slate-800">{monthly.reduce((best, m) => m.earnings > best.earnings ? m : best).month}</b>
+              <div className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-blue-300" />
+                <span className="text-[10px] text-slate-500">Peak</span>
+                <b className="text-[10px] text-slate-800">{monthly.reduce((best, m) => m.earnings > best.earnings ? m : best).month}</b>
               </div>
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-blue-200" />
-                <span className="text-[10px] sm:text-xs text-slate-500">Avg/Month</span>
-                <b className="text-[10px] sm:text-xs text-slate-800">₹{Math.round(monthly.reduce((s, m) => s + m.earnings, 0) / monthly.length).toLocaleString("en-IN")}</b>
+              <div className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-blue-200" />
+                <span className="text-[10px] text-slate-500">Avg/Month</span>
+                <b className="text-[10px] text-slate-800">₹{Math.round(monthly.reduce((s, m) => s + m.earnings, 0) / monthly.length).toLocaleString("en-IN")}</b>
               </div>
             </div>
           )}
         </div>
-        <div className="rounded-xl sm:rounded-2xl border border-blue-100 bg-white shadow-sm">
-          <div className="flex flex-col gap-3 sm:gap-4 border-b border-slate-100 px-4 sm:px-6 py-4 sm:py-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="rounded-xl border border-blue-100 bg-white shadow-sm">
+          <div className="flex flex-col gap-3 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-sm sm:text-base font-extrabold text-slate-900">Payment History</h2>
-              <p className="mt-0.5 text-[10px] sm:text-xs font-medium text-slate-400">
+              <h2 className="text-sm font-extrabold text-slate-900">Payment History</h2>
+              <p className="mt-0.5 text-[10px] font-medium text-slate-400">
                 {paymentsLoading ? "Loading…" : `${totalPayments} completed transaction${totalPayments !== 1 ? "s" : ""}`}
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <div className="flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-3 py-2">
                 <FaCalendarAlt className="text-xs text-blue-400 shrink-0" />
                 <input type="date" value={dateFilter} onChange={handleDateChange}
-                  className="border-none bg-transparent text-xs font-semibold text-slate-700 outline-none cursor-pointer"/>
+                  className="border-none bg-transparent text-xs font-semibold text-slate-700 outline-none cursor-pointer" />
                 {dateFilter && (
-                  <button onClick={handleClearDate} className="ml-1 flex h-4 w-4 cursor-pointer items-center justify-center rounded-full text-slate-400 transition hover:bg-red-100 hover:text-red-500 font-bold text-xs">
-                    ✕
-                  </button>
+                  <button onClick={handleClearDate} className="ml-1 flex h-4 w-4 cursor-pointer items-center justify-center rounded-full text-slate-400 transition hover:bg-red-100 hover:text-red-500 font-bold text-xs">✕</button>
                 )}
               </div>
               <button onClick={handleExportPDF} disabled={exportLoading || paymentsLoading}
-                className="flex cursor-pointer items-center gap-1.5 sm:gap-2 rounded-xl bg-blue-600 px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm transition-all duration-200 hover:bg-blue-700 hover:-translate-y-0.5 hover:shadow-md hover:shadow-blue-200 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">
+                className="flex cursor-pointer items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-2 text-xs font-bold text-white shadow-sm transition-all hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50">
                 {exportLoading ? (
-                  <>
-                    <div className="h-3 w-3 sm:h-3.5 sm:w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    <span>Exporting...</span>
-                  </>
+                  <><div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" /><span>Exporting...</span></>
                 ) : (
-                  <>
-                    <FaDownload className="text-[10px] sm:text-xs" />
-                    <span>Export PDF</span>
-                  </>
+                  <><FaDownload className="text-[10px]" /><span>Export PDF</span></>
                 )}
               </button>
             </div>
           </div>
 
-          <div className="px-3 sm:px-6 py-3 sm:py-4">
+          <div className="px-3 sm:px-5 py-3 sm:py-4">
             {paymentsLoading ? (
               <div className="space-y-3 py-4">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-12 sm:h-14 w-full animate-pulse rounded-xl bg-slate-100" />
+                {[...Array(pageLimit)].map((_, i) => (
+                  <div key={i} className="h-12 w-full animate-pulse rounded-xl bg-slate-100" />
                 ))}
               </div>
             ) : payments.length === 0 ? (
-              <div className="py-12 sm:py-16 text-center">
-                <div className="mx-auto mb-3 flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-300 text-xl sm:text-2xl">
+              <div className="py-12 text-center">
+                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-300 text-xl">
                   <FaRupeeSign />
                 </div>
-                <p className="font-bold text-slate-400 text-xs sm:text-sm">
+                <p className="font-bold text-slate-400 text-xs">
                   {dateFilter ? "No payment records found for this date." : "No payment records found."}
                 </p>
               </div>
             ) : (
               <div key={animKey} className={`overflow-x-auto ${slideDirection === "right" ? "slide-in-right" : "slide-in-left"}`}
                 style={{ scrollbarWidth: "thin", scrollbarColor: "#CBD5E1 transparent" }}>
-                <table className="w-full border-collapse text-sm" style={{ minWidth: "580px" }}>
+                <table className="w-full border-collapse text-sm" style={{ minWidth: "560px" }}>
                   <thead>
                     <tr>
                       {["#", "Patient", "Date & Time", "Type", "Amount", "Status"].map((h) => (
-                        <th key={h} className="bg-slate-50 px-3 sm:px-4 py-2.5 sm:py-3 text-left text-[10px] sm:text-xs font-extrabold uppercase tracking-widest text-slate-400 first:rounded-l-xl last:rounded-r-xl">
+                        <th key={h} className="bg-slate-50 px-3 py-2.5 text-left text-[10px] font-extrabold uppercase tracking-widest text-slate-400 first:rounded-l-xl last:rounded-r-xl">
                           {h}
                         </th>
                       ))}
@@ -418,33 +445,32 @@ export const DoctorEarnings = () => {
                   <tbody>
                     {payments.map((item, index) => (
                       <tr key={item.id} className="group border-b border-slate-50 transition-colors duration-150 hover:bg-blue-50/50 last:border-0">
-                        <td className="px-3 sm:px-4 py-3 sm:py-4 text-xs font-bold text-slate-300">
-                          {(currentPage - 1) * PAGE_LIMIT + index + 1}
+                        <td className="px-3 py-3 text-xs font-bold text-slate-300">
+                          {(currentPage - 1) * pageLimit + index + 1}
                         </td>
-                        <td className="px-3 sm:px-4 py-3 sm:py-4">
-                          <span className="text-xs sm:text-sm font-extrabold text-slate-900 truncate max-w-[80px] sm:max-w-none block">{item.patient}</span>
+                        <td className="px-3 py-3">
+                          <span className="text-xs font-extrabold text-slate-900 truncate max-w-[100px] block">{item.patient}</span>
                         </td>
-                        <td className="whitespace-nowrap px-3 sm:px-4 py-3 sm:py-4">
-                          <p className="font-bold text-slate-700 text-[10px] sm:text-xs">{item.date}</p>
-                          <p className="mt-0.5 text-[10px] sm:text-xs font-semibold text-slate-400">{item.time}</p>
+                        <td className="whitespace-nowrap px-3 py-3">
+                          <p className="font-bold text-slate-700 text-[10px]">{item.date}</p>
+                          <p className="mt-0.5 text-[10px] font-semibold text-slate-400">{item.time}</p>
                         </td>
-                        <td className="px-3 sm:px-4 py-3 sm:py-4">
-                          <span className={`inline-flex items-center gap-1 sm:gap-1.5 rounded-full px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-bold ${item.type === "Video Call" ? "bg-blue-50 text-blue-700 ring-1 ring-blue-100" : "bg-sky-50 text-sky-700 ring-1 ring-sky-100"}`}>
-                            {item.type === "Video Call" ? <FaVideo className="text-[8px] sm:text-[9px]" /> : <FaHospital className="text-[8px] sm:text-[9px]" />}
+                        <td className="px-3 py-3">
+                          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold ${item.type === "Video Call" ? "bg-blue-50 text-blue-700 ring-1 ring-blue-100" : "bg-sky-50 text-sky-700 ring-1 ring-sky-100"}`}>
+                            {item.type === "Video Call" ? <FaVideo className="text-[8px]" /> : <FaHospital className="text-[8px]" />}
                             <span className="hidden sm:inline">{item.type}</span>
                             <span className="sm:hidden">{item.type === "Video Call" ? "Video" : "Clinic"}</span>
                           </span>
                         </td>
-                        <td className="px-3 sm:px-4 py-3 sm:py-4">
-                          <span className="inline-flex items-center gap-0.5 sm:gap-1 text-sm sm:text-base font-extrabold text-blue-600">
-                            <FaRupeeSign className="text-[10px] sm:text-xs" />
+                        <td className="px-3 py-3">
+                          <span className="inline-flex items-center gap-0.5 text-sm font-extrabold text-blue-600">
+                            <FaRupeeSign className="text-[10px]" />
                             {item.amount.toLocaleString("en-IN")}
                           </span>
                         </td>
-                        <td className="px-3 sm:px-4 py-3 sm:py-4">
-                          <span className="inline-flex items-center gap-1 sm:gap-1.5 rounded-full bg-emerald-50 px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-bold text-emerald-700 ring-1 ring-emerald-100">
-                            <span className="text-[9px] sm:text-[10px]">✓</span>
-                            {item.status}
+                        <td className="px-3 py-3">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-100">
+                            <span className="text-[9px]">✓</span>{item.status}
                           </span>
                         </td>
                       </tr>
@@ -456,43 +482,60 @@ export const DoctorEarnings = () => {
           </div>
 
           {(!paymentsLoading && payments.length > 0) && (
-            <div className="border-t border-slate-100 px-3 sm:px-6 py-3 sm:py-4 flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-2 sm:gap-3 rounded-xl bg-blue-50 border border-blue-100 px-3 sm:px-4 py-2.5 sm:py-3">
-                <p className="text-[10px] sm:text-xs font-bold text-slate-500">
+            <div className="border-t border-slate-100 px-3 sm:px-5 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2 rounded-xl bg-blue-50 border border-blue-100 px-3 py-2">
+                <p className="text-[10px] font-bold text-slate-500">
                   Page {currentPage} · {payments.length} transaction{payments.length !== 1 ? "s" : ""}
                 </p>
                 <div className="h-4 w-px bg-blue-200" />
-                <p className="text-sm sm:text-base font-extrabold text-blue-600">₹{transactionTotal.toLocaleString("en-IN")}</p>
+                <p className="text-sm font-extrabold text-blue-600">₹{transactionTotal.toLocaleString("en-IN")}</p>
               </div>
-              {totalPages > 1 && (
-                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                  <p className="mr-1 hidden sm:block text-xs font-semibold text-slate-400">
-                    {(currentPage - 1) * PAGE_LIMIT + 1}–{Math.min(currentPage * PAGE_LIMIT, totalPayments)} of {totalPayments}
-                  </p>
-                  <button onClick={() => { setSlideDirection("left"); setAnimKey(k => k + 1); setCurrentPage((p) => Math.max(1, p - 1)); }} disabled={currentPage === 1}
-                    className="flex h-8 w-8 sm:h-9 sm:w-9 cursor-pointer items-center justify-center rounded-xl border border-blue-100 bg-white text-blue-600 shadow-sm transition hover:bg-blue-50 hover:border-blue-200 disabled:cursor-not-allowed disabled:opacity-40">
-                    <FaChevronLeft className="text-[10px] sm:text-xs" />
-                  </button>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
-                    .reduce((acc: (number | string)[], p, idx, arr) => {
-                      if (idx > 0 && (p as number) - (arr[idx - 1] as number) > 1) acc.push("...");
-                      acc.push(p);
-                      return acc;
-                    }, []).map((p, idx) => p === "..." ? (
-                        <span key={`ellipsis-${idx}`} className="px-0.5 text-xs font-bold text-slate-400">…</span>
+              <div className="flex items-center gap-2 flex-wrap">
+                {totalPages > 1 && (
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => { setSlideDirection("left"); setAnimKey(k => k + 1); setCurrentPage(p => Math.max(1, p - 1)); }} disabled={currentPage === 1}
+                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40">
+                      <FaChevronLeft className="text-[10px]" />
+                    </button>
+                    {paginationPages.map((p, idx) =>
+                      p === "..." ? (
+                        <button key={`e-${idx}`} onClick={() => { setSlideDirection(idx === 1 ? "left" : "right"); setAnimKey(k => k + 1); setCurrentPage(idx === 1 ? Math.max(1, currentPage - 5) : Math.min(totalPages, currentPage + 5)); }}
+                          className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white text-xs text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition">
+                          …
+                        </button>
                       ) : (
                         <button key={p} onClick={() => { setSlideDirection((p as number) > currentPage ? "right" : "left"); setAnimKey(k => k + 1); setCurrentPage(p as number); }}
-                          className={`flex h-8 w-8 sm:h-9 sm:w-9 cursor-pointer items-center justify-center rounded-xl text-xs font-extrabold transition ${currentPage === p ? "bg-blue-600 text-white shadow-md shadow-blue-200" : "border border-blue-100 bg-white text-slate-600 hover:bg-blue-50 hover:border-blue-200"}`}>
+                          className={`flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl text-xs font-extrabold transition shadow-sm ${currentPage === p ? "bg-blue-600 text-white shadow-blue-200" : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}>
                           {p}
                         </button>
                       )
                     )}
-                  <button onClick={() => { setSlideDirection("right"); setAnimKey(k => k + 1); setCurrentPage((p) => Math.min(totalPages, p + 1)); }} disabled={currentPage === totalPages}
-                    className="flex h-8 w-8 sm:h-9 sm:w-9 cursor-pointer items-center justify-center rounded-xl border border-blue-100 bg-white text-blue-600 shadow-sm transition hover:bg-blue-50 hover:border-blue-200 disabled:cursor-not-allowed disabled:opacity-40">
-                    <FaChevronRight className="text-[10px] sm:text-xs" />
+                    <button onClick={() => { setSlideDirection("right"); setAnimKey(k => k + 1); setCurrentPage(p => Math.min(totalPages, p + 1)); }}
+                      disabled={currentPage === totalPages} className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40">
+                      <FaChevronRight className="text-[10px]" />
+                    </button>
+                  </div>
+                )}
+                <div className="relative" ref={limitDropdownRef}>
+                  <button onClick={() => setShowLimitDropdown(v => !v)} className="flex h-8 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 shadow-sm transition hover:bg-slate-50 cursor-pointer">
+                    <span>{pageLimit}</span>
+                    <FaChevronDown className={`text-[9px] text-slate-400 transition-transform ${showLimitDropdown ? "rotate-180" : ""}`} />
                   </button>
+                  {showLimitDropdown && (
+                    <div className="absolute bottom-10 right-0 z-50 w-20 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+                      {PAGE_OPTIONS.map(opt => (
+                        <button key={opt} onClick={() => handleLimitChange(opt)}
+                          className={`w-full px-3 py-2 text-left text-xs font-bold transition cursor-pointer ${pageLimit === opt ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}>
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
+                <span className="text-[10px] font-semibold text-blue-600 whitespace-nowrap">
+                  {rangeStart}–{rangeEnd} of {totalPayments}
+                </span>
+              </div>
             </div>
           )}
         </div>

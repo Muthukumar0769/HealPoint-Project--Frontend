@@ -11,6 +11,8 @@ import { DoctorSidebar } from "../Doctor/DoctorSidebar";
 import usePageTitle from "../../hooks/usePageTitle";
 import API from "../../api/axios";
 
+//-------Helper Functions------------
+
 type LeaveType = "full_day" | "half_day";
 type MainTab = "Weekly" | "Special" | "Leave";
 type OptionType = { label: string; value: string };
@@ -23,6 +25,8 @@ const LEAVE_TYPES: OptionType[] = [
 ];
 
 const PAGE_SIZE = 5;
+
+//------Main Component-----------
 
 export const DoctorSchedule = () => {
   usePageTitle("My Schedule");
@@ -69,9 +73,13 @@ export const DoctorSchedule = () => {
   const dayOptions: OptionType[] = DAYS.map((d) => ({ label: d, value: d }));
   const durationOptions: OptionType[] = DURATIONS.map((t) => ({ label: `${t} Minutes`, value: t }));
 
+//-----This logic for New apointments come means red dot show-------------
+
   const doFetch = useCallback(() => {
     dispatch(fetchAllSchedules());
   }, [dispatch]);
+
+//------Get a user from local storage
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -87,6 +95,8 @@ export const DoctorSchedule = () => {
       return () => window.removeEventListener("authChanged", handleAuth);
     }
   }, [doFetch]);
+
+//-------Submit the Schedule logic-------------
 
   const saveSchedule = async () => {
     if (!day) return toast.error("Please select day");
@@ -217,7 +227,7 @@ export const DoctorSchedule = () => {
   return (
     <div className="flex min-h-screen bg-[#f4f7fb]">
       <DoctorSidebar />
-      <main className="flex-1 min-w-0 px-3 py-16 sm:px-4 lg:px-6">
+     <main className="flex-1 min-w-0 px-3 py-16 sm:px-4 lg:px-6 relative z-0 xl:px-7">
         <div className="mb-4 sm:mb-5">
           <h1 className="mt-1 text-xl sm:text-2xl font-extrabold text-slate-900">
             Schedule <span className="text-blue-600">Management</span>
@@ -225,7 +235,7 @@ export const DoctorSchedule = () => {
           <p className="mt-0.5 text-xs text-slate-500">Manage consultation timings, special schedules and leave.</p>
         </div>
 
-        <section className="overflow-visible rounded-xl sm:rounded-2xl bg-white shadow-lg shadow-slate-200/60">
+        <section className="rounded-xl sm:rounded-2xl bg-white shadow-lg shadow-slate-200/60 relative">
           <div className="bg-gradient-to-r from-blue-600 via-blue-500 to-sky-500 px-4 sm:px-5 py-3 sm:py-4 rounded-t-xl sm:rounded-t-2xl">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-2 sm:gap-3">
@@ -262,7 +272,7 @@ export const DoctorSchedule = () => {
             </div>
           </div>
 
-          <div className="overflow-visible p-3 sm:p-5">
+          <div className="p-3 sm:p-5">
             {activeTab === "Weekly" && (
               <div>
                 <div className="mb-3 sm:mb-4 rounded-xl border border-blue-100 bg-blue-50 px-3 sm:px-4 py-2 sm:py-2.5">
@@ -563,7 +573,7 @@ const CustomDropdown = ({ label, value, onChange, color, options, placeholder }:
   }, []);
   const selectedLabel = options.find((item) => item.value === value)?.label || "";
   return (
-    <div ref={ref} className="relative z-50 overflow-visible">
+    <div ref={ref} className="relative z-10">
       <label className="mb-1.5 block text-xs font-bold text-slate-700">{label}</label>
       <button type="button" onClick={() => setOpen(!open)} className={`flex h-9 w-full cursor-pointer items-center justify-between rounded-xl border bg-slate-50 px-3 text-xs font-semibold shadow-sm transition-all ${open
           ? color === "blue" ? "border-blue-400 bg-white ring-2 ring-blue-100" : "border-red-400 bg-white ring-2 ring-red-100"
@@ -572,7 +582,7 @@ const CustomDropdown = ({ label, value, onChange, color, options, placeholder }:
         <FaChevronDown className={`text-[10px] transition-all ${open ? "rotate-180 text-slate-700" : "text-slate-400"}`} />
       </button>
       {open && (
-        <div className="absolute left-0 top-full mt-1 z-[9999] w-full rounded-xl border border-slate-100 bg-white shadow-2xl">
+        <div className="absolute left-0 top-full mt-1 z-[100] w-full rounded-xl border border-slate-100 bg-white shadow-2xl">
           <div className={`h-0.5 rounded-t-xl ${color === "blue" ? "bg-blue-500" : "bg-red-500"}`} />
           <div className="max-h-40 sm:max-h-48 overflow-y-auto p-1">
             {options.map((item) => {

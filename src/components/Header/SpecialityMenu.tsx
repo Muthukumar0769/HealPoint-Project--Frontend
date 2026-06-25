@@ -25,21 +25,21 @@ const SpecialityData = [
 
 export const SpecialityMenu = () => {
   return (
-    <section className="px-4 py-12 text-gray-800 sm:py-16">
+    <section className="px-4 py-8 text-gray-800 sm:py-10">
       <div className="mx-auto max-w-7xl text-center">
-        <h1 className="text-2xl font-semibold sm:text-3xl">Our Specialization</h1>
-        <p className="mx-auto mt-3 max-w-2xl text-sm text-gray-500 sm:text-base">
+        <h1 className="text-xl font-semibold sm:text-2xl">Our Specialization</h1>
+        <p className="mx-auto mt-2 max-w-2xl text-xs text-gray-500 sm:text-sm">
           Choose your required medical specialist and book an appointment easily.
         </p>
 
-        <div className="mt-8 grid grid-cols-5 gap-4 sm:grid-cols-5 md:grid-cols-10 lg:grid-cols-10">
+        <div className="mt-6 grid grid-cols-5 gap-3 sm:grid-cols-5 md:grid-cols-10 lg:grid-cols-10">
           {SpecialityData.map((item) => (
             <Link to={`/doctors/speciality/${encodeURIComponent(item.speciality)}`} className="flex flex-col items-center text-center"
               key={item.speciality}>
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-400 p-3 shadow-md transition-all duration-300 hover:scale-105 xs:h-16 xs:w-16 sm:h-18 sm:w-18 sm:p-4 md:h-20 md:w-20 md:p-5">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-400 p-2.5 shadow-md transition-all duration-300 hover:scale-105 xs:h-13 xs:w-13 sm:h-14 sm:w-14 sm:p-3 md:h-16 md:w-16 md:p-4">
                 <img src={item.image} alt={item.speciality} className="h-full w-full object-contain" />
               </div>
-              <p className="mt-2 text-[10px] font-semibold text-gray-600 xs:text-xs sm:text-xs md:text-sm">
+              <p className="mt-1.5 text-[9px] font-semibold text-gray-600 xs:text-[10px] sm:text-[10px] md:text-xs">
                 {item.speciality}
               </p>
             </Link>

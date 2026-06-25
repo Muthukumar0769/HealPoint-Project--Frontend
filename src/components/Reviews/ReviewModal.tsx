@@ -2,6 +2,8 @@ import { useState } from "react";
 import API from "../../api/axios";
 import type { ReviewModalProps } from "../../types/common";
 
+//----Stars Generation logic----------
+
 const StarRating = ({ value, onChange }: { value: number; onChange: (v: number) => void }) => {
     const [hovered, setHovered] = useState(0);
     return (
@@ -20,6 +22,8 @@ const StarRating = ({ value, onChange }: { value: number; onChange: (v: number) 
 
 const LABELS = ["", "Poor", "Fair", "Good", "Very Good", "Excellent"];
 
+//----Main Component-------------
+
 export const ReviewModal = ({ appointmentId, doctorName, onClose, onSubmitted }: ReviewModalProps) => {
     const [rating, setRating] = useState(0);
     const [review, setReview] = useState("");
@@ -30,6 +34,8 @@ export const ReviewModal = ({ appointmentId, doctorName, onClose, onSubmitted }:
         setToast({ type, msg });
         setTimeout(() => setToast(null), 3500);
     };
+
+//------Review submit logic----------
 
     const handleSubmit = async () => {
         if (rating === 0) {

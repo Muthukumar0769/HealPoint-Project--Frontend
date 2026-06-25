@@ -20,7 +20,6 @@ const Contact = lazy(() => import("./pages/Patient/Contact").then(m => ({ defaul
 
 // Lazy Loading — Patient protected pages
 const MyProfile = lazy(() => import("./pages/Patient/MyProfile").then(m => ({ default: m.MyProfile })));
-const TransactionDetails = lazy(() => import("./pages/Patient/TransactionDetails").then(m => ({ default: m.TransactionDetails })));
 const MyAppointments = lazy(() => import("./pages/Patient/MyAppointments").then(m => ({ default: m.MyAppointments })));
 
 // Lazy Loading — Admin pages
@@ -33,7 +32,8 @@ const DoctorAppointmentSummary = lazy(() => import("./pages/Admin/DoctorAppointm
 const AdminPatients = lazy(() => import("./pages/Admin/AdminPatients").then(m => ({ default: m.AdminPatients })));
 const AdminReports = lazy(() => import("./pages/Admin/AdminReports"));
 const AdminEarningsReport = lazy(() => import("./pages/Admin/AdminEarningsReport").then(m => ({ default: m.AdminEarningsReport })));
-const AdminDoctorEarnings = lazy(() => import("./pages/Admin/AdminDoctorEarnings")); // ✅ was eagerly loaded before
+const AdminDoctorEarnings = lazy(() => import("./pages/Admin/AdminDoctorEarnings")); 
+const AdminUpdateProfile = lazy(() => import("./pages/Admin/AdminUpdateProfile").then(m => ({ default: m.AdminUpdateProfile })));
 
 // Lazy Loading — Doctor pages
 const DoctorDashboard = lazy(() => import("./pages/Doctor/DoctorDashboard").then(m => ({ default: m.DoctorDashboard })));
@@ -42,6 +42,7 @@ const DoctorProfile = lazy(() => import("./pages/Doctor/DoctorProfile").then(m =
 const DoctorSchedule = lazy(() => import("./pages/Doctor/DoctorSchedule").then(m => ({ default: m.DoctorSchedule })));
 const DoctorVideoConsultation = lazy(() => import("./pages/Doctor/DoctorVideoConsultation").then(m => ({ default: m.DoctorVideoConsultation })));
 const DoctorEarnings = lazy(() => import("./pages/Doctor/DoctorEarnings").then(m => ({ default: m.DoctorEarnings })));
+const ResetPassword = lazy(() => import("./pages/Auth/ResetPassword").then(m => ({ default: m.ResetPassword })));
 
 // Role-based redirect helper
 const RoleRedirect = () => {
@@ -86,7 +87,6 @@ function App() {
           <Route element={<ProtectedRoute allowedRoles={["patient", "Patient"]} />}>
             <Route path="/my-profile" element={<MyProfile />} />
             <Route path="/my-appointments" element={<MyAppointments />} />
-            <Route path="/transactions/:appointmentId" element={<TransactionDetails />} />
           </Route>
 
           {/* Admin protected */}
@@ -102,6 +102,7 @@ function App() {
             <Route path="/admin/reports" element={<AdminReports />} />
             <Route path="/admin/earnings" element={<AdminEarningsReport />} />
             <Route path="/admin/earnings/doctors" element={<AdminDoctorEarnings />} />
+            <Route path="/admin/update-profile" element={<AdminUpdateProfile />} />
           </Route>
 
           {/* Doctor protected */}
@@ -112,6 +113,7 @@ function App() {
             <Route path="/doctor/schedule" element={<DoctorSchedule />} />
             <Route path="/doctor/consultations" element={<DoctorVideoConsultation />} />
             <Route path="/doctor/earnings" element={<DoctorEarnings />} />
+            <Route path="/doctor/reset-password" element={<ResetPassword />} />
           </Route>
         </Routes>
       </Suspense>

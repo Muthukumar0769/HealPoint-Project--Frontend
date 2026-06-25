@@ -1,9 +1,11 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import API from "../../api/axios";
-import type { TabKey, PaginatedResponse, VideoAppointment, ConsultationMode } from "../../types/doctor";
+import type { TabKey, PaginatedResponse, VideoAppointment } from "../../types/doctor";
 
 export const VIDEO_UNSEEN_KEY = "doctor_video_unseen_ids";
-export const PAGE_SIZE = 5;
+export const DEFAULT_PAGE_SIZE = 5;
+export const PAGE_SIZE = DEFAULT_PAGE_SIZE;
+type ConsultationMode = "video";
 
 const isNoShow = (a: VideoAppointment) =>
   String(a.consultation_status).toLowerCase() === "no_show" ||
@@ -19,7 +21,7 @@ const isCancelled = (a: VideoAppointment) =>
 
 const isUpcoming = (a: VideoAppointment) =>
   (String(a.status).toLowerCase() === "confirmed" ||
-   String(a.status).toLowerCase() === "pending_payment") &&
+    String(a.status).toLowerCase() === "pending_payment") &&
   !isCompleted(a) &&
   !isCancelled(a) &&
   !isNoShow(a);
@@ -44,8 +46,11 @@ const normalizeResponse = (d: any, page: number, limit: number): PaginatedRespon
   };
 };
 
-const isModeAppointment = (_a: VideoAppointment, mode: ConsultationMode) => {
-  return mode === "video";
+const isVideoAppointment = (a: VideoAppointment) => {
+  const type = String(
+    a.consultation_type || (a as any).consultationType || (a as any).appointment_type || ""
+  ).toLowerCase().replace(/[_-]/g, " ").trim();
+  return type.includes("video") || type.includes("online") || type.includes("virtual") || !!a.meeting_room;
 };
 
 const filterByTab = (appointments: VideoAppointment[], tab: TabKey) => {
@@ -56,17 +61,14 @@ const filterByTab = (appointments: VideoAppointment[], tab: TabKey) => {
   return appointments;
 };
 
-const paginate = (appointments: VideoAppointment[], page: number) => {
-  const start = (page - 1) * PAGE_SIZE;
-  return appointments.slice(start, start + PAGE_SIZE);
+const paginate = (appointments: VideoAppointment[], page: number, pageSize = DEFAULT_PAGE_SIZE) => {
+  const start = (page - 1) * pageSize;
+  return appointments.slice(start, start + pageSize);
 };
 
 const getUnseenIds = (): number[] => {
-  try {
-    return JSON.parse(localStorage.getItem(VIDEO_UNSEEN_KEY) || "[]");
-  } catch {
-    return [];
-  }
+  try { return JSON.parse(localStorage.getItem(VIDEO_UNSEEN_KEY) || "[]"); }
+  catch { return []; }
 };
 
 const saveUnseenIds = (ids: number[]) => {
@@ -74,33 +76,30 @@ const saveUnseenIds = (ids: number[]) => {
   window.dispatchEvent(new Event("video-unseen-updated"));
 };
 
+//---------Fetch Doctor Video Appointments-------------
+
 export const fetchDoctorVideoAppointments = createAsyncThunk("doctorVideo/fetchAppointments",
-  async (
-    { tab, page, mode, silent = false }: {
-      tab: TabKey;
-      page: number;
-      mode: ConsultationMode;
-      silent?: boolean;
-    }, { rejectWithValue }) => {
+  async ({ tab, page, pageSize = DEFAULT_PAGE_SIZE, silent = false }: { tab: TabKey; page: number; pageSize?: number; mode?: ConsultationMode; silent?: boolean }, { rejectWithValue }) => {
     try {
       const res = await API.get("/doctor/my-appointments", { params: { page: 1, limit: 1000 } });
       const data = normalizeResponse(res.data, 1, 1000);
-      const modeAppointments = data.appointments.filter((a) => isModeAppointment(a, mode));
-      const tabAppointments = filterByTab(modeAppointments, tab);
-      const paginatedAppointments = paginate(tabAppointments, page);
-      if (mode === "video") {
-        const today = new Date().toISOString().split("T")[0];
-        const todayIds = paginatedAppointments.filter((a) =>
-          a.appointment_date.split("T")[0] === today &&
-          (a.status === "confirmed" || a.consultation_status === "ongoing")
-        ).map((a) => a.id);
-        saveUnseenIds(Array.from(new Set([...getUnseenIds(), ...todayIds])));
-      }
+      const videoAppointments = data.appointments.filter(isVideoAppointment);
+      const tabAppointments = filterByTab(videoAppointments, tab);
+      const paginatedAppointments = paginate(tabAppointments, page, pageSize);
+
+      const today = new Date().toISOString().split("T")[0];
+      const todayIds = paginatedAppointments.filter((a) =>
+        a.appointment_date.split("T")[0] === today &&
+        (a.status === "confirmed" || a.consultation_status === "ongoing")
+      ).map((a) => a.id);
+      saveUnseenIds(Array.from(new Set([...getUnseenIds(), ...todayIds])));
+
       return {
         appointments: paginatedAppointments,
         totalRecords: tabAppointments.length,
         currentPage: page,
-        totalPages: Math.max(1, Math.ceil(tabAppointments.length / PAGE_SIZE)),
+        totalPages: Math.max(1, Math.ceil(tabAppointments.length / pageSize)),
+        pageSize,
         silent,
       };
     } catch (e: any) {
@@ -109,44 +108,42 @@ export const fetchDoctorVideoAppointments = createAsyncThunk("doctorVideo/fetchA
   }
 );
 
+//------------Fetch the doctor Video tab counts for all tabs-------------
+
 export const fetchDoctorVideoTabCounts = createAsyncThunk("doctorVideo/fetchTabCounts",
-  async ({ mode }: { mode: ConsultationMode }) => {
+  async (_: { mode?: ConsultationMode } = {}) => {
     const res = await API.get("/doctor/my-appointments", { params: { page: 1, limit: 1000 } });
     const data = normalizeResponse(res.data, 1, 1000);
-    const modeAppointments = data.appointments.filter((a) => isModeAppointment(a, mode));
+    const videoAppointments = data.appointments.filter(isVideoAppointment);
     return {
-      all: modeAppointments.length,
-      upcoming: modeAppointments.filter(isUpcoming).length,
-      completed: modeAppointments.filter(isCompleted).length,
-      missed: modeAppointments.filter(isNoShow).length,
-      cancelled: modeAppointments.filter(isCancelled).length,
+      all: videoAppointments.length,
+      upcoming: videoAppointments.filter(isUpcoming).length,
+      completed: videoAppointments.filter(isCompleted).length,
+      missed: videoAppointments.filter(isNoShow).length,
+      cancelled: videoAppointments.filter(isCancelled).length,
     };
   }
 );
 
+//-----------Join the meeting---------------
+
 export const joinDoctorVideoMeeting = createAsyncThunk("doctorVideo/joinMeeting",
   async (appointment: VideoAppointment, { rejectWithValue }) => {
     try {
-      try {
-        await API.patch(`/appointments/${appointment.id}/start`);
-      } catch (startErr: any) {
-        console.warn("Start endpoint failed, proceeding to join:", startErr?.response?.data?.message);
-      }
-
+      try { await API.patch(`/appointments/${appointment.id}/start`); }
+      catch (startErr: any) { console.warn("Start endpoint failed:", startErr?.response?.data?.message); }
       const joinRes = await API.get(`/appointments/${appointment.id}/join`);
       const payload = joinRes.data?.data ?? joinRes.data;
       const meetingRoom = payload.meeting_room ?? appointment.meeting_room;
-
-      if (!meetingRoom) {
-        throw new Error("Meeting room not assigned yet");
-      }
-
+      if (!meetingRoom) throw new Error("Meeting room not assigned yet");
       return { appointment, meetingRoom };
     } catch (e: any) {
       return rejectWithValue(e.response?.data?.message ?? e.message ?? "Could not join meeting");
     }
   }
 );
+
+//----------After hangup, the doctor click end call the status chnages as completed using this api..........
 
 export const completeDoctorVideoConsultation = createAsyncThunk("doctorVideo/complete",
   async (appointment: VideoAppointment, { rejectWithValue }) => {
@@ -159,6 +156,8 @@ export const completeDoctorVideoConsultation = createAsyncThunk("doctorVideo/com
   }
 );
 
+//----------Mark doctor appointments no show----------------
+
 export const markDoctorAppointmentNoShow = createAsyncThunk("doctorVideo/noShow",
   async (appointment: VideoAppointment, { rejectWithValue }) => {
     try {
@@ -169,6 +168,8 @@ export const markDoctorAppointmentNoShow = createAsyncThunk("doctorVideo/noShow"
     }
   }
 );
+
+//--------Cancel the appointment---------------
 
 export const cancelDoctorVideoAppointment = createAsyncThunk("doctorVideo/cancel",
   async (appointment: VideoAppointment, { rejectWithValue }) => {
@@ -194,7 +195,14 @@ interface DoctorVideoState {
   actionLoading: Record<number, string>;
   cancelModal: VideoAppointment | null;
   activeCall: { appt: VideoAppointment; meetingRoom: string } | null;
+  pageSize: number;
   toast: { msg: string; type: "success" | "error" } | null;
+  // Tracks the requestId of the most recently DISPATCHED fetch, so we can
+  // ignore any older/slower response (e.g. a silent 15s background poll,
+  // or a fetch for a page size the user has already moved on from) that
+  // happens to resolve out of order and would otherwise clobber fresh data
+  // or leave `loading` in an inconsistent state.
+  latestRequestId: string | null;
 }
 
 const initialState: DoctorVideoState = {
@@ -211,14 +219,18 @@ const initialState: DoctorVideoState = {
   cancelModal: null,
   activeCall: null,
   toast: null,
+  pageSize: DEFAULT_PAGE_SIZE,
+  latestRequestId: null,
 };
+
+//---------Reducers----------------
 
 const doctorVideoSlice = createSlice({
   name: "doctorVideo",
   initialState,
   reducers: {
-    setActiveMode: (state, action: PayloadAction<ConsultationMode>) => {
-      state.activeMode = action.payload;
+    setActiveMode: (state, _action: PayloadAction<ConsultationMode>) => {
+      state.activeMode = "video";
       state.activeTab = "all";
       state.currentPage = 1;
     },
@@ -232,37 +244,30 @@ const doctorVideoSlice = createSlice({
     setCancelModal: (state, action: PayloadAction<VideoAppointment | null>) => {
       state.cancelModal = action.payload;
     },
-    setActiveCall: (
-      state,
-      action: PayloadAction<{ appt: VideoAppointment; meetingRoom: string } | null>
-    ) => {
+    setActiveCall: (state, action: PayloadAction<{ appt: VideoAppointment; meetingRoom: string } | null>) => {
       state.activeCall = action.payload;
     },
-    clearToast: (state) => {
-      state.toast = null;
-    },
-    clearUnseenIds: () => {
-      saveUnseenIds([]);
-    },
+    clearToast: (state) => { state.toast = null; },
+    clearUnseenIds: () => { saveUnseenIds([]); },
     forceOngoing: (state, action: PayloadAction<number>) => {
       const idx = state.appointments.findIndex((a) => a.id === action.payload);
-      if (idx !== -1) {
-        state.appointments[idx] = {
-          ...state.appointments[idx],
-          consultation_status: "ongoing",
-        };
-      }
+      if (idx !== -1) state.appointments[idx] = { ...state.appointments[idx], consultation_status: "ongoing" };
+    },
+    setPageSize: (state, action: PayloadAction<number>) => {
+      state.pageSize = action.payload;
+      state.currentPage = 1;
     },
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchDoctorVideoAppointments.pending, (state, action) => {
-        if (!action.meta.arg.silent) {
-          state.loading = true;
-        }
+        state.latestRequestId = action.meta.requestId;
+        if (!action.meta.arg.silent) state.loading = true;
         state.error = null;
       })
       .addCase(fetchDoctorVideoAppointments.fulfilled, (state, action) => {
+        if (action.meta.requestId !== state.latestRequestId) return;
+
         state.loading = false;
         const merged = action.payload.appointments.map((incoming) => {
           const existing = state.appointments.find((a) => a.id === incoming.id);
@@ -274,18 +279,17 @@ const doctorVideoSlice = createSlice({
             String(incoming.status).toLowerCase() !== "completed" &&
             String(incoming.status).toLowerCase() !== "cancelled" &&
             String(incoming.status).toLowerCase() !== "canceled"
-          ) {
-            return { ...incoming, consultation_status: "ongoing" };
-          }
+          ) return { ...incoming, consultation_status: "ongoing" };
           return incoming;
         });
-
         state.appointments = merged;
         state.totalRecords = action.payload.totalRecords;
         state.totalPages = action.payload.totalPages;
+        if (action.payload.pageSize) state.pageSize = action.payload.pageSize;
         state.currentPage = action.payload.currentPage;
       })
       .addCase(fetchDoctorVideoAppointments.rejected, (state, action) => {
+        if (action.meta.requestId !== state.latestRequestId) return;
         state.loading = false;
         state.error = String(action.payload ?? "Failed to load appointments");
       })
@@ -297,24 +301,13 @@ const doctorVideoSlice = createSlice({
       })
       .addCase(joinDoctorVideoMeeting.fulfilled, (state, action) => {
         delete state.actionLoading[action.payload.appointment.id];
-        state.activeCall = {
-          appt: action.payload.appointment,
-          meetingRoom: action.payload.meetingRoom,
-        };
+        state.activeCall = { appt: action.payload.appointment, meetingRoom: action.payload.meetingRoom };
         const idx = state.appointments.findIndex(a => a.id === action.payload.appointment.id);
-        if (idx !== -1) {
-          state.appointments[idx] = {
-            ...state.appointments[idx],
-            consultation_status: "ongoing",
-          };
-        }
+        if (idx !== -1) state.appointments[idx] = { ...state.appointments[idx], consultation_status: "ongoing" };
       })
       .addCase(joinDoctorVideoMeeting.rejected, (state, action) => {
         delete state.actionLoading[action.meta.arg.id];
-        state.toast = {
-          msg: String(action.payload ?? "Could not join meeting"),
-          type: "error",
-        };
+        state.toast = { msg: String(action.payload ?? "Could not join meeting"), type: "error" };
       })
       .addCase(completeDoctorVideoConsultation.pending, (state, action) => {
         state.actionLoading[action.meta.arg.id] = "completing";
@@ -322,22 +315,13 @@ const doctorVideoSlice = createSlice({
       .addCase(completeDoctorVideoConsultation.fulfilled, (state, action) => {
         delete state.actionLoading[action.payload];
         state.activeCall = null;
-        // ✅ immediately mark as completed in local state so buttons update right away
         const idx = state.appointments.findIndex((a) => a.id === action.payload);
-        if (idx !== -1) {
-          state.appointments[idx] = {
-            ...state.appointments[idx],
-            consultation_status: "completed",
-          };
-        }
+        if (idx !== -1) state.appointments[idx] = { ...state.appointments[idx], consultation_status: "completed" };
         state.toast = { msg: "Consultation marked as completed", type: "success" };
       })
       .addCase(completeDoctorVideoConsultation.rejected, (state, action) => {
         delete state.actionLoading[action.meta.arg.id];
-        state.toast = {
-          msg: String(action.payload ?? "Could not complete consultation"),
-          type: "error",
-        };
+        state.toast = { msg: String(action.payload ?? "Could not complete consultation"), type: "error" };
       })
       .addCase(markDoctorAppointmentNoShow.pending, (state, action) => {
         state.actionLoading[action.meta.arg.id] = "no-show";
@@ -348,10 +332,7 @@ const doctorVideoSlice = createSlice({
       })
       .addCase(markDoctorAppointmentNoShow.rejected, (state, action) => {
         delete state.actionLoading[action.meta.arg.id];
-        state.toast = {
-          msg: String(action.payload ?? "Could not mark no-show"),
-          type: "error",
-        };
+        state.toast = { msg: String(action.payload ?? "Could not mark no-show"), type: "error" };
       })
       .addCase(cancelDoctorVideoAppointment.pending, (state, action) => {
         state.actionLoading[action.meta.arg.id] = "cancelling";
@@ -363,18 +344,12 @@ const doctorVideoSlice = createSlice({
       })
       .addCase(cancelDoctorVideoAppointment.rejected, (state, action) => {
         delete state.actionLoading[action.meta.arg.id];
-        state.toast = {
-          msg: String(action.payload ?? "Could not cancel appointment"),
-          type: "error",
-        };
+        state.toast = { msg: String(action.payload ?? "Could not cancel appointment"), type: "error" };
       });
   },
 });
 
-export const {
-  setActiveMode, setActiveTab, setCurrentPage, setCancelModal,
-  setActiveCall, clearToast, clearUnseenIds,
-  forceOngoing,
-} = doctorVideoSlice.actions;
+export const { setActiveMode, setActiveTab, setCurrentPage, setCancelModal,
+  setActiveCall, clearToast, clearUnseenIds, forceOngoing, setPageSize,} = doctorVideoSlice.actions;
 
 export default doctorVideoSlice.reducer;

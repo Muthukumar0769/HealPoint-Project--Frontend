@@ -265,9 +265,9 @@ export const DoctorProfile = () => {
   const imageUrl = useProfileImage(profile.profile_picture);
 
   return (
-    <div className="relative min-h-screen bg-[#f0f4fb] pt-16 sm:pt-20 lg:flex">
+    <div className="relative min-h-screen w-full max-w-full overflow-x-hidden bg-[#f0f4fb] pt-16 sm:pt-20 lg:flex">
       <DoctorSidebar />
-      <main className="relative z-0 w-full flex-1 min-w-0 px-3 pt-4 pb-6 sm:px-4 sm:pt-6 lg:px-6 lg:py-6">
+     <main className="relative z-0 w-full max-w-full flex-1 min-w-0 overflow-x-hidden px-3 pt-4 pb-6 sm:px-4 sm:pt-6 lg:px-6 lg:py-6">
         <div className="mb-4 flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-lg shadow-blue-100 sm:mb-5 sm:rounded-3xl sm:p-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
             <h1 className="text-lg font-extrabold text-slate-900 sm:text-2xl lg:text-3xl">
@@ -285,8 +285,8 @@ export const DoctorProfile = () => {
           )}
         </div>
 
-        <section className="relative rounded-2xl bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-500 p-4 shadow-2xl sm:rounded-3xl sm:p-6 lg:p-7">
-          <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/10 sm:-right-24 sm:-top-24 sm:h-72 sm:w-72" />
+       <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-500 p-4 shadow-2xl sm:rounded-3xl sm:p-6 lg:p-7">
+         <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/10 sm:-right-24 sm:-top-24 sm:h-72 sm:w-72" />
           <div className="relative z-10 flex flex-col items-center gap-6 text-center sm:gap-8 lg:flex-row lg:text-left">
             <div className="relative h-28 w-28 shrink-0 sm:h-36 sm:w-36 md:h-44 md:w-44">
               {imageUrl ? (

@@ -225,7 +225,7 @@ export const MyAppointments = () => {
     { key: "cancelled", label: "Cancelled", count: cancelledCount, color: "from-red-500 to-rose-600"     },
   ];
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 px-3 pb-10 pt-14 sm:px-4 sm:pt-24 md:pt-20 lg:pt-24">
+   <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 px-3 pb-10 pt-20 sm:px-4 sm:pt-18 md:pt-20 lg:pt-24">
       <div className="mx-auto w-full max-w-[1700px]">
         <div className="flex gap-3 xl:gap-4">
           <div className="hidden lg:flex lg:flex-col lg:shrink-0 lg:gap-4 self-start sticky top-24" style={{ width: "200px" }}>
@@ -259,10 +259,10 @@ export const MyAppointments = () => {
             </div>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="mb-4 sm:mb-6 px-1">
+            <div className="mb-4 sm:mb-6 px-1 mt-4">
               <div className="flex items-start sm:items-center justify-between flex-wrap gap-3">
                 <div>
-                  <h1 className="text-xl sm:text-2xl sm:pt-20 lg:text-3xl font-extrabold leading-tight text-slate-900 tracking-tight">My Appointments</h1>
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold leading-tight text-slate-900 tracking-tight">My Appointments</h1>
                   <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-slate-500">
                     Welcome back, <span className="font-bold text-blue-600">{authUser?.name || "Patient"}</span>. Here are your upcoming visits.
                   </p>

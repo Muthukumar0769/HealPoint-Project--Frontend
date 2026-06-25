@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import {FaCamera, FaCalendarAlt, FaEnvelope, FaSave, FaStar, FaStethoscope, FaTimes,
-  FaUserMd, FaUsers, FaGraduationCap} from "react-icons/fa";
+import {
+  FaCamera, FaCalendarAlt, FaEnvelope, FaSave, FaStar, FaStethoscope, FaTimes,
+  FaUserMd, FaUsers, FaGraduationCap
+} from "react-icons/fa";
 import { MdWorkspacePremium, MdMedicalServices } from "react-icons/md";
 import toast from "react-hot-toast";
 import API, { IMAGE_BASE_URL } from "../../api/axios";
@@ -265,9 +267,9 @@ export const DoctorProfile = () => {
   const imageUrl = useProfileImage(profile.profile_picture);
 
   return (
-    <div className="relative min-h-screen w-full max-w-full overflow-x-hidden bg-[#f0f4fb] pt-16 sm:pt-20 lg:flex">
+    <div className="flex min-h-screen bg-[#f0f4fb]">
       <DoctorSidebar />
-     <main className="relative z-0 w-full max-w-full flex-1 min-w-0 overflow-x-hidden px-3 pt-4 pb-6 sm:px-4 sm:pt-6 lg:px-6 lg:py-6">
+      <main className="min-w-0 flex-1 px-3 pb-10 pt-16 sm:px-4 sm:pt-18 md:px-5 md:pt-20 lg:px-7 xl:px-8">
         <div className="mb-4 flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-lg shadow-blue-100 sm:mb-5 sm:rounded-3xl sm:p-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
             <h1 className="text-lg font-extrabold text-slate-900 sm:text-2xl lg:text-3xl">
@@ -285,8 +287,8 @@ export const DoctorProfile = () => {
           )}
         </div>
 
-       <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-500 p-4 shadow-2xl sm:rounded-3xl sm:p-6 lg:p-7">
-         <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/10 sm:-right-24 sm:-top-24 sm:h-72 sm:w-72" />
+        <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-500 p-4 shadow-2xl sm:rounded-3xl sm:p-6 lg:p-7">
+          <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/10 sm:-right-24 sm:-top-24 sm:h-72 sm:w-72" />
           <div className="relative z-10 flex flex-col items-center gap-6 text-center sm:gap-8 lg:flex-row lg:text-left">
             <div className="relative h-28 w-28 shrink-0 sm:h-36 sm:w-36 md:h-44 md:w-44">
               {imageUrl ? (

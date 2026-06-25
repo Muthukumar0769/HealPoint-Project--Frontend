@@ -1,17 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  FaVideo, FaUser, FaCalendarAlt, FaPlay, FaCheckCircle, FaSpinner, FaExclamationTriangle,
+import {FaVideo, FaUser, FaCalendarAlt, FaPlay, FaCheckCircle, FaSpinner, FaExclamationTriangle,
   FaRedo, FaStethoscope, FaVenusMars, FaClock, FaTimesCircle, FaBan, FaChevronLeft, FaChevronRight,
-  FaHospital
-} from "react-icons/fa";
+  FaHospital} from "react-icons/fa";
 import { DoctorSidebar } from "./DoctorSidebar";
 import { JitsiMeetRoom } from "../../utils/JitsimeetRoom";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import {
-  PAGE_SIZE, fetchDoctorVideoAppointments, fetchDoctorVideoTabCounts, joinDoctorVideoMeeting,
+import {PAGE_SIZE, fetchDoctorVideoAppointments, fetchDoctorVideoTabCounts, joinDoctorVideoMeeting,
   completeDoctorVideoConsultation, cancelDoctorVideoAppointment, setActiveMode, setActiveTab,
-  setCurrentPage, setCancelModal, setActiveCall, clearToast, clearUnseenIds, markDoctorAppointmentNoShow, forceOngoing
-} from "../../store/slices/DoctorVideoSlice";
+  setCurrentPage, setCancelModal, setActiveCall, clearToast, clearUnseenIds, markDoctorAppointmentNoShow, forceOngoing} from "../../store/slices/DoctorVideoSlice";
 import type { VideoAppointment as Appointment, TabKey, ConsultationMode } from "../../types/doctor";
 import { clearVideoNotification, clearClinicNotification, setVideoNotification, setClinicNotification } from "../../store/slices/NotificationSlice";
 import usePageTitle from "../../hooks/usePageTitle";
@@ -181,9 +177,9 @@ export const DoctorVideoConsultation = () => {
   const rangeEnd = Math.min(currentPage * PAGE_SIZE, totalRecords);
 
   return (
-    <div className="relative flex min-h-screen w-full max-w-full overflow-x-hidden bg-[#f0f4fb]">
+    <div className="flex min-h-screen bg-[#f0f4fb]">
       <DoctorSidebar />
-      <main className="relative z-0 w-full max-w-full flex-1 min-w-0 overflow-x-hidden px-3 pb-6 pt-16 sm:px-4 sm:pt-20 lg:px-6 lg:py-6">
+      <main className="min-w-0 flex-1 px-3 pb-10 pt-16 sm:px-4 sm:pt-18 md:px-5 md:pt-20 lg:px-7 xl:px-8">
         <div className="mx-auto w-full max-w-xs xs:max-w-sm sm:max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl">
           <div className="mb-4 sm:mb-5">
             <h1 className="text-lg font-extrabold text-slate-800 sm:text-xl lg:text-2xl">Consultations</h1>
@@ -192,7 +188,7 @@ export const DoctorVideoConsultation = () => {
           <ModeSlider activeMode={activeMode} onChange={handleModeChange} />
           <div className="mb-4 grid grid-cols-3 gap-2 sm:mb-5 sm:gap-3">
             <StatCard icon={activeMode === "video" ? <FaVideo /> : <FaHospital />} title={activeMode === "video" ? "Today's Calls" : "Today's Visits"}
-              value={String(todayCount)} iconClass="bg-blue-50 text-blue-600" valueClass="text-blue-600" />
+              value={String(todayCount)} iconClass="bg-blue-50 text-blue-600" valueClass="text-blue-600"/>
             <StatCard icon={<FaCheckCircle />} title="Completed" value={String(tabCounts.completed ?? 0)} iconClass="bg-emerald-50 text-emerald-600" valueClass="text-emerald-600" />
             <StatCard icon={<FaCalendarAlt />} title="Upcoming" value={String(tabCounts.upcoming ?? 0)} iconClass="bg-amber-50 text-amber-600" valueClass="text-amber-600" />
           </div>
@@ -232,7 +228,7 @@ export const DoctorVideoConsultation = () => {
                           refresh();
                         }}
                         onNoShow={async (item) => { await dispatch(markDoctorAppointmentNoShow(item)); refresh(); }}
-                        onCancel={() => dispatch(setCancelModal(a))} />
+                        onCancel={() => dispatch(setCancelModal(a))}/>
                     );
                   })}
                 </div>
@@ -306,7 +302,7 @@ const ModeSlider = ({ activeMode, onChange }: {
     <div className="mb-4 w-full max-w-[260px] rounded-xl bg-white p-1 shadow-sm sm:mb-5 sm:max-w-xs sm:p-1.5">
       <div className="relative grid grid-cols-2 rounded-lg bg-slate-100 p-1">
         <span className="absolute bottom-1 top-1 w-[calc(50%-4px)] rounded-md bg-blue-600 shadow transition-all duration-300 ease-in-out"
-          style={{ transform: `translateX(${index * 100}%)` }} />
+          style={{ transform: `translateX(${index * 100}%)` }}/>
         {MODE_TABS.map((tab) => (
           <button key={tab.key} onClick={() => onChange(tab.key)} className={`relative z-10 flex cursor-pointer items-center justify-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-bold transition-colors duration-300 sm:gap-1.5 sm:px-3 sm:py-2 sm:text-xs ${activeMode === tab.key ? "text-white" : "text-slate-500 hover:text-slate-700"}`}>
             {tab.icon}
@@ -344,7 +340,7 @@ const StatusTabBar = ({ activeTab, counts, onChange }: {
   return (
     <div className="relative mb-3 sm:mb-4">
       <div ref={containerRef} className="relative flex gap-0.5 overflow-x-auto rounded-xl bg-slate-100 p-1 scrollbar-hide sm:gap-1">
-        <span ref={indicatorRef} className="absolute top-1 h-[calc(100%-8px)] rounded-lg bg-white shadow-sm transition-all duration-300 ease-in-out" />
+        <span ref={indicatorRef} className="absolute top-1 h-[calc(100%-8px)] rounded-lg bg-white shadow-sm transition-all duration-300 ease-in-out"/>
         {TABS.map(({ key, label }) => (
           <button key={key} data-tab={key} onClick={() => onChange(key)} className={`relative z-10 flex cursor-pointer items-center gap-1 whitespace-nowrap rounded-lg px-2 py-1 text-[10px] font-bold transition-colors duration-200 sm:gap-1.5 sm:px-3 sm:py-1.5 sm:text-xs ${activeTab === key ? "text-slate-900" : "text-slate-500 hover:text-slate-700"}`}>
             {label}
@@ -391,8 +387,8 @@ const AppointmentCard = ({ mode, appt, actionLoading, isToday, onJoin, onComplet
   return (
     <div className={`rounded-xl border p-3 transition-all duration-200 hover:shadow-md lg:p-4
       ${isOngoing ? "border-emerald-200 bg-emerald-50/40 border-l-4 border-l-emerald-500" : isCancelled
-        ? "border-red-100 bg-red-50/20 border-l-4 border-l-red-400 opacity-80" : isMissedAppt
-          ? "border-orange-100 bg-orange-50/20 border-l-4 border-l-orange-400 opacity-85" : "border-slate-100 bg-white border-l-4 border-l-blue-600"}`}>
+          ? "border-red-100 bg-red-50/20 border-l-4 border-l-red-400 opacity-80" : isMissedAppt
+            ? "border-orange-100 bg-orange-50/20 border-l-4 border-l-orange-400 opacity-85" : "border-slate-100 bg-white border-l-4 border-l-blue-600"}`}>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
         <div className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-xs font-extrabold text-blue-700 sm:flex sm:h-10 sm:w-10 sm:text-sm">
@@ -440,7 +436,7 @@ const AppointmentCard = ({ mode, appt, actionLoading, isToday, onJoin, onComplet
               </button>
               {isOngoing && (
                 <button disabled={busy} onClick={() => onComplete(appt)} className="flex h-8 cursor-pointer items-center justify-center gap-1 rounded-lg bg-emerald-50 px-2.5 text-[11px] font-bold text-emerald-700 hover:bg-emerald-100 active:scale-95 disabled:opacity-60 transition-all sm:h-9 sm:gap-1.5 sm:px-3 sm:text-xs">
-                  {actionLoading[appt.id] === "completing" ? <><FaSpinner className="animate-spin" /><span>Ending…</span></> : <><FaCheckCircle /><span>End Call</span></>}
+                  {actionLoading[appt.id] === "completing" ? <><FaSpinner className="animate-spin" /><span>Ending…</span></> : <><FaCheckCircle /><span>End Call</span></> }
                 </button>
               )}
             </>

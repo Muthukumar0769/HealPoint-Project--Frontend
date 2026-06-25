@@ -11,26 +11,13 @@ declare global {
 export const extractRoomName = (meetingRoom: string) => {
   try {
     const url = new URL(meetingRoom);
-    return {
-      domain: url.hostname,
-      roomName: url.pathname.replace(/^\//, ""),
-    };
+    return { domain: url.hostname, roomName: url.pathname.replace(/^\//, "") };
   } catch {
-    return {
-      domain: "meet.jit.si",
-      roomName: meetingRoom,
-    };
+    return { domain: "meet.jit.si", roomName: meetingRoom };
   }
 };
 
-export const JitsiMeetRoom = ({
-  meetingRoom,
-  displayName,
-  titleName,
-  avatarName,
-  onClose,
-  onHangup,
-}: JitsiMeetRoomProps) => {   
+export const JitsiMeetRoom = ({meetingRoom, displayName, titleName, avatarName, onClose, onHangup,}: JitsiMeetRoomProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const apiRef = useRef<any>(null);
   const [ready, setReady] = useState(false);
@@ -65,9 +52,7 @@ export const JitsiMeetRoom = ({
     loadJitsiScript()
       .then(() => {
         if (cancelled || !containerRef.current) return;
-
         const { domain, roomName } = extractRoomName(meetingRoom);
-
         apiRef.current = new window.JitsiMeetExternalAPI(domain, {
           roomName,
           parentNode: containerRef.current,
@@ -77,7 +62,7 @@ export const JitsiMeetRoom = ({
           configOverwrite: {
             startWithAudioMuted: false,
             startWithVideoMuted: false,
-            disableDeepLinking: true,
+            disableDeepLinking: true,  
             prejoinPageEnabled: false,
             p2p: { enabled: false },
             requireDisplayName: false,
@@ -88,6 +73,7 @@ export const JitsiMeetRoom = ({
           interfaceConfigOverwrite: {
             SHOW_JITSI_WATERMARK: false,
             SHOW_WATERMARK_FOR_GUESTS: false,
+            MOBILE_APP_PROMO: false, 
             TOOLBAR_BUTTONS: [
               "microphone", "camera", "closedcaptions", "desktop",
               "fullscreen", "fodeviceselection", "hangup", "chat",
@@ -99,6 +85,10 @@ export const JitsiMeetRoom = ({
         const iframe = apiRef.current.getIFrame();
         if (iframe) {
           iframe.allow = "camera; microphone; display-capture; autoplay; clipboard-write; fullscreen";
+          // Ensure iframe fills properly on mobile
+          iframe.style.width = "100%";
+          iframe.style.height = "100%";
+          iframe.style.border = "none";
         }
 
         apiRef.current.addEventListener("videoConferenceJoined", () => setReady(true));
@@ -125,25 +115,16 @@ export const JitsiMeetRoom = ({
     };
   }, [meetingRoom, displayName]);
 
-  useEffect(() => {
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    if (isMobile) {
-      const { roomName } = extractRoomName(meetingRoom);
-      window.open(`https://meet.jit.si/${roomName}`, "_blank");
-      onCloseRef.current();
-    }
-  }, [meetingRoom]);
-
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900 flex flex-col">
-      <div className="flex items-center justify-between px-5 py-3 bg-slate-800 border-b border-slate-700 shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
+    <div className="fixed inset-0 z-50 bg-slate-900 flex flex-col" style={{ height: "100dvh" }}>
+      <div className="flex items-center justify-between px-3 py-2 bg-slate-800 border-b border-slate-700 shrink-0 sm:px-5 sm:py-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold sm:w-8 sm:h-8">
             {avatarName.charAt(0).toUpperCase()}
           </div>
           <div>
-            <p className="text-white text-sm font-bold leading-tight">{titleName}</p>
-            <p className="text-slate-400 text-xs">
+            <p className="text-white text-xs font-bold leading-tight sm:text-sm">{titleName}</p>
+            <p className="text-slate-400 text-[10px] sm:text-xs">
               {ready ? (
                 <span className="text-emerald-400 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block animate-pulse" />
@@ -153,14 +134,12 @@ export const JitsiMeetRoom = ({
             </p>
           </div>
         </div>
-        <button
-          onClick={() => onCloseRef.current()}
-          className="flex items-center cursor-pointer gap-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors"
-        >
+        <button onClick={() => onCloseRef.current()}
+          className="flex items-center cursor-pointer gap-1.5 bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition-colors sm:gap-2 sm:text-xs sm:px-4 sm:py-2">
           <FaPhoneSlash /> Leave Call
         </button>
       </div>
-      <div ref={containerRef} className="flex-1 w-full" />
+      <div ref={containerRef} className="flex-1 w-full overflow-hidden" />
     </div>
   );
 };

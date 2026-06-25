@@ -53,23 +53,19 @@ export const DoctorEarnings = () => {
           API.get("/doctor/earnings/monthly"),
           API.get("/doctor/earnings/payments", { params: { page: 1, limit: 1000 } }),
         ]);
-
         const rawSummary = extractSummary(sumRes) ?? {
           total_earnings: 0, paid_appointments: 0, completed_appointments: 0,
           video_earnings: 0, clinic_earnings: 0,
         };
-
         const rawMonthly: MonthlyData[] = extractArray(monRes, "monthly");
         const allPayments: Payment[] = allPayRes.data?.data?.payments ?? [];
         const video = allPayments.filter(p => p.type === "Video Call").reduce((s, p) => s + p.amount, 0);
         const clinic = allPayments.filter(p => p.type !== "Video Call").reduce((s, p) => s + p.amount, 0);
-
         setSummary({
           ...rawSummary,
           video_earnings: rawSummary.video_earnings > 0 ? rawSummary.video_earnings : video,
           clinic_earnings: rawSummary.clinic_earnings > 0 ? rawSummary.clinic_earnings : clinic,
         });
-
         setMonthly(rawMonthly);
       } catch (err) {
         console.error("Earnings fetch error:", err);
@@ -138,27 +134,9 @@ export const DoctorEarnings = () => {
   const transactionTotal = payments.reduce((sum, p) => sum + p.amount, 0);
 
   const statCards = [
-    {
-      icon: <FaWallet />,
-      label: "Total Earnings",
-      value: `₹${(summary?.total_earnings ?? 0).toLocaleString("en-IN")}`,
-      iconBg: "bg-blue-600",
-      accent: "from-blue-50 to-white",
-    },
-    {
-      icon: <FaCalendarCheck />,
-      label: "Paid Appointments",
-      value: summary?.paid_appointments ?? "—",
-      iconBg: "bg-sky-500",
-      accent: "from-sky-50 to-white",
-    },
-    {
-      icon: <FaCheckCircle />,
-      label: "Completed",
-      value: summary?.completed_appointments ?? "—",
-      iconBg: "bg-blue-500",
-      accent: "from-blue-50 to-white",
-    },
+    { icon: <FaWallet />, label: "Total Earnings", value: `₹${(summary?.total_earnings ?? 0).toLocaleString("en-IN")}`, iconBg: "bg-blue-600", accent: "from-blue-50 to-white" },
+    { icon: <FaCalendarCheck />, label: "Paid Appointments", value: summary?.paid_appointments ?? "—", iconBg: "bg-sky-500", accent: "from-sky-50 to-white" },
+    { icon: <FaCheckCircle />, label: "Completed", value: summary?.completed_appointments ?? "—", iconBg: "bg-blue-500", accent: "from-blue-50 to-white" },
   ];
 
   const handleExportPDF = async () => {
@@ -179,14 +157,12 @@ export const DoctorEarnings = () => {
     const doc = new jsPDF();
     const now = new Date().toLocaleString("en-IN");
     const receiptNo = `EARN-${Date.now()}`;
-
     doc.setFillColor(37, 99, 235); doc.rect(0, 0, 210, 35, "F");
     doc.setTextColor(255, 255, 255); doc.setFontSize(22); doc.setFont("helvetica", "bold"); doc.text("HealPoint", 15, 18);
     doc.setFontSize(11); doc.setFont("helvetica", "normal"); doc.text("Doctor Earnings Report", 15, 27);
     doc.setTextColor(15, 23, 42); doc.setFontSize(18); doc.setFont("helvetica", "bold"); doc.text("Payment History", 15, 50);
     doc.setFontSize(10); doc.setFont("helvetica", "normal"); doc.setTextColor(100, 116, 139);
     doc.text(`Report ID: ${receiptNo}`, 15, 58); doc.text(`Generated On: ${now}`, 15, 64);
-
     let y = 78;
     const sectionTitle = (title: string) => {
       doc.setFillColor(239, 246, 255); doc.rect(15, y, 180, 10, "F");
@@ -196,21 +172,18 @@ export const DoctorEarnings = () => {
       doc.setTextColor(100, 116, 139); doc.setFontSize(10); doc.setFont("helvetica", "normal"); doc.text(label, 20, y);
       doc.setTextColor(15, 23, 42); doc.setFont("helvetica", "bold"); doc.text(value || "—", 90, y); y += 8;
     };
-
     sectionTitle("Earnings Summary");
     infoRow("Total Earnings", `Rs. ${(summary?.total_earnings ?? 0).toLocaleString("en-IN")}`);
     infoRow("Paid Appointments", String(summary?.paid_appointments ?? 0));
     infoRow("Completed Appointments", String(summary?.completed_appointments ?? 0));
     infoRow("Video Call Earnings", `Rs. ${(summary?.video_earnings ?? 0).toLocaleString("en-IN")}`);
     infoRow("Clinic Visit Earnings", `Rs. ${(summary?.clinic_earnings ?? 0).toLocaleString("en-IN")}`);
-
     y += 6; sectionTitle("Payment Transactions");
     doc.setFillColor(248, 250, 252); doc.rect(15, y - 4, 180, 10, "F");
     doc.setTextColor(100, 116, 139); doc.setFontSize(9); doc.setFont("helvetica", "bold");
     const cols = [20, 48, 93, 130, 158, 183];
     ["#", "Patient", "Date & Time", "Type", "Amount", "Status"].forEach((h, i) => doc.text(h, cols[i], y + 3));
     y += 12;
-
     allPayments.forEach((p, idx) => {
       if (y > 270) { doc.addPage(); y = 20; }
       if (idx % 2 === 0) { doc.setFillColor(249, 250, 251); doc.rect(15, y - 4, 180, 9, "F"); }
@@ -222,7 +195,6 @@ export const DoctorEarnings = () => {
       doc.setFont("helvetica", "normal"); doc.setTextColor(22, 163, 74);
       doc.text(`\u2713 ${p.status}`, cols[5], y + 2); y += 9;
     });
-
     y += 4; doc.setDrawColor(226, 232, 240); doc.line(15, y, 195, y); y += 8;
     doc.setTextColor(15, 23, 42); doc.setFontSize(12); doc.setFont("helvetica", "bold");
     doc.text(`Total (${allPayments.length} transactions)`, 20, y);
@@ -230,7 +202,6 @@ export const DoctorEarnings = () => {
     doc.setFillColor(240, 249, 255); doc.rect(15, y, 180, 14, "F");
     doc.setTextColor(37, 99, 235); doc.setFontSize(9); doc.setFont("helvetica", "normal");
     doc.text("This is an auto-generated earnings report from HealPoint.", 20, y + 9);
-
     doc.save(`HealPoint_Earnings_${receiptNo}.pdf`);
     setExportLoading(false);
   };
@@ -241,7 +212,7 @@ export const DoctorEarnings = () => {
     const step = Math.ceil(yMax / 5 / 1000) * 1000 || 1000;
     return [0, step, step * 2, step * 3, step * 4, step * 5];
   })();
-  const chartHeight = 280;
+  const chartHeight = 220;
   const chartPadTop = 20;
   const barAreaHeight = chartHeight - chartPadTop;
 
@@ -254,49 +225,45 @@ export const DoctorEarnings = () => {
   return (
     <div className="flex min-h-screen bg-[#f0f4fb]">
       <DoctorSidebar />
-      <main className="min-w-0 flex-1 overflow-x-hidden px-4 pb-16 pt-24 sm:px-8 lg:px-10">
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
-              Payments & <span className="text-blue-600">Earnings</span>
-            </h1>
-          </div>
-          <p className="ml-4 text-sm font-medium text-slate-400 pl-4">Track your consultation income and payment history.</p>
+      <main className="min-w-0 flex-1 overflow-x-hidden px-3 pb-12 pt-18 sm:px-5 sm:pt-20 lg:px-8 lg:pt-24">
+        <div className="mb-5 sm:mb-8">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-slate-900">
+            Payments & <span className="text-blue-600">Earnings</span>
+          </h1>
+          <p className="mt-1 text-xs sm:text-sm font-medium text-slate-400">Track your consultation income and payment history.</p>
         </div>
 
         {error && (
-          <div className="mb-6 flex items-center gap-3 rounded-2xl border border-red-100 bg-red-50 px-5 py-4 text-sm font-semibold text-red-600">
-            <span className="text-base">⚠</span>
+          <div className="mb-4 sm:mb-6 flex items-center gap-3 rounded-xl sm:rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-xs sm:text-sm font-semibold text-red-600">
+            <span>⚠</span>
             {error}
           </div>
         )}
-
-        <div className="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-3">
+        <div className="mb-5 sm:mb-8 grid grid-cols-1 gap-3 sm:gap-5 sm:grid-cols-3">
           {statCards.map((card) => (
-            <div key={card.label} className="relative overflow-hidden rounded-2xl border border-blue-100 bg-white px-6 py-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-blue-100">
+            <div key={card.label} className="relative overflow-hidden rounded-xl sm:rounded-2xl border border-blue-100 bg-white px-4 sm:px-6 py-4 sm:py-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-blue-100">
               <div className={`absolute inset-0 bg-gradient-to-br ${card.accent} opacity-60`} />
-              <div className="relative flex items-start justify-between">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">{card.label}</p>
-                  <p className="text-3xl font-extrabold tracking-tight text-slate-900">
-                    {loading ? <span className="inline-block h-8 w-28 animate-pulse rounded-xl bg-slate-100" /> : card.value}
+              <div className="relative flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-slate-400 mb-2 sm:mb-3">{card.label}</p>
+                  <p className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+                    {loading ? <span className="inline-block h-7 sm:h-8 w-24 sm:w-28 animate-pulse rounded-xl bg-slate-100" /> : card.value}
                   </p>
                 </div>
-                <div className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl ${card.iconBg} text-white text-base shadow-sm`}>
+                <div className={`flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl ${card.iconBg} text-white text-sm sm:text-base shadow-sm`}>
                   {card.icon}
                 </div>
               </div>
             </div>
           ))}
         </div>
-
-        <div className="mb-8 rounded-2xl border border-blue-100 bg-white p-6 shadow-sm">
-          <div className="mb-6 flex items-center justify-between">
+        <div className="mb-5 sm:mb-8 rounded-xl sm:rounded-2xl border border-blue-100 bg-white p-4 sm:p-6 shadow-sm">
+          <div className="mb-4 sm:mb-6 flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-base font-extrabold text-slate-900">Monthly Earnings</h2>
-              <p className="mt-0.5 text-xs font-medium text-slate-400">Revenue overview · up to ₹5,00,000</p>
+              <h2 className="text-sm sm:text-base font-extrabold text-slate-900">Monthly Earnings</h2>
+              <p className="mt-0.5 text-[10px] sm:text-xs font-medium text-slate-400">Revenue overview · up to ₹5,00,000</p>
             </div>
-            <span className="rounded-full border border-blue-200 bg-blue-50 px-4 py-1 text-xs font-bold text-blue-700">2026</span>
+            <span className="rounded-full border border-blue-200 bg-blue-50 px-3 sm:px-4 py-1 text-[10px] sm:text-xs font-bold text-blue-700">2026</span>
           </div>
 
           {loading ? (
@@ -304,20 +271,20 @@ export const DoctorEarnings = () => {
               <div className="h-6 w-6 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
             </div>
           ) : monthly.length === 0 ? (
-            <div className="flex items-center justify-center text-sm font-semibold text-slate-400" style={{ height: chartHeight }}>
+            <div className="flex items-center justify-center text-xs sm:text-sm font-semibold text-slate-400" style={{ height: chartHeight }}>
               No monthly data available
             </div>
           ) : (
             <div className="flex" style={{ height: chartHeight + 40 }}>
-              <div className="flex flex-col justify-between pr-3 pb-8" style={{ height: chartHeight }}>
+              <div className="flex flex-col justify-between pr-2 sm:pr-3 pb-8" style={{ height: chartHeight }}>
                 {[...yTicks].reverse().map((tick) => (
-                  <span key={tick} className="text-[11px] font-semibold text-slate-400 leading-none text-right whitespace-nowrap">
+                  <span key={tick} className="text-[9px] sm:text-[11px] font-semibold text-slate-400 leading-none text-right whitespace-nowrap">
                     {formatYLabel(tick)}
                   </span>
                 ))}
               </div>
 
-              <div className="flex-1 relative">
+              <div className="flex-1 relative min-w-0">
                 <div className="absolute inset-0 pb-8 pointer-events-none">
                   {[...yTicks].reverse().map((tick, i) => (
                     <div key={tick} className="absolute w-full border-t border-slate-100"
@@ -331,34 +298,30 @@ export const DoctorEarnings = () => {
                     const isHovered = hoveredBar === i;
                     const isMax = m.earnings === maxEarnings && m.earnings > 0;
                     return (
-                      <div key={i} className="relative flex flex-col items-center flex-1 mx-1" onMouseEnter={() => setHoveredBar(i)}
+                      <div key={i} className="relative flex flex-col items-center flex-1 mx-0.5 sm:mx-1" onMouseEnter={() => setHoveredBar(i)}
                         onMouseLeave={() => setHoveredBar(null)} style={{ cursor: "pointer" }}>
                         {isHovered && (
-                          <div className="absolute z-20 whitespace-nowrap rounded-xl bg-slate-900 px-3 py-2 text-xs font-bold text-white shadow-xl pointer-events-none"
-                            style={{ bottom: barH + 10 }}>
-                            <p className="text-slate-400 text-[10px] mb-0.5">{m.month}</p>
+                          <div className="absolute z-20 whitespace-nowrap rounded-xl bg-slate-900 px-2.5 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold text-white shadow-xl pointer-events-none" style={{ bottom: barH + 10 }}>
+                            <p className="text-slate-400 text-[9px] sm:text-[10px] mb-0.5">{m.month}</p>
                             <p className="text-blue-300">₹{m.earnings.toLocaleString("en-IN")}</p>
                             <div className="absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 -translate-y-1 rotate-45 bg-slate-900" />
                           </div>
                         )}
-                        <div className="relative w-full max-w-[48px] rounded-t-xl transition-all duration-300"
-                          style={{
-                            height: barH,
-                            background: isHovered ? "linear-gradient(180deg, #1d4ed8 0%, #3b82f6 100%)"
+                        <div className="relative w-full max-w-[36px] sm:max-w-[48px] rounded-t-xl transition-all duration-300"
+                          style={{height: barH,background: isHovered ? "linear-gradient(180deg, #1d4ed8 0%, #3b82f6 100%)"
                               : isMax ? "linear-gradient(180deg, #2563eb 0%, #60a5fa 100%)"
-                                : "linear-gradient(180deg, #93c5fd 0%, #bfdbfe 100%)",
+                              : "linear-gradient(180deg, #93c5fd 0%, #bfdbfe 100%)",
                             boxShadow: isHovered ? "0 8px 24px 0 #3b82f650" : isMax ? "0 4px 16px 0 #3b82f630" : "none",
                             transform: isHovered ? "scaleY(1.03)" : "scaleY(1)",
-                            transformOrigin: "bottom",
-                          }}>
+                            transformOrigin: "bottom"}}>
                           <div className="absolute top-0 left-0 right-0 rounded-t-xl opacity-30" style={{ height: "35%", background: "linear-gradient(180deg, #fff 0%, transparent 100%)" }} />
                           {(isMax || isHovered) && (
-                            <div className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-extrabold text-blue-600">
+                            <div className="absolute -top-5 sm:-top-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] sm:text-[10px] font-extrabold text-blue-600">
                               ₹{m.earnings >= 1000 ? `${(m.earnings / 1000).toFixed(0)}k` : m.earnings}
                             </div>
                           )}
                         </div>
-                        <span className="mt-2 text-[11px] font-bold text-slate-400 select-none">{m.month}</span>
+                        <span className="mt-1.5 sm:mt-2 text-[9px] sm:text-[11px] font-bold text-slate-400 select-none">{m.month}</span>
                       </div>
                     );
                   })}
@@ -368,83 +331,85 @@ export const DoctorEarnings = () => {
           )}
 
           {!loading && monthly.length > 0 && (
-            <div className="mt-3 flex flex-wrap items-center gap-4 rounded-xl bg-blue-50 px-4 py-3">
-              <div className="flex items-center gap-2">
-                <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
-                <span className="text-xs text-slate-500">Total</span>
-                <b className="text-xs text-slate-800">₹{monthly.reduce((s, m) => s + m.earnings, 0).toLocaleString("en-IN")}</b>
+            <div className="mt-2 sm:mt-3 flex flex-wrap items-center gap-3 sm:gap-4 rounded-xl bg-blue-50 px-3 sm:px-4 py-2.5 sm:py-3">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-blue-500" />
+                <span className="text-[10px] sm:text-xs text-slate-500">Total</span>
+                <b className="text-[10px] sm:text-xs text-slate-800">₹{monthly.reduce((s, m) => s + m.earnings, 0).toLocaleString("en-IN")}</b>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="h-2.5 w-2.5 rounded-full bg-blue-300" />
-                <span className="text-xs text-slate-500">Peak Month</span>
-                <b className="text-xs text-slate-800">{monthly.reduce((best, m) => m.earnings > best.earnings ? m : best).month}</b>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-blue-300" />
+                <span className="text-[10px] sm:text-xs text-slate-500">Peak</span>
+                <b className="text-[10px] sm:text-xs text-slate-800">{monthly.reduce((best, m) => m.earnings > best.earnings ? m : best).month}</b>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="h-2.5 w-2.5 rounded-full bg-blue-200" />
-                <span className="text-xs text-slate-500">Avg/Month</span>
-                <b className="text-xs text-slate-800">₹{Math.round(monthly.reduce((s, m) => s + m.earnings, 0) / monthly.length).toLocaleString("en-IN")}</b>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-blue-200" />
+                <span className="text-[10px] sm:text-xs text-slate-500">Avg/Month</span>
+                <b className="text-[10px] sm:text-xs text-slate-800">₹{Math.round(monthly.reduce((s, m) => s + m.earnings, 0) / monthly.length).toLocaleString("en-IN")}</b>
               </div>
             </div>
           )}
         </div>
-
-        <div className="rounded-2xl border border-blue-100 bg-white shadow-sm">
-          <div className="flex flex-col gap-4 border-b border-slate-100 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="rounded-xl sm:rounded-2xl border border-blue-100 bg-white shadow-sm">
+          <div className="flex flex-col gap-3 sm:gap-4 border-b border-slate-100 px-4 sm:px-6 py-4 sm:py-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-base font-extrabold text-slate-900">Payment History</h2>
-              <p className="mt-0.5 text-xs font-medium text-slate-400">
+              <h2 className="text-sm sm:text-base font-extrabold text-slate-900">Payment History</h2>
+              <p className="mt-0.5 text-[10px] sm:text-xs font-medium text-slate-400">
                 {paymentsLoading ? "Loading…" : `${totalPayments} completed transaction${totalPayments !== 1 ? "s" : ""}`}
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-3.5 py-2">
-                <FaCalendarAlt className="text-xs text-blue-400 flex-shrink-0" />
-                <input type="date" value={dateFilter} onChange={handleDateChange} className="border-none bg-transparent text-xs font-semibold text-slate-700 outline-none cursor-pointer" />
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <div className="flex items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-3 py-2">
+                <FaCalendarAlt className="text-xs text-blue-400 shrink-0" />
+                <input type="date" value={dateFilter} onChange={handleDateChange}
+                  className="border-none bg-transparent text-xs font-semibold text-slate-700 outline-none cursor-pointer"/>
                 {dateFilter && (
                   <button onClick={handleClearDate} className="ml-1 flex h-4 w-4 cursor-pointer items-center justify-center rounded-full text-slate-400 transition hover:bg-red-100 hover:text-red-500 font-bold text-xs">
                     ✕
                   </button>
                 )}
               </div>
-              <button onClick={handleExportPDF} disabled={exportLoading || paymentsLoading} className="flex cursor-pointer items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all duration-200 hover:bg-blue-700 hover:-translate-y-0.5 hover:shadow-md hover:shadow-blue-200 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">
+              <button onClick={handleExportPDF} disabled={exportLoading || paymentsLoading}
+                className="flex cursor-pointer items-center gap-1.5 sm:gap-2 rounded-xl bg-blue-600 px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm transition-all duration-200 hover:bg-blue-700 hover:-translate-y-0.5 hover:shadow-md hover:shadow-blue-200 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">
                 {exportLoading ? (
                   <>
-                    <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    Exporting...
+                    <div className="h-3 w-3 sm:h-3.5 sm:w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    <span>Exporting...</span>
                   </>
                 ) : (
                   <>
-                    <FaDownload className="text-xs" />
-                    Export PDF
+                    <FaDownload className="text-[10px] sm:text-xs" />
+                    <span>Export PDF</span>
                   </>
                 )}
               </button>
             </div>
           </div>
 
-          <div className="px-6 py-4">
+          <div className="px-3 sm:px-6 py-3 sm:py-4">
             {paymentsLoading ? (
               <div className="space-y-3 py-4">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-14 w-full animate-pulse rounded-xl bg-slate-100" />
+                  <div key={i} className="h-12 sm:h-14 w-full animate-pulse rounded-xl bg-slate-100" />
                 ))}
               </div>
             ) : payments.length === 0 ? (
-              <div className="py-16 text-center">
-                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-300 text-2xl">
+              <div className="py-12 sm:py-16 text-center">
+                <div className="mx-auto mb-3 flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-300 text-xl sm:text-2xl">
                   <FaRupeeSign />
                 </div>
-                <p className="font-bold text-slate-400 text-sm">
+                <p className="font-bold text-slate-400 text-xs sm:text-sm">
                   {dateFilter ? "No payment records found for this date." : "No payment records found."}
                 </p>
               </div>
             ) : (
-              <div key={animKey} className={`overflow-x-auto ${slideDirection === "right" ? "slide-in-right" : "slide-in-left"}`}>
-                <table className="w-full min-w-[680px] border-collapse text-sm">
+              <div key={animKey} className={`overflow-x-auto ${slideDirection === "right" ? "slide-in-right" : "slide-in-left"}`}
+                style={{ scrollbarWidth: "thin", scrollbarColor: "#CBD5E1 transparent" }}>
+                <table className="w-full border-collapse text-sm" style={{ minWidth: "580px" }}>
                   <thead>
-                    <tr className="rounded-xl">
+                    <tr>
                       {["#", "Patient", "Date & Time", "Type", "Amount", "Status"].map((h) => (
-                        <th key={h} className="bg-slate-50 px-4 py-3 text-left text-xs font-extrabold uppercase tracking-widest text-slate-400 first:rounded-l-xl last:rounded-r-xl">
+                        <th key={h} className="bg-slate-50 px-3 sm:px-4 py-2.5 sm:py-3 text-left text-[10px] sm:text-xs font-extrabold uppercase tracking-widest text-slate-400 first:rounded-l-xl last:rounded-r-xl">
                           {h}
                         </th>
                       ))}
@@ -453,31 +418,32 @@ export const DoctorEarnings = () => {
                   <tbody>
                     {payments.map((item, index) => (
                       <tr key={item.id} className="group border-b border-slate-50 transition-colors duration-150 hover:bg-blue-50/50 last:border-0">
-                        <td className="px-4 py-4 text-xs font-bold text-slate-300">
+                        <td className="px-3 sm:px-4 py-3 sm:py-4 text-xs font-bold text-slate-300">
                           {(currentPage - 1) * PAGE_LIMIT + index + 1}
                         </td>
-                        <td className="px-4 py-4">
-                          <span className="font-extrabold text-slate-900">{item.patient}</span>
+                        <td className="px-3 sm:px-4 py-3 sm:py-4">
+                          <span className="text-xs sm:text-sm font-extrabold text-slate-900 truncate max-w-[80px] sm:max-w-none block">{item.patient}</span>
                         </td>
-                        <td className="whitespace-nowrap px-4 py-4">
-                          <p className="font-bold text-slate-700 text-xs">{item.date}</p>
-                          <p className="mt-0.5 text-xs font-semibold text-slate-400">{item.time}</p>
+                        <td className="whitespace-nowrap px-3 sm:px-4 py-3 sm:py-4">
+                          <p className="font-bold text-slate-700 text-[10px] sm:text-xs">{item.date}</p>
+                          <p className="mt-0.5 text-[10px] sm:text-xs font-semibold text-slate-400">{item.time}</p>
                         </td>
-                        <td className="px-4 py-4">
-                          <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${item.type === "Video Call" ? "bg-blue-50 text-blue-700 ring-1 ring-blue-100" : "bg-sky-50 text-sky-700 ring-1 ring-sky-100"}`}>
-                            {item.type === "Video Call" ? <FaVideo className="text-[9px]" /> : <FaHospital className="text-[9px]" />}
-                            {item.type}
+                        <td className="px-3 sm:px-4 py-3 sm:py-4">
+                          <span className={`inline-flex items-center gap-1 sm:gap-1.5 rounded-full px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-bold ${item.type === "Video Call" ? "bg-blue-50 text-blue-700 ring-1 ring-blue-100" : "bg-sky-50 text-sky-700 ring-1 ring-sky-100"}`}>
+                            {item.type === "Video Call" ? <FaVideo className="text-[8px] sm:text-[9px]" /> : <FaHospital className="text-[8px] sm:text-[9px]" />}
+                            <span className="hidden sm:inline">{item.type}</span>
+                            <span className="sm:hidden">{item.type === "Video Call" ? "Video" : "Clinic"}</span>
                           </span>
                         </td>
-                        <td className="px-4 py-4">
-                          <span className="inline-flex items-center gap-1 text-base font-extrabold text-blue-600">
-                            <FaRupeeSign className="text-xs" />
+                        <td className="px-3 sm:px-4 py-3 sm:py-4">
+                          <span className="inline-flex items-center gap-0.5 sm:gap-1 text-sm sm:text-base font-extrabold text-blue-600">
+                            <FaRupeeSign className="text-[10px] sm:text-xs" />
                             {item.amount.toLocaleString("en-IN")}
                           </span>
                         </td>
-                        <td className="px-4 py-4">
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 ring-1 ring-emerald-100">
-                            <span className="text-[10px]">✓</span>
+                        <td className="px-3 sm:px-4 py-3 sm:py-4">
+                          <span className="inline-flex items-center gap-1 sm:gap-1.5 rounded-full bg-emerald-50 px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-bold text-emerald-700 ring-1 ring-emerald-100">
+                            <span className="text-[9px] sm:text-[10px]">✓</span>
                             {item.status}
                           </span>
                         </td>
@@ -490,48 +456,53 @@ export const DoctorEarnings = () => {
           </div>
 
           {(!paymentsLoading && payments.length > 0) && (
-            <div className="border-t border-slate-100 px-6 py-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-3 rounded-xl bg-blue-50 border border-blue-100 px-4 py-3">
-                <p className="text-xs font-bold text-slate-500">
+            <div className="border-t border-slate-100 px-3 sm:px-6 py-3 sm:py-4 flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2 sm:gap-3 rounded-xl bg-blue-50 border border-blue-100 px-3 sm:px-4 py-2.5 sm:py-3">
+                <p className="text-[10px] sm:text-xs font-bold text-slate-500">
                   Page {currentPage} · {payments.length} transaction{payments.length !== 1 ? "s" : ""}
                 </p>
                 <div className="h-4 w-px bg-blue-200" />
-                <p className="text-base font-extrabold text-blue-600">₹{transactionTotal.toLocaleString("en-IN")}</p>
+                <p className="text-sm sm:text-base font-extrabold text-blue-600">₹{transactionTotal.toLocaleString("en-IN")}</p>
               </div>
               {totalPages > 1 && (
-                <div className="flex items-center gap-2">
-                  <p className="mr-2 hidden text-xs font-semibold text-slate-400 sm:block">
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                  <p className="mr-1 hidden sm:block text-xs font-semibold text-slate-400">
                     {(currentPage - 1) * PAGE_LIMIT + 1}–{Math.min(currentPage * PAGE_LIMIT, totalPayments)} of {totalPayments}
                   </p>
-                  <button onClick={() => { setSlideDirection("left"); setAnimKey(k => k + 1); setCurrentPage((p) => Math.max(1, p - 1)); }}
-                    disabled={currentPage === 1} className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border border-blue-100 bg-white text-blue-600 shadow-sm transition hover:bg-blue-50 hover:border-blue-200 disabled:cursor-not-allowed disabled:opacity-40">
-                    <FaChevronLeft className="text-xs" />
+                  <button onClick={() => { setSlideDirection("left"); setAnimKey(k => k + 1); setCurrentPage((p) => Math.max(1, p - 1)); }} disabled={currentPage === 1}
+                    className="flex h-8 w-8 sm:h-9 sm:w-9 cursor-pointer items-center justify-center rounded-xl border border-blue-100 bg-white text-blue-600 shadow-sm transition hover:bg-blue-50 hover:border-blue-200 disabled:cursor-not-allowed disabled:opacity-40">
+                    <FaChevronLeft className="text-[10px] sm:text-xs" />
                   </button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
                     .reduce((acc: (number | string)[], p, idx, arr) => {
                       if (idx > 0 && (p as number) - (arr[idx - 1] as number) > 1) acc.push("...");
                       acc.push(p);
                       return acc;
-                    }, [])
-                    .map((p, idx) =>
-                      p === "..." ? (
-                        <span key={`ellipsis-${idx}`} className="px-1 text-xs font-bold text-slate-400">…</span>
+                    }, []).map((p, idx) => p === "..." ? (
+                        <span key={`ellipsis-${idx}`} className="px-0.5 text-xs font-bold text-slate-400">…</span>
                       ) : (
                         <button key={p} onClick={() => { setSlideDirection((p as number) > currentPage ? "right" : "left"); setAnimKey(k => k + 1); setCurrentPage(p as number); }}
-                          className={`flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl text-xs font-extrabold transition ${currentPage === p ? "bg-blue-600 text-white shadow-md shadow-blue-200" : "border border-blue-100 bg-white text-slate-600 hover:bg-blue-50 hover:border-blue-200"}`}>
+                          className={`flex h-8 w-8 sm:h-9 sm:w-9 cursor-pointer items-center justify-center rounded-xl text-xs font-extrabold transition ${currentPage === p ? "bg-blue-600 text-white shadow-md shadow-blue-200" : "border border-blue-100 bg-white text-slate-600 hover:bg-blue-50 hover:border-blue-200"}`}>
                           {p}
                         </button>
                       )
                     )}
-                  <button onClick={() => { setSlideDirection("right"); setAnimKey(k => k + 1); setCurrentPage((p) => Math.min(totalPages, p + 1)); }}
-                    disabled={currentPage === totalPages} className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border border-blue-100 bg-white text-blue-600 shadow-sm transition hover:bg-blue-50 hover:border-blue-200 disabled:cursor-not-allowed disabled:opacity-40">
-                    <FaChevronRight className="text-xs" />
+                  <button onClick={() => { setSlideDirection("right"); setAnimKey(k => k + 1); setCurrentPage((p) => Math.min(totalPages, p + 1)); }} disabled={currentPage === totalPages}
+                    className="flex h-8 w-8 sm:h-9 sm:w-9 cursor-pointer items-center justify-center rounded-xl border border-blue-100 bg-white text-blue-600 shadow-sm transition hover:bg-blue-50 hover:border-blue-200 disabled:cursor-not-allowed disabled:opacity-40">
+                    <FaChevronRight className="text-[10px] sm:text-xs" />
                   </button>
                 </div>
               )}
             </div>
           )}
         </div>
+
+        <style>{`
+          @keyframes slideRight { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+          @keyframes slideLeft { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: translateX(0); } }
+          .slide-in-right { animation: slideRight 0.35s ease; }
+          .slide-in-left { animation: slideLeft 0.35s ease; }
+        `}</style>
       </main>
     </div>
   );

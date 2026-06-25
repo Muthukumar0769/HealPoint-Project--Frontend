@@ -1,15 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import {
-  FaCalendarAlt, FaSave, FaUmbrellaBeach, FaClock, FaCheckCircle,
+import {FaCalendarAlt, FaSave, FaUmbrellaBeach, FaClock, FaCheckCircle,
   FaChevronDown, FaRegCalendarAlt, FaStar, FaTrash, FaEdit,
-  FaExclamationTriangle, FaChevronLeft, FaChevronRight, FaTimes,
-} from "react-icons/fa";
+  FaExclamationTriangle, FaChevronLeft, FaChevronRight, FaTimes} from "react-icons/fa";
 import toast from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import {
-  createAvailability, createSpecialAvailability, createUnavailability,
-  fetchAllSchedules, deleteNormalSchedule, deleteSpecialSchedule, deleteLeave,
-} from "../../store/slices/DoctorScheduleSlice";
+import {createAvailability, createSpecialAvailability, createUnavailability,
+  fetchAllSchedules, deleteNormalSchedule, deleteSpecialSchedule, deleteLeave,} from "../../store/slices/DoctorScheduleSlice";
 import { removeLeaveByDate } from "../../store/slices/AdminReportsSlice";
 import { DoctorSidebar } from "../Doctor/DoctorSidebar";
 import usePageTitle from "../../hooks/usePageTitle";
@@ -73,24 +69,24 @@ export const DoctorSchedule = () => {
   const dayOptions: OptionType[] = DAYS.map((d) => ({ label: d, value: d }));
   const durationOptions: OptionType[] = DURATIONS.map((t) => ({ label: `${t} Minutes`, value: t }));
 
- const doFetch = useCallback(() => {
-  dispatch(fetchAllSchedules());
-}, [dispatch]);
+  const doFetch = useCallback(() => {
+    dispatch(fetchAllSchedules());
+  }, [dispatch]);
 
-useEffect(() => {
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const doctorId = user?.doctorId;
-  if (doctorId) {
-    doFetch();
-  } else {
-    const handleAuth = () => {
-      const u = JSON.parse(localStorage.getItem("user") || "{}");
-      if (u?.doctorId) doFetch();
-    };
-    window.addEventListener("authChanged", handleAuth);
-    return () => window.removeEventListener("authChanged", handleAuth);
-  }
-}, [doFetch]);
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const doctorId = user?.doctorId;
+    if (doctorId) {
+      doFetch();
+    } else {
+      const handleAuth = () => {
+        const u = JSON.parse(localStorage.getItem("user") || "{}");
+        if (u?.doctorId) doFetch();
+      };
+      window.addEventListener("authChanged", handleAuth);
+      return () => window.removeEventListener("authChanged", handleAuth);
+    }
+  }, [doFetch]);
 
   const saveSchedule = async () => {
     if (!day) return toast.error("Please select day");
@@ -219,91 +215,90 @@ useEffect(() => {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#f4f7fb]" style={{ fontSize: "13px" }}>
+    <div className="flex min-h-screen bg-[#f4f7fb]">
       <DoctorSidebar />
-      <main className="flex-1 px-4 py-16 lg:px-6" style={{ minWidth: 0 }}>
-        <div className="mb-5">
-          <h1 className="mt-1 text-2xl font-extrabold text-slate-900">
+      <main className="flex-1 min-w-0 px-3 py-16 sm:px-4 lg:px-6">
+        <div className="mb-4 sm:mb-5">
+          <h1 className="mt-1 text-xl sm:text-2xl font-extrabold text-slate-900">
             Schedule <span className="text-blue-600">Management</span>
           </h1>
           <p className="mt-0.5 text-xs text-slate-500">Manage consultation timings, special schedules and leave.</p>
         </div>
 
-        <section className="overflow-visible rounded-2xl bg-white shadow-lg shadow-slate-200/60">
-          <div className="bg-gradient-to-r from-blue-600 via-blue-500 to-sky-500 px-5 py-4 rounded-t-2xl">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 text-base text-white">
+        <section className="overflow-visible rounded-xl sm:rounded-2xl bg-white shadow-lg shadow-slate-200/60">
+          <div className="bg-gradient-to-r from-blue-600 via-blue-500 to-sky-500 px-4 sm:px-5 py-3 sm:py-4 rounded-t-xl sm:rounded-t-2xl">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-white/20 text-sm sm:text-base text-white">
                   {activeTab === "Leave" ? <FaUmbrellaBeach /> : <FaCalendarAlt />}
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-white">
+                  <h2 className="text-sm sm:text-base font-bold text-white">
                     {activeTab === "Weekly" && "Weekly Schedule"}
                     {activeTab === "Special" && "Special Schedule"}
                     {activeTab === "Leave" && "Apply Leave"}
                   </h2>
-                  <p className="text-[11px] text-blue-100">
+                  <p className="text-[10px] sm:text-[11px] text-blue-100">
                     {activeTab === "Weekly" && "Set recurring weekly consultation timings"}
                     {activeTab === "Special" && "Set one-time special availability"}
                     {activeTab === "Leave" && "Manage doctor leave availability"}
                   </p>
                 </div>
               </div>
-              <div className="flex flex-wrap items-center gap-1 rounded-xl bg-white/10 p-1">
+              <div className="flex items-center gap-1 rounded-xl bg-white/10 p-1 self-start sm:self-auto">
                 {[
                   { key: "Weekly", label: "Weekly", icon: <FaCalendarAlt /> },
                   { key: "Special", label: "Special", icon: <FaStar /> },
                   { key: "Leave", label: "Leave", icon: <FaUmbrellaBeach /> },
                 ].map((tab) => (
                   <button key={tab.key} type="button" onClick={() => setActiveTab(tab.key as MainTab)}
-                    className={`flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-all duration-200 ${activeTab === tab.key
-                      ? tab.key === "Leave" ? "bg-white text-red-500 shadow" : "bg-white text-blue-600 shadow"
-                      : "text-white hover:bg-white/10"}`}>
-                    {tab.icon}{tab.label}
+                    className={`flex cursor-pointer items-center gap-1 sm:gap-1.5 rounded-lg px-2 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold transition-all duration-200 ${
+                      activeTab === tab.key ? tab.key === "Leave" ? "bg-white text-red-500 shadow" : "bg-white text-blue-600 shadow" : "text-white hover:bg-white/10"}`}>
+                    {tab.icon}
+                    <span>{tab.label}</span>
                   </button>
                 ))}
               </div>
             </div>
           </div>
 
-          <div className="overflow-visible p-5">
-
+          <div className="overflow-visible p-3 sm:p-5">
             {activeTab === "Weekly" && (
               <div>
-                <div className="mb-4 rounded-xl border border-blue-100 bg-blue-50 px-4 py-2.5">
-                  <p className="text-xs font-semibold text-blue-700">Weekly recurring schedule will repeat every week. Saving a new schedule for the same day will replace the existing one.</p>
+                <div className="mb-3 sm:mb-4 rounded-xl border border-blue-100 bg-blue-50 px-3 sm:px-4 py-2 sm:py-2.5">
+                  <p className="text-[10px] sm:text-xs font-semibold text-blue-700">Weekly recurring schedule will repeat every week. Saving a new schedule for the same day will replace the existing one.</p>
                 </div>
-                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                <div className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
                   <CustomDropdown label="Select Day" value={day} onChange={setDay} color="blue" placeholder="Choose Day" options={dayOptions} />
                   <TimeInput label="Start Time" value={scheduleStartTime} onChange={setScheduleStartTime} color="blue" />
                   <TimeInput label="End Time" value={scheduleEndTime} onChange={setScheduleEndTime} color="blue" />
                   <CustomDropdown label="Slot Duration" value={duration} onChange={setDuration} color="blue" placeholder="Select Duration" options={durationOptions} />
                 </div>
-                <div className="mt-3 rounded-xl border border-amber-100 bg-amber-50 p-4">
-                  <p className="mb-2.5 text-xs font-bold text-amber-700">Break Time (Optional)</p>
-                  <div className="grid gap-3 md:grid-cols-2">
+                <div className="mt-2 sm:mt-3 rounded-xl border border-amber-100 bg-amber-50 p-3 sm:p-4">
+                  <p className="mb-2 sm:mb-2.5 text-[10px] sm:text-xs font-bold text-amber-700">Break Time (Optional)</p>
+                  <div className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-2">
                     <TimeInput label="Break Start" value={breakStart} onChange={setBreakStart} color="blue" />
                     <TimeInput label="Break End" value={breakEnd} onChange={setBreakEnd} color="blue" />
                   </div>
                 </div>
-                <div className="mt-4 flex justify-end">
+                <div className="mt-3 sm:mt-4 flex justify-end">
                   <button type="button" onClick={saveSchedule} disabled={loading}
-                    className="flex h-9 cursor-pointer items-center gap-2 rounded-xl bg-blue-600 px-5 text-xs font-bold text-white shadow shadow-blue-200 hover:bg-blue-700 disabled:opacity-60">
-                    <FaSave />{loading ? "Saving..." : "Save Schedule"}
+                    className="flex h-9 cursor-pointer items-center gap-2 rounded-xl bg-blue-600 px-4 sm:px-5 text-xs font-bold text-white shadow shadow-blue-200 hover:bg-blue-700 disabled:opacity-60">
+                    <FaSave />
+                    <span>{loading ? "Saving..." : "Save Schedule"}</span>
                   </button>
                 </div>
-                <ScheduleTable title="Saved Weekly Schedules" color="blue" loading={fetchLoading} empty={normalSchedules.length === 0}
-                  headers={["Day", "Start Time", "End Time", "Duration", "Break Start", "Break End", "Actions"]}
+                <ScheduleTable title="Saved Weekly Schedules" color="blue" loading={fetchLoading} empty={normalSchedules.length === 0} headers={["Day", "Start", "End", "Duration", "Brk Start", "Brk End", "Actions"]}
                   page={normalPage} total={totalPages(normalSchedules)} onPage={setNormalPage}
                   rows={paginate(normalSchedules, normalPage).map((s) => (
                     <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                      <td className="px-3 py-2 text-xs font-semibold text-slate-700">{s.day_of_week}</td>
-                      <td className="px-3 py-2 text-xs text-slate-600">{fmtTime(s.start_time)}</td>
-                      <td className="px-3 py-2 text-xs text-slate-600">{fmtTime(s.end_time)}</td>
-                      <td className="px-3 py-2 text-xs text-slate-600">{s.slot_duration} min</td>
-                      <td className="px-3 py-2 text-xs text-slate-600">{s.break_start ? fmtTime(s.break_start) : "-"}</td>
-                      <td className="px-3 py-2 text-xs text-slate-600">{s.break_end ? fmtTime(s.break_end) : "-"}</td>
-                      <td className="px-3 py-2">
+                      <td className="px-2 sm:px-3 py-2 text-xs font-semibold text-slate-700 whitespace-nowrap">{s.day_of_week}</td>
+                      <td className="px-2 sm:px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{fmtTime(s.start_time)}</td>
+                      <td className="px-2 sm:px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{fmtTime(s.end_time)}</td>
+                      <td className="px-2 sm:px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{s.slot_duration} min</td>
+                      <td className="px-2 sm:px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{s.break_start ? fmtTime(s.break_start) : "-"}</td>
+                      <td className="px-2 sm:px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{s.break_end ? fmtTime(s.break_end) : "-"}</td>
+                      <td className="px-2 sm:px-3 py-2">
                         <div className="flex items-center gap-1">
                           <ActionBtn color="blue" icon={<FaEdit />} label="Edit" onClick={() => openEdit("normal", s)} />
                           <ActionBtn color="red" icon={<FaTrash />} label="Delete" onClick={() => setDeleteModal({ open: true, type: "normal", id: s.id, label: `${s.day_of_week} schedule` })} />
@@ -314,15 +309,14 @@ useEffect(() => {
                 />
               </div>
             )}
-
             {activeTab === "Special" && (
               <div>
-                <div className="mb-4 rounded-xl border border-amber-100 bg-amber-50 px-4 py-2.5">
-                  <p className="text-xs font-semibold text-amber-700">Special schedule overrides normal schedule for the selected date.</p>
+                <div className="mb-3 sm:mb-4 rounded-xl border border-amber-100 bg-amber-50 px-3 sm:px-4 py-2 sm:py-2.5">
+                  <p className="text-[10px] sm:text-xs font-semibold text-amber-700">Special schedule overrides normal schedule for the selected date.</p>
                 </div>
-                <div className="mb-4 rounded-xl border-2 border-dashed border-blue-200 bg-gradient-to-br from-blue-50 to-sky-50 p-4">
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-base text-white shadow shadow-blue-200">
+                <div className="mb-3 sm:mb-4 rounded-xl border-2 border-dashed border-blue-200 bg-gradient-to-br from-blue-50 to-sky-50 p-3 sm:p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <div className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-blue-600 text-sm sm:text-base text-white shadow shadow-blue-200 shrink-0">
                       <FaRegCalendarAlt />
                     </div>
                     <div className="flex-1">
@@ -332,27 +326,25 @@ useEffect(() => {
                     </div>
                   </div>
                 </div>
-                <div className="grid gap-3 md:grid-cols-3">
+                <div className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-3">
                   <TimeInput label="Start Time" value={specialStartTime} onChange={setSpecialStartTime} color="blue" />
                   <TimeInput label="End Time" value={specialEndTime} onChange={setSpecialEndTime} color="blue" />
                   <CustomDropdown label="Slot Duration" value={specialDuration} onChange={setSpecialDuration} color="blue" placeholder="Select Duration" options={durationOptions} />
                 </div>
-                <div className="mt-4 flex justify-end">
-                  <button type="button" onClick={saveSpecialSchedule} disabled={loading}
-                    className="flex h-9 cursor-pointer items-center gap-2 rounded-xl bg-blue-600 px-5 text-xs font-bold text-white shadow shadow-blue-200 hover:bg-blue-700 disabled:opacity-60">
-                    <FaSave />{loading ? "Saving..." : "Save Special Schedule"}
+                <div className="mt-3 sm:mt-4 flex justify-end">
+                  <button type="button" onClick={saveSpecialSchedule} disabled={loading} className="flex h-9 cursor-pointer items-center gap-2 rounded-xl bg-blue-600 px-4 sm:px-5 text-xs font-bold text-white shadow shadow-blue-200 hover:bg-blue-700 disabled:opacity-60">
+                    <FaSave />
+                    <span>{loading ? "Saving..." : "Save Special Schedule"}</span>
                   </button>
                 </div>
-                <ScheduleTable title="Saved Special Schedules" color="amber" loading={fetchLoading} empty={specialSchedules.length === 0}
-                  headers={["Date", "Start Time", "End Time", "Duration", "Actions"]}
-                  page={specialPage} total={totalPages(specialSchedules)} onPage={setSpecialPage}
-                  rows={paginate(specialSchedules, specialPage).map((s) => (
+                <ScheduleTable title="Saved Special Schedules" color="amber" loading={fetchLoading} empty={specialSchedules.length === 0} headers={["Date", "Start Time", "End Time", "Duration", "Actions"]}
+                  page={specialPage} total={totalPages(specialSchedules)} onPage={setSpecialPage} rows={paginate(specialSchedules, specialPage).map((s) => (
                     <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                      <td className="px-3 py-2 text-xs font-semibold text-slate-700">{s.date}</td>
-                      <td className="px-3 py-2 text-xs text-slate-600">{fmtTime(s.start_time)}</td>
-                      <td className="px-3 py-2 text-xs text-slate-600">{fmtTime(s.end_time)}</td>
-                      <td className="px-3 py-2 text-xs text-slate-600">{s.slot_duration} min</td>
-                      <td className="px-3 py-2">
+                      <td className="px-2 sm:px-3 py-2 text-xs font-semibold text-slate-700 whitespace-nowrap">{s.date}</td>
+                      <td className="px-2 sm:px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{fmtTime(s.start_time)}</td>
+                      <td className="px-2 sm:px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{fmtTime(s.end_time)}</td>
+                      <td className="px-2 sm:px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{s.slot_duration} min</td>
+                      <td className="px-2 sm:px-3 py-2">
                         <div className="flex items-center gap-1">
                           <ActionBtn color="blue" icon={<FaEdit />} label="Edit" onClick={() => openEdit("special", s)} />
                           <ActionBtn color="red" icon={<FaTrash />} label="Delete"
@@ -364,52 +356,49 @@ useEffect(() => {
                 />
               </div>
             )}
-
             {activeTab === "Leave" && (
               <div>
-                <div className="mb-4 rounded-xl border border-red-100 bg-red-50 px-4 py-2.5">
-                  <p className="text-xs font-semibold text-red-700">Leave schedule will override doctor availability. All slots on leave dates will be marked unavailable.</p>
+                <div className="mb-3 sm:mb-4 rounded-xl border border-red-100 bg-red-50 px-3 sm:px-4 py-2 sm:py-2.5">
+                  <p className="text-[10px] sm:text-xs font-semibold text-red-700">Leave schedule will override doctor availability. All slots on leave dates will be marked unavailable.</p>
                 </div>
-                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                <div className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
                   <DateInput label="Leave From" value={leaveFrom} onChange={setLeaveFrom} color="red" />
                   <DateInput label="Leave To" value={leaveTo} onChange={setLeaveTo} color="red" />
                   <CustomDropdown label="Leave Type" value={leaveType} onChange={(v) => setLeaveType(v as LeaveType)} color="red" placeholder="Select Type" options={LEAVE_TYPES} />
                   {leaveType === "half_day" ? <TimeInput label="Start Time" value={leaveStart} onChange={setLeaveStart} color="red" /> : <div />}
                 </div>
                 {leaveType === "half_day" && (
-                  <div className="mt-3 grid gap-3 md:grid-cols-4">
+                  <div className="mt-2 sm:mt-3 grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-4">
                     <TimeInput label="End Time" value={leaveEnd} onChange={setLeaveEnd} color="red" />
                   </div>
                 )}
-                <div className="mt-3">
+                <div className="mt-2 sm:mt-3">
                   <label className="mb-1.5 block text-xs font-bold text-slate-700">Leave Reason</label>
                   <textarea rows={3} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Enter leave reason..."
-                    className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs font-medium text-slate-700 shadow-sm outline-none placeholder:text-slate-400 focus:border-red-400 focus:bg-white focus:ring-2 focus:ring-red-100" />
+                    className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 sm:px-4 py-2 sm:py-2.5 text-xs font-medium text-slate-700 shadow-sm outline-none placeholder:text-slate-400 focus:border-red-400 focus:bg-white focus:ring-2 focus:ring-red-100" />
                 </div>
-                <div className="mt-4 flex justify-end">
+                <div className="mt-3 sm:mt-4 flex justify-end">
                   <button type="button" onClick={applyLeave} disabled={loading}
-                    className="flex h-9 cursor-pointer items-center gap-2 rounded-xl bg-red-500 px-5 text-xs font-bold text-white shadow shadow-red-200 hover:bg-red-600 disabled:opacity-60">
-                    <FaUmbrellaBeach />{loading ? "Applying..." : "Apply Leave"}
+                    className="flex h-9 cursor-pointer items-center gap-2 rounded-xl bg-red-500 px-4 sm:px-5 text-xs font-bold text-white shadow shadow-red-200 hover:bg-red-600 disabled:opacity-60">
+                    <FaUmbrellaBeach />
+                    <span>{loading ? "Applying..." : "Apply Leave"}</span>
                   </button>
                 </div>
-
                 <ScheduleTable title="Applied Leaves" color="red" loading={fetchLoading} empty={leaves.length === 0}
-                  headers={["Date", "Leave Type", "Start Time", "End Time", "Reason", "Delete"]}
-                  page={leavePage} total={totalPages(leaves)} onPage={setLeavePage}
+                  headers={["Date", "Type", "Start", "End", "Reason", "Delete"]} page={leavePage} total={totalPages(leaves)} onPage={setLeavePage}
                   rows={paginate(leaves, leavePage).map((l) => (
                     <tr key={l.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                      <td className="px-3 py-2 text-xs font-semibold text-slate-700">{l.unavailable_date}</td>
-                      <td className="px-3 py-2">
-                        <span className={`inline-block cursor-pointer rounded-full px-2 py-0.5 text-[11px] font-bold ${l.is_full_day ? "bg-red-100 text-red-600" : "bg-amber-100 text-amber-600"}`}>
+                      <td className="px-2 sm:px-3 py-2 text-xs font-semibold text-slate-700 whitespace-nowrap">{l.unavailable_date}</td>
+                      <td className="px-2 sm:px-3 py-2">
+                        <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] sm:text-[11px] font-bold whitespace-nowrap ${l.is_full_day ? "bg-red-100 text-red-600" : "bg-amber-100 text-amber-600"}`}>
                           {l.is_full_day ? "Full Day" : "Half Day"}
                         </span>
                       </td>
-                      <td className="px-3 py-2 text-xs text-slate-600">{l.start_time ? fmtTime(l.start_time) : "-"}</td>
-                      <td className="px-3 py-2 text-xs text-slate-600">{l.end_time ? fmtTime(l.end_time) : "-"}</td>
-                      <td className="px-3 py-2 text-xs text-slate-600 max-w-[140px] truncate" title={l.reason}>{l.reason}</td>
-                      <td className="px-3 py-2">
-                        <ActionBtn color="red" icon={<FaTrash />} label="Delete"
-                          onClick={() => setDeleteModal({ open: true, type: "leave", id: l.id, label: `leave on ${l.unavailable_date}` })} />
+                      <td className="px-2 sm:px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{l.start_time ? fmtTime(l.start_time) : "-"}</td>
+                      <td className="px-2 sm:px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{l.end_time ? fmtTime(l.end_time) : "-"}</td>
+                      <td className="px-2 sm:px-3 py-2 text-xs text-slate-600 max-w-[100px] sm:max-w-[140px] truncate" title={l.reason}>{l.reason}</td>
+                      <td className="px-2 sm:px-3 py-2">
+                        <ActionBtn color="red" icon={<FaTrash />} label="Delete" onClick={() => setDeleteModal({ open: true, type: "leave", id: l.id, label: `leave on ${l.unavailable_date}` })} />
                       </td>
                     </tr>
                   ))}
@@ -419,11 +408,10 @@ useEffect(() => {
           </div>
         </section>
       </main>
-
       {deleteModal.open && (
         <Modal onClose={() => !deleteLoading && setDeleteModal({ open: false, type: null, id: null, label: "" })}>
           <div className="flex flex-col items-center gap-3 p-1 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-xl text-red-500">
+            <div className="flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-red-100 text-lg sm:text-xl text-red-500">
               <FaExclamationTriangle />
             </div>
             <div>
@@ -443,11 +431,10 @@ useEffect(() => {
           </div>
         </Modal>
       )}
-
       {editModal.open && (
         <Modal onClose={() => !editLoading && setEditModal({ open: false, type: null, data: null })} wide>
           <div className="p-1">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
               <h3 className="text-sm font-extrabold text-slate-800">
                 Edit {editModal.type === "normal" ? "Weekly Schedule" : "Special Schedule"}
               </h3>
@@ -455,7 +442,7 @@ useEffect(() => {
                 className="text-slate-400 cursor-pointer hover:text-slate-600"><FaTimes /></button>
             </div>
             {editModal.type === "normal" && (
-              <div className="grid gap-3 md:grid-cols-2">
+              <div className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-2">
                 <CustomDropdown label="Select Day" value={editDay} onChange={setEditDay} color="blue" placeholder="Choose Day" options={dayOptions} />
                 <CustomDropdown label="Slot Duration" value={editDuration} onChange={setEditDuration} color="blue" placeholder="Select Duration" options={durationOptions} />
                 <TimeInput label="Start Time" value={editStart} onChange={setEditStart} color="blue" />
@@ -465,20 +452,20 @@ useEffect(() => {
               </div>
             )}
             {editModal.type === "special" && (
-              <div className="grid gap-3 md:grid-cols-2">
-                <div className="md:col-span-2">
+              <div className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-2">
+                <div className="sm:col-span-2">
                   <label className="mb-1.5 block text-xs font-bold text-slate-700">Date</label>
                   <input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)}
                     className="h-9 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-700 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
                 </div>
                 <TimeInput label="Start Time" value={editStart} onChange={setEditStart} color="blue" />
                 <TimeInput label="End Time" value={editEnd} onChange={setEditEnd} color="blue" />
-                <div className="md:col-span-2">
+                <div className="sm:col-span-2">
                   <CustomDropdown label="Slot Duration" value={editDuration} onChange={setEditDuration} color="blue" placeholder="Select Duration" options={durationOptions} />
                 </div>
               </div>
             )}
-            <div className="flex gap-2 mt-4">
+            <div className="flex gap-2 mt-3 sm:mt-4">
               <button type="button" onClick={() => setEditModal({ open: false, type: null, data: null })} disabled={editLoading}
                 className="flex-1 cursor-pointer h-9 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-60">Cancel</button>
               <button type="button" onClick={saveEdit} disabled={editLoading}
@@ -494,9 +481,9 @@ useEffect(() => {
 };
 
 const Modal = ({ children, onClose, wide }: { children: React.ReactNode; onClose: () => void; wide?: boolean }) => (
-  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+  <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4"
     onClick={(e) => e.target === e.currentTarget && onClose()}>
-    <div className={`bg-white rounded-2xl shadow-2xl w-full p-5 ${wide ? "max-w-lg" : "max-w-sm"} animate-[fadeIn_0.15s_ease]`}>
+    <div className={`bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full p-4 sm:p-5 ${wide ? "sm:max-w-lg" : "sm:max-w-sm"} animate-[fadeIn_0.15s_ease] max-h-[90vh] overflow-y-auto`}>
       {children}
     </div>
   </div>
@@ -511,16 +498,16 @@ const ScheduleTable = ({ title, color, loading, empty, headers, rows, page, tota
   const textAccent = color === "blue" ? "text-blue-600" : color === "amber" ? "text-amber-600" : "text-red-500";
   const borderAccent = color === "blue" ? "border-blue-200" : color === "amber" ? "border-amber-200" : "border-red-200";
   return (
-    <div className={`mt-5 rounded-xl border ${borderAccent} overflow-hidden`}>
-      <div className={`${accent} px-4 py-2`}>
-        <h3 className="text-xs font-bold text-white">{title}</h3>
+    <div className={`mt-4 sm:mt-5 rounded-xl border ${borderAccent} overflow-hidden`}>
+      <div className={`${accent} px-3 sm:px-4 py-2`}>
+        <h3 className="text-[10px] sm:text-xs font-bold text-white">{title}</h3>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full">
+      <div className="overflow-x-auto" style={{ scrollbarWidth: "thin", scrollbarColor: "#CBD5E1 transparent" }}>
+        <table className="w-full" style={{ minWidth: "480px" }}>
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200">
               {headers.map((h) => (
-                <th key={h} className="px-3 py-2 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wide">{h}</th>
+                <th key={h} className="px-2 sm:px-3 py-2 text-left text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
               ))}
             </tr>
           </thead>
@@ -534,21 +521,20 @@ const ScheduleTable = ({ title, color, loading, empty, headers, rows, page, tota
         </table>
       </div>
       {!empty && !loading && total > 1 && (
-        <div className="flex items-center justify-between px-4 py-2 border-t border-slate-100 bg-slate-50">
-          <span className="text-[11px] text-slate-400">Page {page} of {total}</span>
+        <div className="flex items-center justify-between px-3 sm:px-4 py-2 border-t border-slate-100 bg-slate-50">
+          <span className="text-[10px] sm:text-[11px] text-slate-400">Page {page} of {total}</span>
           <div className="flex items-center gap-1">
             <button type="button" onClick={() => onPage(Math.max(1, page - 1))} disabled={page === 1}
-              className={`flex h-6 w-6 cursor-pointer items-center justify-center rounded-lg border text-[10px] ${page === 1 ? "border-slate-200 text-slate-300 cursor-not-allowed" : `border-slate-200 ${textAccent} hover:bg-white cursor-pointer`}`}>
+              className={`flex h-5 w-5 sm:h-6 sm:w-6 cursor-pointer items-center justify-center rounded-lg border text-[9px] sm:text-[10px] ${page === 1 ? "border-slate-200 text-slate-300 cursor-not-allowed" : `border-slate-200 ${textAccent} hover:bg-white cursor-pointer`}`}>
               <FaChevronLeft />
             </button>
             {Array.from({ length: total }, (_, i) => i + 1).map((p) => (
-              <button key={p} type="button" onClick={() => onPage(p)}
-                className={`flex h-6 w-6 items-center cursor-pointer justify-center rounded-lg text-[10px] font-bold ${p === page ? `${accent} text-white` : "border border-slate-200 text-slate-500 hover:bg-white"}`}>
+              <button key={p} type="button" onClick={() => onPage(p)} className={`flex h-5 w-5 sm:h-6 sm:w-6 items-center cursor-pointer justify-center rounded-lg text-[9px] sm:text-[10px] font-bold ${p === page ? `${accent} text-white` : "border border-slate-200 text-slate-500 hover:bg-white"}`}>
                 {p}
               </button>
             ))}
             <button type="button" onClick={() => onPage(Math.min(total, page + 1))} disabled={page === total}
-              className={`flex h-6 w-6 items-center cursor-pointer justify-center rounded-lg border text-[10px] ${page === total ? "border-slate-200 text-slate-300 cursor-not-allowed" : `border-slate-200 ${textAccent} hover:bg-white cursor-pointer`}`}>
+              className={`flex h-5 w-5 sm:h-6 sm:w-6 items-center cursor-pointer justify-center rounded-lg border text-[9px] sm:text-[10px] ${page === total ? "border-slate-200 text-slate-300 cursor-not-allowed" : `border-slate-200 ${textAccent} hover:bg-white cursor-pointer`}`}>
               <FaChevronRight />
             </button>
           </div>
@@ -559,8 +545,7 @@ const ScheduleTable = ({ title, color, loading, empty, headers, rows, page, tota
 };
 
 const ActionBtn = ({ color, icon, label, onClick }: { color: "blue" | "red"; icon: React.ReactNode; label: string; onClick: () => void }) => (
-  <button type="button" onClick={onClick} title={label}
-    className={`flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-xs cursor-pointer ${color === "blue" ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "bg-red-50 text-red-500 hover:bg-red-100"}`}>
+  <button type="button" onClick={onClick} title={label} className={`flex h-6 w-6 sm:h-7 sm:w-7 cursor-pointer items-center justify-center rounded-lg text-xs ${color === "blue" ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "bg-red-50 text-red-500 hover:bg-red-100"}`}>
     {icon}
   </button>
 );
@@ -580,24 +565,22 @@ const CustomDropdown = ({ label, value, onChange, color, options, placeholder }:
   return (
     <div ref={ref} className="relative z-50 overflow-visible">
       <label className="mb-1.5 block text-xs font-bold text-slate-700">{label}</label>
-      <button type="button" onClick={() => setOpen(!open)}
-        className={`flex h-9 w-full cursor-pointer items-center justify-between rounded-xl border bg-slate-50 px-3 text-xs font-semibold shadow-sm transition-all ${open
+      <button type="button" onClick={() => setOpen(!open)} className={`flex h-9 w-full cursor-pointer items-center justify-between rounded-xl border bg-slate-50 px-3 text-xs font-semibold shadow-sm transition-all ${open
           ? color === "blue" ? "border-blue-400 bg-white ring-2 ring-blue-100" : "border-red-400 bg-white ring-2 ring-red-100"
           : "border-slate-200 hover:border-slate-300 hover:bg-white"}`}>
         <span className={value ? "text-slate-800" : "text-slate-400"}>{value ? selectedLabel : placeholder}</span>
-        <FaChevronDown className={`text-[10px] cursor-pointer transition-all ${open ? "rotate-180 text-slate-700" : "text-slate-400"}`} />
+        <FaChevronDown className={`text-[10px] transition-all ${open ? "rotate-180 text-slate-700" : "text-slate-400"}`} />
       </button>
       {open && (
         <div className="absolute left-0 top-full mt-1 z-[9999] w-full rounded-xl border border-slate-100 bg-white shadow-2xl">
           <div className={`h-0.5 rounded-t-xl ${color === "blue" ? "bg-blue-500" : "bg-red-500"}`} />
-          <div className="max-h-48 overflow-y-auto p-1">
+          <div className="max-h-40 sm:max-h-48 overflow-y-auto p-1">
             {options.map((item) => {
               const isSelected = value === item.value;
               return (
                 <button key={item.value} type="button" onClick={() => { onChange(item.value); setOpen(false); }}
                   className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-1.5 text-xs font-semibold ${isSelected
-                    ? color === "blue" ? "bg-blue-600 text-white" : "bg-red-500 text-white"
-                    : "text-slate-700 hover:bg-slate-100"}`}>
+                    ? color === "blue" ? "bg-blue-600 text-white" : "bg-red-500 text-white" : "text-slate-700 hover:bg-slate-100"}`}>
                   <span>{item.label}</span>
                   {isSelected && <FaCheckCircle className="text-[10px]" />}
                 </button>

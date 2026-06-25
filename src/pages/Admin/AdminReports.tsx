@@ -24,8 +24,8 @@ const formatTime = (time: string) => {
 };
 
 const getImageUrl = (pic: string) => pic?.startsWith("http") ? pic : `${BASE_URL}/uploads/${pic}`;
+const fallback = (name: string) => `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=dbeafe&color=1d4ed8`;
 
-const fallback = (name: string) =>`https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=dbeafe&color=1d4ed8`;
 export const AdminReports = () => {
   usePageTitle("Leave Reports");
   const dispatch = useAppDispatch();
@@ -39,6 +39,7 @@ export const AdminReports = () => {
     dispatch(fetchAvailabilityDashboard({ date: selectedDate }));
     setLastRefreshed(new Date());
   }, [dispatch, selectedDate]);
+
   useEffect(() => { doFetch(); }, [doFetch]);
   useEffect(() => {
     const onFocus = () => doFetch();
@@ -129,8 +130,7 @@ export const AdminReports = () => {
 
     if (activeTab === "leave") {
       const cols = [20, 55, 100, 135, 158, 178];
-      ["#", "Doctor", "Specialization", "Date", "Type", "Reason"].forEach((h, i) =>
-        doc.text(h, cols[i], y + 3));
+      ["#", "Doctor", "Specialization", "Date", "Type", "Reason"].forEach((h, i) => doc.text(h, cols[i], y + 3));
       y += 12;
       (rows as LeaveDoctor[]).forEach((r, idx) => {
         if (y > 270) { doc.addPage(); y = 20; }
@@ -205,62 +205,62 @@ export const AdminReports = () => {
   return (
     <div className="flex min-h-screen bg-[#f0f4fb]">
       <AdminSidebar />
-      <main className="min-w-0 flex-1 overflow-x-hidden px-4 pb-10 pt-24 sm:px-6 lg:px-8">
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <main className="min-w-0 flex-1 overflow-x-hidden px-3 pb-10 pt-20 sm:px-5 sm:pt-24 lg:px-8">
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="flex items-center gap-2 text-2xl font-extrabold text-slate-900">
-              <FaCalendarAlt className="text-blue-600" />
-              Doctor Availability &amp; <span className="text-blue-600">Leave Reports</span>
+            <h1 className="flex flex-wrap items-center gap-2 text-lg sm:text-2xl font-extrabold text-slate-900">
+              <FaCalendarAlt className="text-blue-600 shrink-0" />
+              <span>Doctor Availability &amp; <span className="text-blue-600">Leave Reports</span></span>
             </h1>
-            <p className="mt-1 text-xs font-medium text-slate-500">
+            <p className="mt-1 text-[11px] sm:text-xs font-medium text-slate-500">
               View doctor available and unavailable status.
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 shadow-md shadow-blue-100">
-              <span className="text-[10px] font-semibold text-slate-400">
-                Updated {timeAgo()}
-              </span>
-              <button onClick={doFetch} disabled={loading} title="Refresh data"
-                className="cursor-pointer text-blue-500 hover:text-blue-700 disabled:opacity-40 transition-colors">
+              <span className="text-[10px] font-semibold text-slate-400">Updated {timeAgo()}</span>
+              <button onClick={doFetch} disabled={loading} title="Refresh data" className="cursor-pointer text-blue-500 hover:text-blue-700 disabled:opacity-40 transition-colors">
                 <FaSyncAlt className={`text-xs ${loading ? "animate-spin" : ""}`} />
               </button>
             </div>
             <div className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 shadow-md shadow-blue-100">
-              <FaCalendarAlt className="text-sm text-blue-600" />
+              <FaCalendarAlt className="text-sm text-blue-600 shrink-0" />
               <input type="date" value={selectedDate} onChange={(e) => dispatch(setSelectedDate(e.target.value || TODAY))}
-                className="cursor-pointer bg-transparent text-xs font-bold text-slate-600 outline-none"/>
+                className="cursor-pointer bg-transparent text-xs font-bold text-slate-600 outline-none w-[120px] sm:w-auto" />
               {selectedDate !== TODAY && (
-                <button onClick={() => dispatch(setSelectedDate(TODAY))} className="cursor-pointer text-xs font-bold text-red-500">
+                <button onClick={() => dispatch(setSelectedDate(TODAY))} className="cursor-pointer text-xs font-bold text-red-500 whitespace-nowrap">
                   Today
                 </button>
               )}
             </div>
           </div>
         </div>
-        <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <StatCard title="Total Doctors"  value={summary?.totalDoctors      ?? 0} icon={<FaUserMd />}      color="blue"   />
-          <StatCard title="Available"      value={summary?.availableDoctors  ?? 0} icon={<FaCheckCircle />} color="green"  />
-          <StatCard title="Unavailable"    value={summary?.unavailableDoctors ?? 0} icon={<FaTimesCircle />} color="orange" />
-          <StatCard title="On Leave"       value={summary?.onLeaveDoctors    ?? 0} icon={<FaBed />}         color="yellow" />
-        </div>
 
-        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_300px] min-w-0">
-          <section className="rounded-2xl bg-white p-4 shadow-lg shadow-blue-100 min-w-0 overflow-hidden">
+        {/* Stat Cards */}
+        <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatCard title="Total Doctors" value={summary?.totalDoctors ?? 0} icon={<FaUserMd />} color="blue"   />
+          <StatCard title="Available" value={summary?.availableDoctors ?? 0} icon={<FaCheckCircle />} color="green"  />
+          <StatCard title="Unavailable" value={summary?.unavailableDoctors ?? 0} icon={<FaTimesCircle />} color="orange" />
+          <StatCard title="On Leave" value={summary?.onLeaveDoctors ?? 0} icon={<FaBed />} color="yellow" />
+        </div>
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_280px] min-w-0">
+          <section className="rounded-2xl bg-white p-3 sm:p-4 shadow-lg shadow-blue-100 min-w-0 overflow-hidden">
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-wrap gap-2">
                 <TabBtn active={activeTab === "available"} onClick={() => dispatch(setActiveTab("available"))}>
-                  Available Doctors
+                  <span className="hidden xs:inline">Available Doctors</span>
+                  <span className="xs:hidden">Available</span>
                   {(data?._allAvailable.length ?? 0) > 0 && (
-                    <span className="ml-1.5 rounded-full bg-green-100 px-1.5 py-0.5 text-[10px] font-bold text-green-700">
+                    <span className="ml-1 rounded-full bg-green-100 px-1.5 py-0.5 text-[10px] font-bold text-green-700">
                       {data?._allAvailable.length}
                     </span>
                   )}
                 </TabBtn>
                 <TabBtn active={activeTab === "unavailable"} onClick={() => dispatch(setActiveTab("unavailable"))}>
-                  Unavailable Doctors
+                  <span className="hidden xs:inline">Unavailable Doctors</span>
+                  <span className="xs:hidden">Unavailable</span>
                   {(data?._allUnavailable.length ?? 0) > 0 && (
-                    <span className="ml-1.5 rounded-full bg-orange-100 px-1.5 py-0.5 text-[10px] font-bold text-orange-700">
+                    <span className="ml-1 rounded-full bg-orange-100 px-1.5 py-0.5 text-[10px] font-bold text-orange-700">
                       {data?._allUnavailable.length}
                     </span>
                   )}
@@ -268,15 +268,15 @@ export const AdminReports = () => {
                 <TabBtn active={activeTab === "leave"} onClick={() => dispatch(setActiveTab("leave"))}>
                   On Leave
                   {(data?._allLeave.length ?? 0) > 0 && (
-                    <span className="ml-1.5 rounded-full bg-yellow-100 px-1.5 py-0.5 text-[10px] font-bold text-yellow-700">
+                    <span className="ml-1 rounded-full bg-yellow-100 px-1.5 py-0.5 text-[10px] font-bold text-yellow-700">
                       {data?._allLeave.length}
                     </span>
                   )}
                 </TabBtn>
               </div>
-              <button onClick={handleExport} className="flex cursor-pointer items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-xs font-extrabold text-white transition hover:bg-blue-700">
-                <FaDownload className="text-xs" />
-                Export {activeTab === "available" ? "Available" : activeTab === "unavailable" ? "Unavailable" : "Leave"}
+              <button onClick={handleExport} className="flex cursor-pointer items-center gap-1.5 rounded-xl bg-blue-600 px-3 sm:px-4 py-2 text-[11px] sm:text-xs font-extrabold text-white transition hover:bg-blue-700 self-start sm:self-auto whitespace-nowrap">
+                <FaDownload className="text-[10px]" />
+                Export
               </button>
             </div>
 
@@ -291,8 +291,7 @@ export const AdminReports = () => {
               <div className="flex flex-col items-center justify-center gap-3 py-16">
                 <FaExclamationTriangle className="text-2xl text-red-400" />
                 <p className="text-sm font-semibold text-slate-500">{error}</p>
-                <button onClick={doFetch}
-                  className="cursor-pointer rounded-xl bg-blue-600 px-5 py-2 text-xs font-bold text-white">
+                <button onClick={doFetch} className="cursor-pointer rounded-xl bg-blue-600 px-5 py-2 text-xs font-bold text-white">
                   Retry
                 </button>
               </div>
@@ -300,20 +299,20 @@ export const AdminReports = () => {
 
             {!loading && !error && (
               <>
-                <div ref={tableWrapperRef} style={{overflowX: "auto", width: "100%", maxWidth: "100%",
-                    scrollbarWidth: "thin", scrollbarColor: "#93c5fd #f1f5f9",}}>
+                <div ref={tableWrapperRef}
+                  style={{ overflowX: "auto", width: "100%", maxWidth: "100%", scrollbarWidth: "thin", scrollbarColor: "#93c5fd #f1f5f9" }}>
                   <div key={`${activeTab}-${page}`} className={getAnimClass()}>
-                    <table className="border-collapse text-sm" style={{ minWidth: 800, width: "100%" }}>
+                    <table className="border-collapse text-xs sm:text-sm" style={{ minWidth: 600, width: "100%" }}>
                       <thead>
-                        <tr className="bg-slate-50 text-left text-xs text-slate-500">
-                          <th className="px-4 py-3 font-semibold">Doctor</th>
-                          <th className="px-4 py-3 font-semibold">Specialization</th>
-                          <th className="px-4 py-3 font-semibold">Date</th>
-                          <th className="px-4 py-3 font-semibold">Status</th>
+                        <tr className="bg-slate-50 text-left text-[10px] sm:text-xs text-slate-500">
+                          <th className="px-3 sm:px-4 py-2.5 sm:py-3 font-semibold whitespace-nowrap">Doctor</th>
+                          <th className="px-3 sm:px-4 py-2.5 sm:py-3 font-semibold whitespace-nowrap">Specialization</th>
+                          <th className="px-3 sm:px-4 py-2.5 sm:py-3 font-semibold whitespace-nowrap">Date</th>
+                          <th className="px-3 sm:px-4 py-2.5 sm:py-3 font-semibold whitespace-nowrap">Status</th>
                           {activeTab === "leave" && (
                             <>
-                              <th className="px-4 py-3 font-semibold">Type</th>
-                              <th className="px-4 py-3 font-semibold">Reason</th>
+                              <th className="px-3 sm:px-4 py-2.5 sm:py-3 font-semibold whitespace-nowrap">Type</th>
+                              <th className="px-3 sm:px-4 py-2.5 sm:py-3 font-semibold whitespace-nowrap">Reason</th>
                             </>
                           )}
                         </tr>
@@ -322,22 +321,22 @@ export const AdminReports = () => {
                         {activeTab === "available" &&
                           (data?.availableDoctors.rows ?? []).map((doc: AvailableDoctor) => (
                             <tr key={doc.doctor_id} className="border-b border-slate-100 transition hover:bg-blue-50/40">
-                              <td className="px-4 py-4">
+                              <td className="px-3 sm:px-4 py-3 sm:py-4">
                                 <div className="flex items-center gap-2">
                                   <img src={getImageUrl(doc.profile_picture)} alt={doc.doctor_name} onError={(e) => { (e.target as HTMLImageElement).src = fallback(doc.doctor_name); }}
-                                    className="h-9 w-9 rounded-full object-cover"/>
-                                  <p className="text-xs font-extrabold text-slate-900">{doc.doctor_name}</p>
+                                    className="h-7 w-7 sm:h-9 sm:w-9 shrink-0 rounded-full object-cover" />
+                                  <p className="text-[11px] sm:text-xs font-extrabold text-slate-900 whitespace-nowrap">{doc.doctor_name}</p>
                                 </div>
                               </td>
-                              <td className="px-4 py-4 text-xs font-semibold text-slate-600">{doc.specialization}</td>
-                              <td className="px-4 py-4 text-xs font-semibold text-slate-600">{formatDate(doc.date)}</td>
-                              <td className="px-4 py-4">
+                              <td className="px-3 sm:px-4 py-3 sm:py-4 text-[11px] sm:text-xs font-semibold text-slate-600 whitespace-nowrap">{doc.specialization}</td>
+                              <td className="px-3 sm:px-4 py-3 sm:py-4 text-[11px] sm:text-xs font-semibold text-slate-600 whitespace-nowrap">{formatDate(doc.date)}</td>
+                              <td className="px-3 sm:px-4 py-3 sm:py-4">
                                 {doc.slots_status === "slots_full" ? (
-                                  <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-extrabold text-orange-600">
-                                    ⚠ Today slots finished
+                                  <span className="rounded-full bg-orange-100 px-2 sm:px-3 py-1 text-[10px] sm:text-xs font-extrabold text-orange-600 whitespace-nowrap">
+                                    ⚠ Slots finished
                                   </span>
                                 ) : (
-                                  <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-extrabold text-green-700">
+                                  <span className="rounded-full bg-green-100 px-2 sm:px-3 py-1 text-[10px] sm:text-xs font-extrabold text-green-700 whitespace-nowrap">
                                     Available
                                   </span>
                                 )}
@@ -348,17 +347,18 @@ export const AdminReports = () => {
                         {activeTab === "unavailable" &&
                           (data?.unavailableDoctors.rows ?? []).map((doc: UnavailableDoctor) => (
                             <tr key={doc.doctor_id} className="border-b border-slate-100 transition hover:bg-blue-50/40">
-                              <td className="px-4 py-4">
+                              <td className="px-3 sm:px-4 py-3 sm:py-4">
                                 <div className="flex items-center gap-2">
-                                  <img src={getImageUrl(doc.profile_picture)} alt={doc.doctor_name} onError={(e) => { (e.target as HTMLImageElement).src = fallback(doc.doctor_name); }}
-                                    className="h-9 w-9 rounded-full object-cover"/>
-                                  <p className="text-xs font-extrabold text-slate-900">{doc.doctor_name}</p>
+                                  <img src={getImageUrl(doc.profile_picture)} alt={doc.doctor_name}
+                                    onError={(e) => { (e.target as HTMLImageElement).src = fallback(doc.doctor_name); }}
+                                    className="h-7 w-7 sm:h-9 sm:w-9 shrink-0 rounded-full object-cover" />
+                                  <p className="text-[11px] sm:text-xs font-extrabold text-slate-900 whitespace-nowrap">{doc.doctor_name}</p>
                                 </div>
                               </td>
-                              <td className="px-4 py-4 text-xs font-semibold text-slate-600">{doc.specialization}</td>
-                              <td className="px-4 py-4 text-xs font-semibold text-slate-600">{formatDate(doc.date)}</td>
-                              <td className="px-4 py-4">
-                                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-extrabold text-slate-500">
+                              <td className="px-3 sm:px-4 py-3 sm:py-4 text-[11px] sm:text-xs font-semibold text-slate-600 whitespace-nowrap">{doc.specialization}</td>
+                              <td className="px-3 sm:px-4 py-3 sm:py-4 text-[11px] sm:text-xs font-semibold text-slate-600 whitespace-nowrap">{formatDate(doc.date)}</td>
+                              <td className="px-3 sm:px-4 py-3 sm:py-4">
+                                <span className="rounded-full bg-slate-100 px-2 sm:px-3 py-1 text-[10px] sm:text-xs font-extrabold text-slate-500 whitespace-nowrap">
                                   No slots today
                                 </span>
                               </td>
@@ -368,31 +368,26 @@ export const AdminReports = () => {
                         {activeTab === "leave" &&
                           (data?.onLeaveDoctors.rows ?? []).map((doc: LeaveDoctor) => (
                             <tr key={`${doc.doctor_id}-${doc.unavailable_date}`} className="border-b border-slate-100 transition hover:bg-blue-50/40">
-                              <td className="px-4 py-3">
-                                <div className="flex items-center gap-2 min-w-[140px]">
-                                  <img src={getImageUrl(doc.profile_picture)} alt={doc.doctor_name} onError={(e) => { (e.target as HTMLImageElement).src = fallback(doc.doctor_name); }}
-                                    className="h-9 w-9 shrink-0 rounded-full object-cover"/>
-                                  <p className="text-xs font-extrabold text-slate-900 whitespace-nowrap">
-                                    {doc.doctor_name}
-                                  </p>
+                              <td className="px-3 sm:px-4 py-2.5 sm:py-3">
+                                <div className="flex items-center gap-2 min-w-[120px]">
+                                  <img src={getImageUrl(doc.profile_picture)} alt={doc.doctor_name}
+                                    onError={(e) => { (e.target as HTMLImageElement).src = fallback(doc.doctor_name); }}
+                                    className="h-7 w-7 sm:h-9 sm:w-9 shrink-0 rounded-full object-cover" />
+                                  <p className="text-[11px] sm:text-xs font-extrabold text-slate-900 whitespace-nowrap">{doc.doctor_name}</p>
                                 </div>
                               </td>
-                              <td className="px-4 py-3 text-xs font-semibold text-slate-600 whitespace-nowrap min-w-[120px]">
-                                {doc.specialization}
-                              </td>
-                              <td className="px-4 py-3 text-xs font-semibold text-slate-600 whitespace-nowrap min-w-[100px]">
-                                {formatDate(doc.unavailable_date)}
-                              </td>
-                              <td className="px-4 py-3 min-w-[100px]">
-                                <span className="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-xs font-extrabold text-yellow-700 whitespace-nowrap">
+                              <td className="px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs font-semibold text-slate-600 whitespace-nowrap">{doc.specialization}</td>
+                              <td className="px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs font-semibold text-slate-600 whitespace-nowrap">{formatDate(doc.unavailable_date)}</td>
+                              <td className="px-3 sm:px-4 py-2.5 sm:py-3">
+                                <span className="inline-flex items-center rounded-full bg-yellow-100 px-2 sm:px-3 py-1 text-[10px] sm:text-xs font-extrabold text-yellow-700 whitespace-nowrap">
                                   On Leave
                                 </span>
                               </td>
-                              <td className="px-4 py-3 text-xs font-semibold text-slate-600 whitespace-nowrap min-w-[180px]">
-                                {doc.is_full_day ? "Full Day" : `Half Day (${formatTime(doc.start_time ?? "")} – ${formatTime(doc.end_time ?? "")})`}
+                              <td className="px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs font-semibold text-slate-600 whitespace-nowrap">
+                                {doc.is_full_day ? "Full Day" : `Half (${formatTime(doc.start_time ?? "")} – ${formatTime(doc.end_time ?? "")})`}
                               </td>
-                              <td className="px-4 py-3 min-w-[160px]">
-                                <span className="block max-w-[150px] truncate text-xs font-semibold text-slate-600" title={doc.reason ?? "-"}>
+                              <td className="px-3 sm:px-4 py-2.5 sm:py-3">
+                                <span className="block max-w-[120px] sm:max-w-[150px] truncate text-[11px] sm:text-xs font-semibold text-slate-600" title={doc.reason ?? "-"}>
                                   {doc.reason ?? "-"}
                                 </span>
                               </td>
@@ -402,32 +397,29 @@ export const AdminReports = () => {
                     </table>
 
                     {(activeRows?.rows.length ?? 0) === 0 && (
-                      <div className="py-10 text-center text-sm font-bold text-slate-400">
-                        No {activeTab === "leave" ? "on leave" : activeTab} doctors found for{" "}
-                        {formatDate(selectedDate)}.
+                      <div className="py-10 text-center text-xs sm:text-sm font-bold text-slate-400">
+                        No {activeTab === "leave" ? "on leave" : activeTab} doctors found for {formatDate(selectedDate)}.
                       </div>
                     )}
                   </div>
                 </div>
 
                 {(activeRows?.totalPages ?? 0) > 1 && (
-                  <div className="mt-5 flex items-center justify-between text-xs text-slate-500">
-                    <span>
-                      Page {activeRows?.currentPage} of {activeRows?.totalPages} —{" "}
-                      {activeRows?.totalRecords} total
-                    </span>
-                    <div className="flex items-center gap-1.5">
+                  <div className="mt-4 sm:mt-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-[11px] sm:text-xs text-slate-500">
+                    <span>Page {activeRows?.currentPage} of {activeRows?.totalPages} — {activeRows?.totalRecords} total</span>
+                    <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
                       <PageBtn disabled={page <= 1} onClick={() => goToPage(page - 1)}>
-                        <FaChevronLeft />
+                        <FaChevronLeft className="text-[10px]" />
                       </PageBtn>
                       {Array.from({ length: activeRows?.totalPages ?? 0 }, (_, i) => i + 1).map((p) => (
-                        <button key={p} onClick={() => goToPage(p)} className={`h-8 w-8 cursor-pointer rounded-xl text-xs font-bold transition-all duration-200 ${
+                        <button key={p} onClick={() => goToPage(p)}
+                          className={`h-7 w-7 sm:h-8 sm:w-8 cursor-pointer rounded-xl text-[10px] sm:text-xs font-bold transition-all duration-200 ${
                             p === page ? "bg-blue-600 text-white" : "border border-slate-200 text-slate-600 hover:bg-slate-50"}`}>
                           {p}
                         </button>
                       ))}
                       <PageBtn disabled={page >= (activeRows?.totalPages ?? 1)} onClick={() => goToPage(page + 1)}>
-                        <FaChevronRight />
+                        <FaChevronRight className="text-[10px]" />
                       </PageBtn>
                     </div>
                   </div>
@@ -435,13 +427,13 @@ export const AdminReports = () => {
               </>
             )}
           </section>
-          <aside className="space-y-4">
-            <div className="rounded-2xl bg-white p-5 shadow-lg shadow-blue-100">
-              <h2 className="text-base font-extrabold text-slate-900">Leave Status Overview</h2>
-              <div className="mt-4 h-44">
+          <aside className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-1 xl:space-y-0">
+            <div className="rounded-2xl bg-white p-4 sm:p-5 shadow-lg shadow-blue-100">
+              <h2 className="text-sm sm:text-base font-extrabold text-slate-900">Leave Status Overview</h2>
+              <div className="mt-4 h-40 sm:h-44">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={chartData} dataKey="value" innerRadius={50} outerRadius={72} paddingAngle={5}>
+                    <Pie data={chartData} dataKey="value" innerRadius={45} outerRadius={65} paddingAngle={5}>
                       {chartData.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
                     </Pie>
                     <Tooltip />
@@ -449,19 +441,19 @@ export const AdminReports = () => {
                 </ResponsiveContainer>
               </div>
               <div className="mt-3 space-y-2">
-                <StatusItem color="bg-green-500" label="Available" value={data?.chartData.available  ?? 0} />
-                <StatusItem color="bg-red-500" label="Unavailable" value={data?.chartData.unavailable ?? 0} />
-                <StatusItem color="bg-yellow-400" label="On Leave" value={data?.chartData.onLeave     ?? 0} />
+                <StatusItem color="bg-green-500"  label="Available"   value={data?.chartData.available  ?? 0} />
+                <StatusItem color="bg-red-500"    label="Unavailable" value={data?.chartData.unavailable ?? 0} />
+                <StatusItem color="bg-yellow-400" label="On Leave"    value={data?.chartData.onLeave     ?? 0} />
               </div>
             </div>
 
-            <div className="rounded-2xl bg-white p-5 shadow-lg shadow-blue-100">
-              <h2 className="text-base font-extrabold text-slate-900">Quick Summary</h2>
-              <p className="mt-1 text-xs text-slate-400">{formatDate(selectedDate)}</p>
+            <div className="rounded-2xl bg-white p-4 sm:p-5 shadow-lg shadow-blue-100">
+              <h2 className="text-sm sm:text-base font-extrabold text-slate-900">Quick Summary</h2>
+              <p className="mt-1 text-[11px] sm:text-xs text-slate-400">{formatDate(selectedDate)}</p>
               <div className="mt-4 space-y-3">
-                <SummaryBox title="Available Today" value={data?.quickSummary.availableToday   ?? 0} color="text-green-600"  bg="bg-green-50"  />
+                <SummaryBox title="Available Today"   value={data?.quickSummary.availableToday   ?? 0} color="text-green-600"  bg="bg-green-50"  />
                 <SummaryBox title="Unavailable Today" value={data?.quickSummary.unavailableToday ?? 0} color="text-red-600"    bg="bg-red-50"    />
-                <SummaryBox title="On Leave Today" value={data?.quickSummary.onLeaveToday     ?? 0} color="text-yellow-600" bg="bg-yellow-50" />
+                <SummaryBox title="On Leave Today"    value={data?.quickSummary.onLeaveToday     ?? 0} color="text-yellow-600" bg="bg-yellow-50" />
               </div>
             </div>
           </aside>
@@ -471,22 +463,22 @@ export const AdminReports = () => {
   );
 };
 
-
-const TabBtn = ({active, onClick, children,}: { active: boolean; onClick: () => void; children: React.ReactNode }) => (
+const TabBtn = ({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) => (
   <button onClick={onClick}
-    className={`cursor-pointer rounded-xl px-4 py-2 text-xs font-extrabold transition ${
+    className={`cursor-pointer rounded-xl px-3 sm:px-4 py-2 text-[11px] sm:text-xs font-extrabold transition ${
       active ? "bg-blue-600 text-white shadow shadow-blue-200" : "bg-slate-100 text-slate-500 hover:bg-blue-50 hover:text-blue-600"}`}>
     {children}
   </button>
 );
 
-const PageBtn = ({onClick, disabled, children,}: { onClick: () => void; disabled: boolean; children: React.ReactNode }) => (
-  <button onClick={onClick} disabled={disabled} className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl border border-slate-200 transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40">
+const PageBtn = ({ onClick, disabled, children }: { onClick: () => void; disabled: boolean; children: React.ReactNode }) => (
+  <button onClick={onClick} disabled={disabled}
+    className="flex h-7 w-7 sm:h-8 sm:w-8 cursor-pointer items-center justify-center rounded-xl border border-slate-200 transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40">
     {children}
   </button>
 );
 
-const StatCard = ({title, value, icon, color}: { title: string; value: number; icon: React.ReactNode; color: "blue" | "green" | "orange" | "yellow" }) => {
+const StatCard = ({ title, value, icon, color }: { title: string; value: number; icon: React.ReactNode; color: "blue" | "green" | "orange" | "yellow" }) => {
   const colors = {
     blue:   "bg-blue-100 text-blue-600",
     green:  "bg-green-100 text-green-600",
@@ -494,30 +486,30 @@ const StatCard = ({title, value, icon, color}: { title: string; value: number; i
     yellow: "bg-yellow-100 text-yellow-600",
   };
   return (
-    <div className="rounded-2xl bg-white p-4 shadow shadow-blue-100">
-      <div className={`flex h-11 w-11 items-center justify-center rounded-2xl text-lg ${colors[color]}`}>
+    <div className="rounded-2xl bg-white p-3 sm:p-4 shadow shadow-blue-100">
+      <div className={`flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-2xl text-base sm:text-lg ${colors[color]}`}>
         {icon}
       </div>
-      <p className="mt-3 text-xs font-bold text-slate-500">{title}</p>
-      <h3 className="mt-1 text-3xl font-extrabold text-slate-900">{value}</h3>
+      <p className="mt-2 sm:mt-3 text-[10px] sm:text-xs font-bold text-slate-500">{title}</p>
+      <h3 className="mt-0.5 sm:mt-1 text-2xl sm:text-3xl font-extrabold text-slate-900">{value}</h3>
     </div>
   );
 };
 
-const StatusItem = ({color, label, value}: { color: string; label: string; value: number }) => (
+const StatusItem = ({ color, label, value }: { color: string; label: string; value: number }) => (
   <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
     <div className="flex items-center gap-2">
-      <span className={`h-2.5 w-2.5 rounded-full ${color}`} />
-      <span className="text-xs font-bold text-slate-600">{label}</span>
+      <span className={`h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full ${color}`} />
+      <span className="text-[11px] sm:text-xs font-bold text-slate-600">{label}</span>
     </div>
-    <span className="text-xs font-extrabold text-slate-900">{value}</span>
+    <span className="text-[11px] sm:text-xs font-extrabold text-slate-900">{value}</span>
   </div>
 );
 
-const SummaryBox = ({title, value, color, bg,}: { title: string; value: number; color: string; bg: string }) => (
-  <div className={`rounded-xl ${bg} p-4`}>
-    <p className="text-xs font-bold text-slate-500">{title}</p>
-    <p className={`mt-1 text-2xl font-extrabold ${color}`}>{value}</p>
+const SummaryBox = ({ title, value, color, bg }: { title: string; value: number; color: string; bg: string }) => (
+  <div className={`rounded-xl ${bg} p-3 sm:p-4`}>
+    <p className="text-[11px] sm:text-xs font-bold text-slate-500">{title}</p>
+    <p className={`mt-1 text-xl sm:text-2xl font-extrabold ${color}`}>{value}</p>
   </div>
 );
 

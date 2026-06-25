@@ -179,39 +179,46 @@ export const DoctorVideoConsultation = () => {
   return (
     <div className="flex min-h-screen bg-[#f0f4fb]">
       <DoctorSidebar />
-      <main className="min-w-0 flex-1 px-4 pb-10 pt-20 sm:px-5 lg:px-7">
-        <div className="mx-auto max-w-5xl">
-          <div className="mb-5">
-            <h1 className="text-xl font-extrabold text-slate-800 sm:text-2xl">Consultations</h1>
-            <p className="mt-0.5 text-xs text-slate-500">Manage video calls and clinic visits in one place.</p>
+      <main className="min-w-0 flex-1 px-3 pb-10 pt-16 sm:px-4 sm:pt-18 md:px-5 md:pt-20 lg:px-7 xl:px-8">
+        <div className="mx-auto w-full max-w-xs xs:max-w-sm sm:max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl">
+          <div className="mb-4 sm:mb-5">
+            <h1 className="text-lg font-extrabold text-slate-800 sm:text-xl lg:text-2xl">Consultations</h1>
+            <p className="mt-0.5 text-[11px] text-slate-500 sm:text-xs">Manage video calls and clinic visits in one place.</p>
           </div>
           <ModeSlider activeMode={activeMode} onChange={handleModeChange} />
-          <div className="mb-5 grid grid-cols-3 gap-3">
+          <div className="mb-4 grid grid-cols-3 gap-2 sm:mb-5 sm:gap-3">
             <StatCard icon={activeMode === "video" ? <FaVideo /> : <FaHospital />} title={activeMode === "video" ? "Today's Calls" : "Today's Visits"}
               value={String(todayCount)} iconClass="bg-blue-50 text-blue-600" valueClass="text-blue-600"/>
             <StatCard icon={<FaCheckCircle />} title="Completed" value={String(tabCounts.completed ?? 0)} iconClass="bg-emerald-50 text-emerald-600" valueClass="text-emerald-600" />
             <StatCard icon={<FaCalendarAlt />} title="Upcoming" value={String(tabCounts.upcoming ?? 0)} iconClass="bg-amber-50 text-amber-600" valueClass="text-amber-600" />
           </div>
-          <div ref={listTopRef} className="scroll-mt-24 rounded-2xl bg-white p-4 shadow-sm sm:p-5">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <h2 className="text-base font-extrabold text-slate-800 sm:text-lg">
+          <div ref={listTopRef} className="scroll-mt-20 rounded-xl bg-white p-3 shadow-sm sm:rounded-2xl sm:p-4 lg:p-5">
+            <div className="mb-3 flex items-center justify-between gap-2 sm:mb-4">
+              <h2 className="text-sm font-extrabold text-slate-800 sm:text-base lg:text-lg">
                 {activeMode === "video" ? "Video Consultations" : "Clinic Visits"}
               </h2>
-              <button onClick={refresh} className="flex cursor-pointer items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-600 hover:bg-blue-100 transition-colors">
-                <FaRedo className="text-[10px]" /> Refresh
+              <button className="flex cursor-pointer items-center gap-1 rounded-lg bg-blue-50 px-2.5 py-1.5 text-[11px] font-bold text-blue-600 hover:bg-blue-100 transition-colors sm:gap-1.5 sm:px-3 sm:text-xs">
+                <FaRedo className="text-[9px] sm:text-[10px]" />
+                <span className="hidden xs:inline">Refresh</span>
+                <span className="xs:hidden">↻</span>
               </button>
             </div>
+
             <StatusTabBar activeTab={activeTab} counts={tabCounts} onChange={handleTabChange} />
+
             {loading && <LoadingState />}
             {!loading && error && <ErrorState message={error} onRetry={refresh} />}
             {!loading && !error && appointments.length === 0 && <EmptyState mode={activeMode} tab={activeTab} />}
             {!loading && !error && appointments.length > 0 && (
               <>
-                <div key={`${activeMode}-${activeTab}-${currentPage}`} className={`flex flex-col gap-3 ${slideDirection === "right" ? "animate-slideRight" : "animate-slideLeft"}`}>
+                <div key={`${activeMode}-${activeTab}-${currentPage}`} className={`flex flex-col gap-2 sm:gap-3 ${slideDirection === "right" ? "animate-slideRight" : "animate-slideLeft"}`}>
                   {appointments.map((a) => {
                     const appt = ongoingId === a.id ? { ...a, consultation_status: "ongoing" } : a;
                     return (
-                      <AppointmentCard key={a.id} mode={activeMode} appt={appt}
+                      <AppointmentCard
+                        key={a.id}
+                        mode={activeMode}
+                        appt={appt}
                         actionLoading={actionLoading}
                         isToday={a.appointment_date.split("T")[0] === today}
                         onJoin={(item) => dispatch(joinDoctorVideoMeeting(item))}
@@ -228,7 +235,7 @@ export const DoctorVideoConsultation = () => {
 
                 <Pagination currentPage={currentPage} totalPages={totalPages} onChange={handlePageChange} />
                 {totalRecords > 0 && (
-                  <p className="mt-2 text-center text-xs text-slate-400">
+                  <p className="mt-2 text-center text-[10px] text-slate-400 sm:text-xs">
                     Showing {rangeStart}–{rangeEnd} of {totalRecords} appointments
                   </p>
                 )}
@@ -238,7 +245,7 @@ export const DoctorVideoConsultation = () => {
         </div>
       </main>
       {toast && (
-        <div className={`fixed right-5 top-20 z-[9999] flex items-center gap-2.5 rounded-xl px-4 py-3 text-xs font-bold text-white shadow-xl animate-toast-slide ${toast.type === "success" ? "bg-emerald-600" : "bg-red-600"}`}>
+        <div className={`fixed right-3 top-16 z-[9999] flex items-center gap-2 rounded-xl px-3 py-2.5 text-[11px] font-bold text-white shadow-xl animate-toast-slide sm:right-5 sm:top-20 sm:gap-2.5 sm:px-4 sm:py-3 sm:text-xs ${toast.type === "success" ? "bg-emerald-600" : "bg-red-600"}`}>
           {toast.type === "success" ? <FaCheckCircle /> : <FaExclamationTriangle />}
           <span>{toast.msg}</span>
         </div>
@@ -273,12 +280,13 @@ export const DoctorVideoConsultation = () => {
       )}
 
       <style>{`
-        @keyframes slideRight { from { opacity:0; transform:translateX(40px); } to { opacity:1; transform:translateX(0); } }
-        @keyframes slideLeft  { from { opacity:0; transform:translateX(-40px);} to { opacity:1; transform:translateX(0); } }
+        @keyframes slideRight { from { opacity:0; transform:translateX(30px); } to { opacity:1; transform:translateX(0); } }
+        @keyframes slideLeft  { from { opacity:0; transform:translateX(-30px);} to { opacity:1; transform:translateX(0); } }
         .animate-slideRight { animation: slideRight 0.3s ease; }
         .animate-slideLeft  { animation: slideLeft  0.3s ease; }
-        @keyframes toastSlide { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes toastSlide { from { opacity:0; transform:translateY(-16px); } to { opacity:1; transform:translateY(0); } }
         .animate-toast-slide { animation: toastSlide 0.3s ease; }
+        @media (min-width: 480px) { .xs\\:inline { display: inline; } .xs\\:hidden { display: none; } }
       `}</style>
     </div>
   );
@@ -291,21 +299,20 @@ const ModeSlider = ({ activeMode, onChange }: {
   const index = activeMode === "video" ? 0 : 1;
   const notifications = useAppSelector((state) => state.doctorNotifications);
   return (
-    <div className="mb-5 w-full max-w-xs rounded-xl bg-white p-1.5 shadow-sm">
+    <div className="mb-4 w-full max-w-[260px] rounded-xl bg-white p-1 shadow-sm sm:mb-5 sm:max-w-xs sm:p-1.5">
       <div className="relative grid grid-cols-2 rounded-lg bg-slate-100 p-1">
         <span className="absolute bottom-1 top-1 w-[calc(50%-4px)] rounded-md bg-blue-600 shadow transition-all duration-300 ease-in-out"
           style={{ transform: `translateX(${index * 100}%)` }}/>
         {MODE_TABS.map((tab) => (
-          <button key={tab.key} onClick={() => onChange(tab.key)}
-            className={`relative z-10 flex cursor-pointer items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-bold transition-colors duration-300 ${activeMode === tab.key ? "text-white" : "text-slate-500 hover:text-slate-700"}`}>
+          <button key={tab.key} onClick={() => onChange(tab.key)} className={`relative z-10 flex cursor-pointer items-center justify-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-bold transition-colors duration-300 sm:gap-1.5 sm:px-3 sm:py-2 sm:text-xs ${activeMode === tab.key ? "text-white" : "text-slate-500 hover:text-slate-700"}`}>
             {tab.icon}
-            <span className="relative flex items-center gap-1.5">
+            <span className="relative flex items-center gap-1 sm:gap-1.5">
               {tab.label}
               {tab.key === "video" && notifications.videoConsultations.video && (
-                <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+                <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse sm:h-2 sm:w-2" />
               )}
               {tab.key === "clinic" && notifications.videoConsultations.clinic && (
-                <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+                <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse sm:h-2 sm:w-2" />
               )}
             </span>
           </button>
@@ -331,15 +338,14 @@ const StatusTabBar = ({ activeTab, counts, onChange }: {
   }, [activeTab, counts]);
 
   return (
-    <div className="relative mb-4">
-      <div ref={containerRef} className="relative flex gap-1 overflow-x-auto rounded-xl bg-slate-100 p-1">
+    <div className="relative mb-3 sm:mb-4">
+      <div ref={containerRef} className="relative flex gap-0.5 overflow-x-auto rounded-xl bg-slate-100 p-1 scrollbar-hide sm:gap-1">
         <span ref={indicatorRef} className="absolute top-1 h-[calc(100%-8px)] rounded-lg bg-white shadow-sm transition-all duration-300 ease-in-out"/>
         {TABS.map(({ key, label }) => (
-          <button key={key} data-tab={key} onClick={() => onChange(key)}
-            className={`relative z-10 flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-bold transition-colors duration-200 ${activeTab === key ? "text-slate-900" : "text-slate-500 hover:text-slate-700"}`}>
+          <button key={key} data-tab={key} onClick={() => onChange(key)} className={`relative z-10 flex cursor-pointer items-center gap-1 whitespace-nowrap rounded-lg px-2 py-1 text-[10px] font-bold transition-colors duration-200 sm:gap-1.5 sm:px-3 sm:py-1.5 sm:text-xs ${activeTab === key ? "text-slate-900" : "text-slate-500 hover:text-slate-700"}`}>
             {label}
             {counts[key] !== undefined && (
-              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-extrabold ${activeTab === key ? "bg-blue-100 text-blue-600" : "bg-slate-200 text-slate-500"}`}>
+              <span className={`rounded-full px-1 py-0.5 text-[9px] font-extrabold sm:px-1.5 sm:text-[10px] ${activeTab === key ? "bg-blue-100 text-blue-600" : "bg-slate-200 text-slate-500"}`}>
                 {counts[key]}
               </span>
             )}
@@ -376,60 +382,61 @@ const AppointmentCard = ({ mode, appt, actionLoading, isToday, onJoin, onComplet
   const joinable = canJoin(appt);
   const busy = !!actionLoading[appt.id];
   const canCancel = appt.status === "confirmed" && !isOngoing && !isFullyCompleted && !isCancelled && !isMissedAppt;
-  const initials = appt.patient?.name ? appt.patient.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase(): "PT";
+  const initials = appt.patient?.name ? appt.patient.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase() : "PT";
 
   return (
-    <div className={`rounded-xl border p-3 transition-all duration-200 hover:shadow-md sm:p-4
-      ${isOngoing ? "border-emerald-200 bg-emerald-50/40 border-l-4 border-l-emerald-500"
-        : isCancelled ? "border-red-100 bg-red-50/20 border-l-4 border-l-red-400 opacity-80"
-          : isMissedAppt ? "border-orange-100 bg-orange-50/20 border-l-4 border-l-orange-400 opacity-85"
-            : "border-slate-100 bg-white border-l-4 border-l-blue-600"}`}>
+    <div className={`rounded-xl border p-3 transition-all duration-200 hover:shadow-md lg:p-4
+      ${isOngoing ? "border-emerald-200 bg-emerald-50/40 border-l-4 border-l-emerald-500" : isCancelled
+          ? "border-red-100 bg-red-50/20 border-l-4 border-l-red-400 opacity-80" : isMissedAppt
+            ? "border-orange-100 bg-orange-50/20 border-l-4 border-l-orange-400 opacity-85" : "border-slate-100 bg-white border-l-4 border-l-blue-600"}`}>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-sm font-extrabold text-blue-700">
+        <div className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-xs font-extrabold text-blue-700 sm:flex sm:h-10 sm:w-10 sm:text-sm">
           {initials}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="mb-1.5 flex flex-wrap items-center gap-2">
-            <span className="text-sm font-extrabold text-slate-800">{appt.patient?.name ?? "Unknown Patient"}</span>
-            <span className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${className}`}>
+          <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[10px] font-extrabold text-blue-700 sm:hidden">
+              {initials}
+            </div>
+            <span className="text-[13px] font-extrabold text-slate-800 sm:text-sm">{appt.patient?.name ?? "Unknown Patient"}</span>
+            <span className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold sm:text-[10px] ${className}`}>
               <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />{label}
             </span>
-            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${mode === "video" ? "bg-blue-50 text-blue-600 border border-blue-200" : "bg-purple-50 text-purple-600 border border-purple-200"}`}>
+            <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold sm:text-[10px] ${mode === "video" ? "bg-blue-50 text-blue-600 border border-blue-200" : "bg-purple-50 text-purple-600 border border-purple-200"}`}>
               {mode === "video" ? "Video" : "Clinic"}
             </span>
             {isToday && !isFullyCompleted && !isCancelled && !isMissedAppt && (
-              <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-600">TODAY</span>
+              <span className="rounded-full bg-red-100 px-2 py-0.5 text-[9px] font-bold text-red-600 sm:text-[10px]">TODAY</span>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            <InfoChip icon={<FaCalendarAlt className="text-[9px] text-slate-400 sm:text-[10px]" />} text={formatDate(appt.appointment_date)} />
+            <InfoChip icon={<FaClock className="text-[9px] text-slate-400 sm:text-[10px]" />} text={`${formatTime(appt.start_time)} – ${formatTime(appt.end_time)}`} />
+            {appt.patient?.gender && <InfoChip icon={<FaVenusMars className="text-[9px] text-slate-400 sm:text-[10px]" />} text={appt.patient.gender} />}
+            {appt.patient?.email && (
+              <InfoChip icon={<FaUser className="text-[9px] text-slate-400 sm:text-[10px]" />} text={appt.patient.email} />
             )}
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <InfoChip icon={<FaCalendarAlt className="text-[10px] text-slate-400" />} text={formatDate(appt.appointment_date)} />
-            <InfoChip icon={<FaClock className="text-[10px] text-slate-400" />} text={`${formatTime(appt.start_time)} – ${formatTime(appt.end_time)}`} />
-            {appt.patient?.gender && <InfoChip icon={<FaVenusMars className="text-[10px] text-slate-400" />} text={appt.patient.gender} />}
-            {appt.patient?.email && <InfoChip icon={<FaUser className="text-[10px] text-slate-400" />} text={appt.patient.email} />}
-          </div>
-
           {appt.reason && (
-            <div className="mt-1.5 flex items-start gap-1.5">
-              <FaStethoscope className="mt-0.5 shrink-0 text-[10px] text-slate-400" />
-              <span className="text-xs text-slate-500">{appt.reason}</span>
+            <div className="mt-1.5 flex items-start gap-1">
+              <FaStethoscope className="mt-0.5 shrink-0 text-[9px] text-slate-400 sm:text-[10px]" />
+              <span className="text-[11px] text-slate-500 sm:text-xs">{appt.reason}</span>
             </div>
           )}
         </div>
-        <div className="flex w-full shrink-0 flex-row flex-wrap gap-2 sm:w-auto sm:flex-col sm:items-stretch">
+        <div className="flex w-full shrink-0 flex-row flex-wrap gap-1.5 sm:w-auto sm:flex-col sm:items-stretch sm:gap-2">
           {mode === "video" && !isFullyCompleted && !isCancelled && !isMissedAppt && (
             <>
               <button disabled={!joinable || busy} onClick={() => onJoin(appt)}
-                className={`flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3 text-xs font-bold transition-all
-                  ${joinable && !busy ? "bg-blue-600 text-white hover:bg-blue-700 active:scale-95"
-                    : "cursor-not-allowed bg-slate-100 text-slate-400"}`}>
-                {busy && actionLoading[appt.id] === "joining" ? <><FaSpinner className="animate-spin" />Joining…</> : <><FaPlay className="text-[9px]" />{isOngoing ? "Rejoin" : "Join"}</>}
+                className={`flex h-8 cursor-pointer items-center justify-center gap-1 rounded-lg px-2.5 text-[11px] font-bold transition-all sm:h-9 sm:gap-1.5 sm:px-3 sm:text-xs
+                  ${joinable && !busy ? "bg-blue-600 text-white hover:bg-blue-700 active:scale-95" : "cursor-not-allowed bg-slate-100 text-slate-400"}`}>
+                {busy && actionLoading[appt.id] === "joining" ? <><FaSpinner className="animate-spin" /><span>Joining…</span></> : <><FaPlay className="text-[8px] sm:text-[9px]" /><span>{isOngoing ? "Rejoin" : "Join"}</span></>}
               </button>
               {isOngoing && (
-                <button disabled={busy} onClick={() => onComplete(appt)}
-                  className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-emerald-50 px-3 text-xs font-bold text-emerald-700 hover:bg-emerald-100 active:scale-95 disabled:opacity-60 transition-all">
-                  {actionLoading[appt.id] === "completing" ? <><FaSpinner className="animate-spin" />Ending…</> : <><FaCheckCircle />End Call</>}
+                <button disabled={busy} onClick={() => onComplete(appt)} className="flex h-8 cursor-pointer items-center justify-center gap-1 rounded-lg bg-emerald-50 px-2.5 text-[11px] font-bold text-emerald-700 hover:bg-emerald-100 active:scale-95 disabled:opacity-60 transition-all sm:h-9 sm:gap-1.5 sm:px-3 sm:text-xs">
+                  {actionLoading[appt.id] === "completing" ? <><FaSpinner className="animate-spin" /><span>Ending…</span></> : <><FaCheckCircle /><span>End Call</span></> }
                 </button>
               )}
             </>
@@ -437,39 +444,38 @@ const AppointmentCard = ({ mode, appt, actionLoading, isToday, onJoin, onComplet
 
           {mode === "clinic" && !isFullyCompleted && !isCancelled && !isMissedAppt && (
             <>
-              <button disabled={busy} onClick={() => onComplete(appt)} className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-emerald-50 px-3 text-xs font-bold text-emerald-700 hover:bg-emerald-100 active:scale-95 disabled:opacity-60 transition-all">
-                {actionLoading[appt.id] === "completing" ? <><FaSpinner className="animate-spin" />Completing…</>
-                  : <><FaCheckCircle />Completed</>}
+              <button disabled={busy} onClick={() => onComplete(appt)} className="flex h-8 cursor-pointer items-center justify-center gap-1 rounded-lg bg-emerald-50 px-2.5 text-[11px] font-bold text-emerald-700 hover:bg-emerald-100 active:scale-95 disabled:opacity-60 transition-all sm:h-9 sm:gap-1.5 sm:px-3 sm:text-xs">
+                {actionLoading[appt.id] === "completing" ? <><FaSpinner className="animate-spin" /><span>Completing…</span></> : <><FaCheckCircle /><span>Completed</span></>}
               </button>
-              <button disabled={busy} onClick={() => onNoShow(appt)}
-                className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-orange-50 px-3 text-xs font-bold text-orange-600 hover:bg-orange-100 active:scale-95 disabled:opacity-60 transition-all">
-                {actionLoading[appt.id] === "no-show" ? <><FaSpinner className="animate-spin" />Marking…</>
-                  : <><FaExclamationTriangle />No Show</>}
+              <button disabled={busy} onClick={() => onNoShow(appt)} className="flex h-8 cursor-pointer items-center justify-center gap-1 rounded-lg bg-orange-50 px-2.5 text-[11px] font-bold text-orange-600 hover:bg-orange-100 active:scale-95 disabled:opacity-60 transition-all sm:h-9 sm:gap-1.5 sm:px-3 sm:text-xs">
+                {actionLoading[appt.id] === "no-show" ? <><FaSpinner className="animate-spin" /><span>Marking…</span></> : <><FaExclamationTriangle /><span>No Show</span></>
+                }
               </button>
             </>
           )}
 
           {canCancel && (
-            <button disabled={busy} onClick={onCancel}
-              className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-red-50 px-3 text-xs font-bold text-red-500 hover:bg-red-100 active:scale-95 disabled:opacity-60 transition-all">
-              {busy && actionLoading[appt.id] === "cancelling" ? <><FaSpinner className="animate-spin" />Cancelling…</>
-                : <><FaTimesCircle />Cancel</>}
+            <button disabled={busy} onClick={onCancel} className="flex h-8 cursor-pointer items-center justify-center gap-1 rounded-lg bg-red-50 px-2.5 text-[11px] font-bold text-red-500 hover:bg-red-100 active:scale-95 disabled:opacity-60 transition-all sm:h-9 sm:gap-1.5 sm:px-3 sm:text-xs">
+              {busy && actionLoading[appt.id] === "cancelling"
+                ? <><FaSpinner className="animate-spin" /><span>Cancelling…</span></>
+                : <><FaTimesCircle /><span>Cancel</span></>
+              }
             </button>
           )}
 
           {isFullyCompleted && (
-            <div className="flex h-9 items-center justify-center gap-1.5 rounded-lg bg-blue-50 px-3 text-xs font-bold text-blue-600">
-              <FaCheckCircle />Completed
+            <div className="flex h-8 items-center justify-center gap-1 rounded-lg bg-blue-50 px-2.5 text-[11px] font-bold text-blue-600 sm:h-9 sm:gap-1.5 sm:px-3 sm:text-xs">
+              <FaCheckCircle /><span>Completed</span>
             </div>
           )}
           {isCancelled && (
-            <div className="flex h-9 items-center justify-center gap-1.5 rounded-lg bg-red-50 px-3 text-xs font-bold text-red-400">
-              <FaBan />Cancelled
+            <div className="flex h-8 items-center justify-center gap-1 rounded-lg bg-red-50 px-2.5 text-[11px] font-bold text-red-400 sm:h-9 sm:gap-1.5 sm:px-3 sm:text-xs">
+              <FaBan /><span>Cancelled</span>
             </div>
           )}
           {isMissedAppt && !isCancelled && (
-            <div className="flex h-9 items-center justify-center gap-1.5 rounded-lg bg-orange-50 px-3 text-xs font-bold text-orange-500">
-              <FaExclamationTriangle />Missed
+            <div className="flex h-8 items-center justify-center gap-1 rounded-lg bg-orange-50 px-2.5 text-[11px] font-bold text-orange-500 sm:h-9 sm:gap-1.5 sm:px-3 sm:text-xs">
+              <FaExclamationTriangle /><span>Missed</span>
             </div>
           )}
         </div>
@@ -493,25 +499,23 @@ const Pagination = ({ currentPage, totalPages, onChange }: {
     pages.push(totalPages);
   }
   return (
-    <div className="mt-5 flex items-center justify-center gap-1.5 flex-wrap">
-      <button onClick={() => onChange(currentPage - 1)} disabled={currentPage === 1}
-        className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-        <FaChevronLeft className="text-xs" />
+    <div className="mt-4 flex items-center justify-center gap-1 flex-wrap sm:mt-5 sm:gap-1.5">
+      <button onClick={() => onChange(currentPage - 1)} disabled={currentPage === 1} className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors sm:h-8 sm:w-8">
+        <FaChevronLeft className="text-[10px] sm:text-xs" />
       </button>
       {pages.map((p, i) =>
         p === "…" ? (
-          <span key={`e-${i}`} className="flex h-8 w-8 items-center justify-center text-slate-400 text-sm">…</span>
+          <span key={`e-${i}`} className="flex h-7 w-7 items-center justify-center text-slate-400 text-xs sm:h-8 sm:w-8 sm:text-sm">…</span>
         ) : (
-          <button key={p} onClick={() => onChange(p as number)}
-            className={`h-8 w-8 cursor-pointer rounded-lg text-xs font-bold transition-all duration-200 ${currentPage === p
-              ? "bg-blue-600 text-white shadow-sm" : "border border-slate-200 text-slate-600 hover:bg-slate-50"}`}>
+          <button key={p} onClick={() => onChange(p as number)} className={`h-7 w-7 cursor-pointer rounded-lg text-[11px] font-bold transition-all duration-200 sm:h-8 sm:w-8 sm:text-xs ${currentPage === p ? "bg-blue-600 text-white shadow-sm" : "border border-slate-200 text-slate-600 hover:bg-slate-50"}`}
+          >
             {p}
           </button>
         )
       )}
       <button onClick={() => onChange(currentPage + 1)} disabled={currentPage === totalPages}
-        className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-        <FaChevronRight className="text-xs" />
+        className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors sm:h-8 sm:w-8">
+        <FaChevronRight className="text-[10px] sm:text-xs" />
       </button>
     </div>
   );
@@ -521,20 +525,22 @@ const CancelConfirmModal = ({ patientName, onConfirm, onCancel, loading }: {
   patientName: string; onConfirm: () => void; onCancel: () => void; loading: boolean;
 }) => (
   <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4">
-    <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
-      <div className="mb-5 flex flex-col items-center gap-3 text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-xl text-red-500"><FaBan /></div>
-        <h3 className="text-base font-extrabold text-slate-900">Cancel Appointment?</h3>
-        <p className="text-sm text-slate-500">
+    <div className="w-full max-w-[320px] rounded-2xl bg-white p-5 shadow-2xl sm:max-w-sm sm:p-6">
+      <div className="mb-4 flex flex-col items-center gap-3 text-center sm:mb-5">
+        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-red-50 text-lg text-red-500 sm:h-12 sm:w-12 sm:text-xl">
+          <FaBan />
+        </div>
+        <h3 className="text-sm font-extrabold text-slate-900 sm:text-base">Cancel Appointment?</h3>
+        <p className="text-xs text-slate-500 sm:text-sm">
           Are you sure you want to cancel appointment with{" "}
           <span className="font-bold text-slate-700">{patientName}</span>?
         </p>
       </div>
-      <div className="flex gap-3">
-        <button onClick={onCancel} disabled={loading} className="h-10 flex-1 cursor-pointer rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors">
+      <div className="flex gap-2 sm:gap-3">
+        <button onClick={onCancel} disabled={loading} className="h-9 flex-1 cursor-pointer rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors sm:h-10 sm:text-sm">
           Keep It
         </button>
-        <button onClick={onConfirm} disabled={loading} className="flex h-10 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-red-500 text-sm font-bold text-white hover:bg-red-600 transition-colors">
+        <button onClick={onConfirm} disabled={loading} className="flex h-9 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-red-500 text-xs font-bold text-white hover:bg-red-600 transition-colors sm:h-10 sm:text-sm">
           {loading ? <><FaSpinner className="animate-spin" />Cancelling…</> : <><FaTimesCircle />Yes, Cancel</>}
         </button>
       </div>
@@ -545,40 +551,42 @@ const CancelConfirmModal = ({ patientName, onConfirm, onCancel, loading }: {
 const StatCard = ({ icon, title, value, iconClass, valueClass }: {
   icon: React.ReactNode; title: string; value: string; iconClass: string; valueClass: string;
 }) => (
-  <div className="rounded-xl bg-white p-3 shadow-sm transition hover:-translate-y-0.5 sm:p-4">
-    <div className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm sm:h-9 sm:w-9 ${iconClass}`}>{icon}</div>
-    <p className="mt-2.5 text-[10px] font-bold uppercase tracking-wide text-slate-400">{title}</p>
-    <p className={`mt-0.5 text-2xl font-extrabold sm:text-3xl ${valueClass}`}>{value}</p>
+  <div className="rounded-xl bg-white p-2.5 shadow-sm transition hover:-translate-y-0.5 sm:p-3 lg:p-4">
+    <div className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs sm:h-8 sm:w-8 sm:text-sm lg:h-9 lg:w-9 ${iconClass}`}>
+      {icon}
+    </div>
+    <p className="mt-2 text-[9px] font-bold uppercase tracking-wide text-slate-400 sm:text-[10px]">{title}</p>
+    <p className={`mt-0.5 text-xl font-extrabold sm:text-2xl lg:text-3xl ${valueClass}`}>{value}</p>
   </div>
 );
 
 const InfoChip = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
-  <span className="inline-flex items-center gap-1 rounded-lg bg-slate-50 px-2 py-1 text-[11px] text-slate-600">
+  <span className="inline-flex items-center gap-1 rounded-lg bg-slate-50 px-1.5 py-0.5 text-[10px] text-slate-600 sm:px-2 sm:py-1 sm:text-[11px]">
     {icon}{text}
   </span>
 );
 
 const LoadingState = () => (
-  <div className="flex flex-col items-center justify-center gap-3 py-12 text-slate-400">
-    <FaSpinner className="animate-spin text-2xl text-blue-500" />
-    <p className="text-xs font-semibold">Loading consultations…</p>
+  <div className="flex flex-col items-center justify-center gap-3 py-10 text-slate-400 sm:py-12">
+    <FaSpinner className="animate-spin text-xl text-blue-500 sm:text-2xl" />
+    <p className="text-[11px] font-semibold sm:text-xs">Loading consultations…</p>
   </div>
 );
 
 const ErrorState = ({ message, onRetry }: { message: string; onRetry: () => void }) => (
-  <div className="flex flex-col items-center justify-center gap-3 py-12">
-    <FaExclamationTriangle className="text-2xl text-red-400" />
-    <p className="text-xs font-semibold text-slate-500">{message}</p>
-    <button onClick={onRetry} className="cursor-pointer rounded-lg bg-blue-600 px-5 py-2 text-xs font-bold text-white hover:bg-blue-700 transition-colors">
+  <div className="flex flex-col items-center justify-center gap-3 py-10 sm:py-12">
+    <FaExclamationTriangle className="text-xl text-red-400 sm:text-2xl" />
+    <p className="text-[11px] font-semibold text-slate-500 sm:text-xs">{message}</p>
+    <button onClick={onRetry} className="cursor-pointer rounded-lg bg-blue-600 px-4 py-1.5 text-[11px] font-bold text-white hover:bg-blue-700 transition-colors sm:px-5 sm:py-2 sm:text-xs">
       Retry
     </button>
   </div>
 );
 
 const EmptyState = ({ mode, tab }: { mode: ConsultationMode; tab: TabKey }) => (
-  <div className="flex flex-col items-center justify-center gap-2 py-12 text-slate-400">
-    {mode === "video" ? <FaVideo className="mb-1 text-3xl" /> : <FaHospital className="mb-1 text-3xl" />}
-    <p className="text-xs font-semibold text-slate-500">
+  <div className="flex flex-col items-center justify-center gap-2 py-10 text-slate-400 sm:py-12">
+    {mode === "video" ? <FaVideo className="mb-1 text-2xl sm:text-3xl" /> : <FaHospital className="mb-1 text-2xl sm:text-3xl" />}
+    <p className="text-[11px] font-semibold text-slate-500 sm:text-xs">
       No {tab === "all" ? "" : tab} {mode === "video" ? "video consultations" : "clinic visits"} found
     </p>
   </div>

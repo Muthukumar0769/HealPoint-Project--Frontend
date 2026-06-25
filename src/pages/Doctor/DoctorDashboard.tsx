@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DoctorSidebar } from './DoctorSidebar';
-import {FaCalendarCheck, FaStar, FaUsers, FaRupeeSign, FaCalendarAlt,
-  FaVideo, FaHospital, FaChevronRight, FaUserPlus, FaUserCheck} from "react-icons/fa";
-import {BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  AreaChart, Area, PieChart, Pie, Cell, Legend} from "recharts";
+import {FaCalendarCheck, FaStar, FaUsers, FaRupeeSign, FaCalendarAlt,FaVideo, FaHospital, FaChevronRight, FaUserPlus, FaUserCheck} from "react-icons/fa";
+import {BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,AreaChart, Area, PieChart, Pie, Cell, Legend} from "recharts";
 import API from "../../api/axios";
 import type { DashboardSummary, TodayAppointment, MonthlyOverview } from "../../types/doctor";
 import usePageTitle from "../../hooks/usePageTitle";
@@ -21,11 +19,8 @@ const formatTime = (time: string) => {
   return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
 };
 
-const getInitials = (name: string) =>
-  name?.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase() || "PT";
-
-const getTodayDayName = () => {
-  return new Date().toLocaleDateString("en-US", { weekday: "long" });
+const getInitials = (name: string) => name?.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase() || "PT";
+const getTodayDayName = () => {return new Date().toLocaleDateString("en-US", { weekday: "long" });
 };
 
 const CustomTooltipBar = ({ active, payload, label }: any) => {
@@ -181,43 +176,44 @@ export const DoctorDashboard = () => {
   const busiestDay = weeklyData.reduce((best, d) => d.appointments > best.appointments ? d : best, { day: "—", appointments: 0, isToday: false });
 
   return (
-    <div className="min-h-screen bg-[#f0f4fb] lg:flex pt-16">
+    <div className="min-h-screen bg-[#f0f4fb] lg:flex pt-14 lg:pt-16">
       <DoctorSidebar />
-      <main className="flex-1 px-4 py-5 sm:px-6 lg:p-7">
-        <section className="mb-5 rounded-2xl bg-white border border-blue-100 p-5 shadow-sm sm:p-6">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-white text-base font-bold shadow-md shadow-blue-200">
+      <main className="flex-1 w-full min-w-0 px-3 py-4 sm:px-4 sm:py-5 md:px-5 lg:px-6 lg:py-7 xl:px-8">
+        <section className="mb-4 rounded-2xl bg-white border border-blue-100 p-4 shadow-sm sm:p-5 lg:p-6">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-white text-sm sm:text-base font-bold shadow-md shadow-blue-200">
               {getInitials(user?.name || "Dr")}
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-blue-400">Welcome back</p>
-              <h1 className="text-xl font-bold text-slate-900 sm:text-2xl leading-tight">
+              <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-blue-400">Welcome back</p>
+              <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-slate-900 leading-tight">
                 {user?.name ? `Dr. ${user.name}` : "Doctor"}
               </h1>
-              <p className="text-xs text-slate-400 mt-0.5">HealPoint</p>
+              <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5">HealPoint</p>
             </div>
           </div>
-          <div className="mt-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
+
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
             {stats.map((item, index) => (
-              <div key={index} className="relative overflow-hidden rounded-2xl border border-blue-100 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+              <div key={index} className="relative overflow-hidden rounded-2xl border border-blue-100 bg-white p-3 sm:p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
                 <div className="absolute top-0 left-0 right-0 h-0.5 bg-blue-500 rounded-t-2xl" />
-                <div className={`mb-3 flex h-9 w-9 items-center justify-center rounded-xl ${item.bg} ${item.text} text-sm`}>
+                <div className={`mb-2 sm:mb-3 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl ${item.bg} ${item.text} text-xs sm:text-sm`}>
                   {item.icon}
                 </div>
-                <p className="text-xl font-bold text-slate-900 leading-none">{item.value}</p>
-                <p className="mt-1.5 text-xs font-medium text-slate-400">{item.title}</p>
+                <p className="text-base sm:text-xl font-bold text-slate-900 leading-none truncate">{item.value}</p>
+                <p className="mt-1 sm:mt-1.5 text-[10px] sm:text-xs font-medium text-slate-400 leading-tight">{item.title}</p>
               </div>
             ))}
           </div>
         </section>
         <section className="grid grid-cols-1 gap-4 xl:grid-cols-2 mb-4">
           <div className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm sm:p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-sm font-bold text-slate-900">Today's Upcoming Appointments</h2>
-                <p className="text-xs text-slate-400 mt-0.5">{todayAppointments.length} scheduled today</p>
+            <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
+              <div className="min-w-0">
+                <h2 className="text-xs sm:text-sm font-bold text-slate-900 truncate">Today's Upcoming Appointments</h2>
+                <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5">{todayAppointments.length} scheduled today</p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0 flex-wrap">
                 {todayAppointments.length > VISIBLE_COUNT && (
                   <div className="flex items-center gap-1">
                     <button onClick={() => setApptStartIndex((p) => Math.max(0, p - 1))} disabled={!hasPrev}
@@ -226,7 +222,7 @@ export const DoctorDashboard = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                       </svg>
                     </button>
-                    <span className="text-xs text-slate-400">
+                    <span className="text-[10px] sm:text-xs text-slate-400">
                       {apptStartIndex + 1}–{Math.min(apptStartIndex + VISIBLE_COUNT, todayAppointments.length)} of {todayAppointments.length}
                     </span>
                     <button onClick={() => setApptStartIndex((p) => Math.min(todayAppointments.length - VISIBLE_COUNT, p + 1))} disabled={!hasNext}
@@ -237,7 +233,7 @@ export const DoctorDashboard = () => {
                     </button>
                   </div>
                 )}
-                <span className="rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-600">Today</span>
+                <span className="rounded-lg bg-blue-50 px-2 py-1 text-[10px] sm:text-xs font-semibold text-blue-600">Today</span>
               </div>
             </div>
 
@@ -251,24 +247,24 @@ export const DoctorDashboard = () => {
                 <p className="text-xs text-slate-400">No appointments today</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 {visibleAppointments.map((item) => {
                   const isVideo = item.consultation_type?.toLowerCase().includes("video") || item.consultation_type?.toLowerCase().includes("online");
                   return (
-                    <div key={item.id} className="flex items-center gap-3 rounded-xl border border-blue-50 bg-blue-50/40 p-3 hover:bg-blue-50 transition-colors">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-600">
+                    <div key={item.id} className="flex items-center gap-2 sm:gap-3 rounded-xl border border-blue-50 bg-blue-50/40 p-2.5 sm:p-3 hover:bg-blue-50 transition-colors">
+                      <div className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 text-[10px] sm:text-xs font-bold text-blue-600">
                         {getInitials(item.patient_name)}
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="text-xs font-bold text-slate-900 truncate">{item.patient_name}</h3>
-                        <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
+                        <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5 flex items-center gap-1 flex-wrap">
                           <span className="font-semibold text-blue-500">{formatTime(item.start_time)}</span>
                           <span>·</span>
                           {isVideo ? <FaVideo className="text-[10px]" /> : <FaHospital className="text-[10px]" />}
                           <span>{isVideo ? "Video Call" : "Clinic Visit"}</span>
                         </p>
                       </div>
-                      <span className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full ${isVideo ? "bg-sky-50 text-sky-600" : "bg-emerald-50 text-emerald-600"}`}>
+                      <span className={`shrink-0 text-[9px] sm:text-[10px] font-semibold px-1.5 sm:px-2 py-0.5 rounded-full ${isVideo ? "bg-sky-50 text-sky-600" : "bg-emerald-50 text-emerald-600"}`}>
                         {isVideo ? "Online" : "In-person"}
                       </span>
                     </div>
@@ -276,88 +272,100 @@ export const DoctorDashboard = () => {
                 })}
               </div>
             )}
-
-            <button onClick={() => navigate("/doctor/consultations")} className="mt-4 flex cursor-pointer w-full items-center justify-center gap-1.5 rounded-xl border border-blue-100 bg-blue-50 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-100 transition-colors">
+            <button onClick={() => navigate("/doctor/consultations")} className="mt-3 sm:mt-4 flex cursor-pointer w-full items-center justify-center gap-1.5 rounded-xl border border-blue-100 bg-blue-50 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-100 transition-colors">
               View All Appointments <FaChevronRight className="text-[10px]" />
-            </button>
-            <div className="mt-5">
+            </button> 
+            <div className="mt-4 sm:mt-5">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs font-bold text-slate-700">This Week's Load</p>
-                <span className="text-xs text-slate-400">appointments / day</span>
+                <span className="text-[10px] sm:text-xs text-slate-400">appointments / day</span>
               </div>
-              <ResponsiveContainer width="100%" height={130}>
-                <BarChart data={weeklyData} barSize={22} margin={{ top: 0, right: 0, left: -28, bottom: 0 }}>
+              <ResponsiveContainer width="100%" height={120}>
+                <BarChart data={weeklyData} barSize={18} margin={{ top: 0, right: 0, left: -28, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e8f0fe" vertical={false} />
                   <XAxis dataKey="day" tick={({ x, y, payload }: any) => (
-                    <text x={x} y={y + 10} textAnchor="middle" fontSize={10}
-                      fill={payload.value === todayShort ? "#3b82f6" : "#94a3b8"}
-                      fontWeight={payload.value === todayShort ? 700 : 400}>
-                      {payload.value}
-                    </text>
-                  )} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                      <text x={x} y={y + 10} textAnchor="middle" fontSize={9}
+                        fill={payload.value === todayShort ? "#3b82f6" : "#94a3b8"}
+                        fontWeight={payload.value === todayShort ? 700 : 400}>
+                        {payload.value}
+                      </text>
+                    )}
+                    axisLine={false} tickLine={false}/>
+                  <YAxis tick={{ fontSize: 9, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
                   <Tooltip content={<CustomTooltipBar />} cursor={{ fill: "#eff6ff" }} />
-                  <Bar dataKey="appointments" radius={[6, 6, 0, 0]} fill="#3b82f6" label={false}>
+                  <Bar dataKey="appointments" radius={[5, 5, 0, 0]} fill="#3b82f6">
                     {weeklyData.map((entry, index) => (
                       <Cell key={index} fill={entry.isToday ? "#1d4ed8" : "#3b82f6"} />
                     ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
-              <div className="mt-3 grid grid-cols-2 gap-2">
+              <div className="mt-2 sm:mt-3 grid grid-cols-2 gap-2">
                 <div className="rounded-xl bg-blue-50 border border-blue-100 px-3 py-2 text-center">
                   <p className="text-sm font-bold text-blue-600">{weekTotal}</p>
                   <p className="text-[10px] text-slate-400 mt-0.5">This week total</p>
                 </div>
                 <div className="rounded-xl bg-indigo-50 border border-indigo-100 px-3 py-2 text-center">
-                  <p className="text-sm font-bold text-indigo-600">{busiestDay.day}</p>
+                  <p className="text-sm font-bold text-indigo-600 truncate">{busiestDay.day}</p>
                   <p className="text-[10px] text-slate-400 mt-0.5">Busiest day</p>
                 </div>
               </div>
             </div>
           </div>
           <div className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm sm:p-5 flex flex-col">
-            <div className="flex items-center justify-between mb-1">
-              <div>
-                <h2 className="text-sm font-bold text-slate-900">Monthly Overview</h2>
-                <p className="text-xs text-slate-400 mt-1">Appointments vs Patients · {selectedYear}</p>
+            <div className="flex items-start justify-between mb-1 gap-2 flex-wrap">
+              <div className="min-w-0">
+                <h2 className="text-xs sm:text-sm font-bold text-slate-900">Monthly Overview</h2>
+                <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5">Appointments vs Patients · {selectedYear}</p>
               </div>
-              <div className="flex items-center gap-3 ml-[-60px] mt-[-20px] text-xs text-slate-400">
-                <span className="flex items-center gap-1">
-                  <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-500" />
-                  Appointments
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="inline-block w-2.5 h-2.5 rounded-full bg-sky-300" />
-                  Patients
-                </span>
-              </div>
-              <div className="flex items-center gap-2 mt-[-16px] rounded-xl border border-blue-200 bg-blue-50 px-3 py-1 self-start sm:self-auto">
-                <span className="text-blue-400 text-sm"><FaCalendarAlt /></span>
-                <select value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value))}
-                  className="border-none bg-transparent text-xs text-slate-700 outline-none cursor-pointer font-medium">
-                  {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((year) => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div className="flex gap-3 my-3">
-              <div className="flex-1 rounded-xl bg-blue-50 border border-blue-100 px-3 py-2.5 text-center">
-                <p className="text-lg font-bold text-blue-600">{totalAppointments}</p>
-                <p className="text-xs text-slate-400 mt-0.5">Total Appointments</p>
-              </div>
-              <div className="flex-1 rounded-xl bg-sky-50 border border-sky-100 px-3 py-2.5 text-center">
-                <p className="text-lg font-bold text-sky-500">{totalPatientsMo}</p>
-                <p className="text-xs text-slate-400 mt-0.5">Total Patients</p>
-              </div>
-              <div className="flex-1 rounded-xl bg-indigo-50 border border-indigo-100 px-3 py-2.5 text-center">
-                <p className="text-lg font-bold text-indigo-500">{conversionRate}%</p>
-                <p className="text-xs text-slate-400 mt-0.5">Conversion Rate</p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="hidden sm:flex items-center gap-3 text-[10px] sm:text-xs text-slate-400">
+                  <span className="flex items-center gap-1">
+                    <span className="inline-block w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-blue-500" />
+                    Appointments
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="inline-block w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-sky-300" />
+                    Patients
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-2.5 py-1">
+                  <span className="text-blue-400 text-xs"><FaCalendarAlt /></span>
+                  <select value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value))}
+                    className="border-none bg-transparent text-[10px] sm:text-xs text-slate-700 outline-none cursor-pointer font-medium">
+                    {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((year) => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
-            <div className="flex-1 min-h-[180px]">
-              <ResponsiveContainer width="100%" height={200}>
+            <div className="flex sm:hidden items-center gap-3 text-[10px] text-slate-400 mb-2">
+              <span className="flex items-center gap-1">
+                <span className="inline-block w-2 h-2 rounded-full bg-blue-500" />Appointments
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="inline-block w-2 h-2 rounded-full bg-sky-300" />Patients
+              </span>
+            </div>
+
+            <div className="flex gap-2 sm:gap-3 my-2 sm:my-3">
+              <div className="flex-1 rounded-xl bg-blue-50 border border-blue-100 px-2 sm:px-3 py-2 sm:py-2.5 text-center">
+                <p className="text-base sm:text-lg font-bold text-blue-600">{totalAppointments}</p>
+                <p className="text-[9px] sm:text-xs text-slate-400 mt-0.5 leading-tight">Total Appointments</p>
+              </div>
+              <div className="flex-1 rounded-xl bg-sky-50 border border-sky-100 px-2 sm:px-3 py-2 sm:py-2.5 text-center">
+                <p className="text-base sm:text-lg font-bold text-sky-500">{totalPatientsMo}</p>
+                <p className="text-[9px] sm:text-xs text-slate-400 mt-0.5 leading-tight">Total Patients</p>
+              </div>
+              <div className="flex-1 rounded-xl bg-indigo-50 border border-indigo-100 px-2 sm:px-3 py-2 sm:py-2.5 text-center">
+                <p className="text-base sm:text-lg font-bold text-indigo-500">{conversionRate}%</p>
+                <p className="text-[9px] sm:text-xs text-slate-400 mt-0.5 leading-tight">Conversion Rate</p>
+              </div>
+            </div>
+
+            <div className="flex-1 min-h-[160px] sm:min-h-[180px]">
+              <ResponsiveContainer width="100%" height={180}>
                 <AreaChart data={monthlyData} margin={{ top: 5, right: 4, left: -28, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorAppt" x1="0" y1="0" x2="0" y2="1">
@@ -370,25 +378,26 @@ export const DoctorDashboard = () => {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e8f0fe" vertical={false} />
-                  <XAxis dataKey="month" tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                  <XAxis dataKey="month" tick={{ fontSize: 9, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 9, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
                   <Tooltip content={<CustomTooltipArea />} />
                   <Area type="monotone" dataKey="appointments" name="Appointments" stroke="#3b82f6"
-                    strokeWidth={2.5} fill="url(#colorAppt)" dot={{ r: 3, fill: "#3b82f6", strokeWidth: 0 }} activeDot={{ r: 5 }} />
+                    strokeWidth={2} fill="url(#colorAppt)" dot={{ r: 2.5, fill: "#3b82f6", strokeWidth: 0 }} activeDot={{ r: 4 }} />
                   <Area type="monotone" dataKey="patients" name="Patients" stroke="#38bdf8"
-                    strokeWidth={2.5} fill="url(#colorPat)" dot={{ r: 3, fill: "#38bdf8", strokeWidth: 0 }} activeDot={{ r: 5 }} />
+                    strokeWidth={2} fill="url(#colorPat)" dot={{ r: 2.5, fill: "#38bdf8", strokeWidth: 0 }} activeDot={{ r: 4 }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-            <div className="mt-3 rounded-xl border border-dashed border-blue-200 bg-blue-50/50 px-4 py-2.5 flex items-center justify-between">
-              <div>
+
+            <div className="mt-2 sm:mt-3 rounded-xl border border-dashed border-blue-200 bg-blue-50/50 px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between gap-2">
+              <div className="min-w-0">
                 <p className="text-xs font-bold text-slate-700">Peak Month</p>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5 truncate">
                   {peakMonth.month !== "N/A" ? `${peakMonth.month} ${selectedYear} · ${peakMonth.appointments} appointments` : "No data yet"}
                 </p>
               </div>
               {peakMonth.month !== "N/A" && (
-                <span className="rounded-lg bg-blue-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm shadow-blue-200">
+                <span className="shrink-0 rounded-lg bg-blue-600 px-2 sm:px-2.5 py-1 text-[10px] sm:text-xs font-semibold text-white shadow-sm shadow-blue-200">
                   Peak
                 </span>
               )}
@@ -397,12 +406,12 @@ export const DoctorDashboard = () => {
         </section>
         <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
           <div className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm sm:p-5">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4 gap-2">
               <div>
-                <h2 className="text-sm font-bold text-slate-900">This Week's Schedule</h2>
-                <p className="text-xs text-slate-400 mt-0.5">Daily appointment breakdown</p>
+                <h2 className="text-xs sm:text-sm font-bold text-slate-900">This Week's Schedule</h2>
+                <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5">Daily appointment breakdown</p>
               </div>
-              <span className="rounded-lg bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-600">
+              <span className="shrink-0 rounded-lg bg-indigo-50 px-2 sm:px-2.5 py-1 text-[10px] sm:text-xs font-semibold text-indigo-600">
                 Week View
               </span>
             </div>
@@ -410,11 +419,11 @@ export const DoctorDashboard = () => {
             {loading ? (
               <div className="space-y-3">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="animate-pulse rounded-xl bg-slate-50 h-12" />
+                  <div key={i} className="animate-pulse rounded-xl bg-slate-50 h-10 sm:h-12" />
                 ))}
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-1.5 sm:space-y-2">
                 {DAY_ORDER.map((fullDay) => {
                   const short = DAY_SHORT[fullDay];
                   const dayData = weeklyData.find((d) => d.day === short);
@@ -424,41 +433,41 @@ export const DoctorDashboard = () => {
                   const barWidth = count > 0 ? Math.max((count / maxCount) * 100, 8) : 0;
 
                   return (
-                    <div key={fullDay} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors ${isToday ? "bg-blue-50 border border-blue-200" : "bg-slate-50 border border-transparent"}`}>
-                      <div className="w-8 shrink-0 text-center">
-                        <p className={`text-xs font-bold ${isToday ? "text-blue-600" : "text-slate-400"}`}>
+                    <div key={fullDay} className={`flex items-center gap-2 sm:gap-3 rounded-xl px-2.5 sm:px-3 py-2 sm:py-2.5 transition-colors ${isToday ? "bg-blue-50 border border-blue-200" : "bg-slate-50 border border-transparent"}`}>
+                      <div className="w-7 sm:w-8 shrink-0 text-center">
+                        <p className={`text-[10px] sm:text-xs font-bold ${isToday ? "text-blue-600" : "text-slate-400"}`}>
                           {short}
                         </p>
                         {isToday && (
-                          <span className="text-[9px] font-semibold text-blue-400 leading-none">Today</span>
+                          <span className="text-[8px] sm:text-[9px] font-semibold text-blue-400 leading-none">Today</span>
                         )}
                       </div>
                       <div className="flex-1">
-                        <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+                        <div className="h-1.5 sm:h-2 w-full rounded-full bg-slate-100 overflow-hidden">
                           <div className={`h-full rounded-full transition-all duration-500 ${isToday ? "bg-blue-500" : "bg-blue-300"}`} style={{ width: `${barWidth}%` }}/>
                         </div>
                       </div>
-                      <div className="w-16 shrink-0 flex items-center justify-end gap-1.5">
+                      <div className="w-14 sm:w-16 shrink-0 flex items-center justify-end gap-1">
                         {count > 0 ? (
                           <>
-                            <span className={`text-xs font-bold ${isToday ? "text-blue-600" : "text-slate-600"}`}>
+                            <span className={`text-[10px] sm:text-xs font-bold ${isToday ? "text-blue-600" : "text-slate-600"}`}>
                               {count}
                             </span>
-                            <span className="text-[10px] text-slate-400">appt{count !== 1 ? "s" : ""}</span>
+                            <span className="text-[9px] sm:text-[10px] text-slate-400">appt{count !== 1 ? "s" : ""}</span>
                           </>
                         ) : (
-                          <span className="text-[10px] text-slate-300">—</span>
+                          <span className="text-[9px] sm:text-[10px] text-slate-300">—</span>
                         )}
                       </div>
                       {isToday && todayAppointments.length > 0 && (
-                        <div className="flex -space-x-1.5 shrink-0">
+                        <div className="hidden sm:flex -space-x-1.5 shrink-0">
                           {todayAppointments.slice(0, 3).map((appt, i) => (
-                            <div key={i} className="w-6 h-6 rounded-full bg-blue-600 border-2 border-white flex items-center justify-center text-[8px] font-bold text-white">
+                            <div key={i} className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-blue-600 border-2 border-white flex items-center justify-center text-[7px] sm:text-[8px] font-bold text-white">
                               {getInitials(appt.patient_name)}
                             </div>
                           ))}
                           {todayAppointments.length > 3 && (
-                            <div className="w-6 h-6 rounded-full bg-slate-200 border-2 border-white flex items-center justify-center text-[8px] font-bold text-slate-500">
+                            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-slate-200 border-2 border-white flex items-center justify-center text-[7px] sm:text-[8px] font-bold text-slate-500">
                               +{todayAppointments.length - 3}
                             </div>
                           )}
@@ -469,32 +478,32 @@ export const DoctorDashboard = () => {
                 })}
               </div>
             )}
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              <div className="rounded-xl bg-blue-50 border border-blue-100 px-2 py-2.5 text-center">
+
+            <div className="mt-3 sm:mt-4 grid grid-cols-3 gap-1.5 sm:gap-2">
+              <div className="rounded-xl bg-blue-50 border border-blue-100 px-2 py-2 sm:py-2.5 text-center">
                 <p className="text-sm font-bold text-blue-600">{weekTotal}</p>
-                <p className="text-[10px] text-slate-400 mt-0.5">Week total</p>
+                <p className="text-[9px] sm:text-[10px] text-slate-400 mt-0.5">Week total</p>
               </div>
-              <div className="rounded-xl bg-indigo-50 border border-indigo-100 px-2 py-2.5 text-center">
+              <div className="rounded-xl bg-indigo-50 border border-indigo-100 px-2 py-2 sm:py-2.5 text-center">
                 <p className="text-sm font-bold text-indigo-600">{todayAppointments.length}</p>
-                <p className="text-[10px] text-slate-400 mt-0.5">Today</p>
+                <p className="text-[9px] sm:text-[10px] text-slate-400 mt-0.5">Today</p>
               </div>
-              <div className="rounded-xl bg-sky-50 border border-sky-100 px-2 py-2.5 text-center">
+              <div className="rounded-xl bg-sky-50 border border-sky-100 px-2 py-2 sm:py-2.5 text-center">
                 <p className="text-sm font-bold text-sky-600 truncate">{busiestDay.appointments > 0 ? busiestDay.day : "—"}</p>
-                <p className="text-[10px] text-slate-400 mt-0.5">Busiest</p>
+                <p className="text-[9px] sm:text-[10px] text-slate-400 mt-0.5">Busiest</p>
               </div>
             </div>
-
-            <button onClick={() => navigate("/doctor/consultations")} className="mt-3 flex cursor-pointer w-full items-center justify-center gap-1.5 rounded-xl border border-blue-100 bg-blue-50 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-100 transition-colors">
+            <button onClick={() => navigate("/doctor/consultations")} className="mt-2.5 sm:mt-3 flex cursor-pointer w-full items-center justify-center gap-1.5 rounded-xl border border-blue-100 bg-blue-50 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-100 transition-colors">
               View All Appointments <FaChevronRight className="text-[10px]" />
             </button>
           </div>
           <div className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm sm:p-5 flex flex-col">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4 gap-2">
               <div>
-                <h2 className="text-sm font-bold text-slate-900">Patient Return Rate</h2>
-                <p className="text-xs text-slate-400 mt-0.5">New vs returning patients</p>
+                <h2 className="text-xs sm:text-sm font-bold text-slate-900">Patient Return Rate</h2>
+                <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5">New vs returning patients</p>
               </div>
-              <span className="rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-600">All Time</span>
+              <span className="shrink-0 rounded-lg bg-blue-50 px-2 sm:px-2.5 py-1 text-[10px] sm:text-xs font-semibold text-blue-600">All Time</span>
             </div>
 
             {loading ? (
@@ -510,74 +519,74 @@ export const DoctorDashboard = () => {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-3 gap-3 mb-4">
-                  <div className="rounded-xl bg-blue-50 border border-blue-100 px-3 py-3 text-center">
+                <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-3 sm:mb-4">
+                  <div className="rounded-xl bg-blue-50 border border-blue-100 px-2 sm:px-3 py-2.5 sm:py-3 text-center">
                     <div className="flex items-center justify-center mb-1">
-                      <FaUserPlus className="text-blue-500 text-sm" />
+                      <FaUserPlus className="text-blue-500 text-xs sm:text-sm" />
                     </div>
-                    <p className="text-lg font-bold text-blue-600">{newPatients}</p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">New</p>
+                    <p className="text-base sm:text-lg font-bold text-blue-600">{newPatients}</p>
+                    <p className="text-[9px] sm:text-[10px] text-slate-400 mt-0.5">New</p>
                   </div>
-                  <div className="rounded-xl bg-sky-50 border border-sky-100 px-3 py-3 text-center">
+                  <div className="rounded-xl bg-sky-50 border border-sky-100 px-2 sm:px-3 py-2.5 sm:py-3 text-center">
                     <div className="flex items-center justify-center mb-1">
-                      <FaUserCheck className="text-sky-500 text-sm" />
+                      <FaUserCheck className="text-sky-500 text-xs sm:text-sm" />
                     </div>
-                    <p className="text-lg font-bold text-sky-500">{returningPatients}</p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">Returning</p>
+                    <p className="text-base sm:text-lg font-bold text-sky-500">{returningPatients}</p>
+                    <p className="text-[9px] sm:text-[10px] text-slate-400 mt-0.5">Returning</p>
                   </div>
-                  <div className="rounded-xl bg-indigo-50 border border-indigo-100 px-3 py-3 text-center">
+                  <div className="rounded-xl bg-indigo-50 border border-indigo-100 px-2 sm:px-3 py-2.5 sm:py-3 text-center">
                     <div className="flex items-center justify-center mb-1">
-                      <FaStar className="text-indigo-500 text-sm" />
+                      <FaStar className="text-indigo-500 text-xs sm:text-sm" />
                     </div>
-                    <p className="text-lg font-bold text-indigo-500">{returnRate}%</p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">Return Rate</p>
+                    <p className="text-base sm:text-lg font-bold text-indigo-500">{returnRate}%</p>
+                    <p className="text-[9px] sm:text-[10px] text-slate-400 mt-0.5">Return Rate</p>
                   </div>
                 </div>
 
                 <div className="flex-1 flex items-center justify-center">
-                  <ResponsiveContainer width="100%" height={200}>
+                  <ResponsiveContainer width="100%" height={180}>
                     <PieChart>
-                      <Pie data={pieData} cx="50%" cy="50%" innerRadius={55} outerRadius={80} paddingAngle={3} dataKey="value">
+                      <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={72} paddingAngle={3} dataKey="value">
                         {pieData.map((entry, index) => (
                           <Cell key={index} fill={entry.color} />
                         ))}
                       </Pie>
                       <Tooltip content={<CustomTooltipPie />} />
-                      <Legend iconType="circle" iconSize={8} formatter={(value) => <span style={{ fontSize: "11px", color: "#64748b" }}>{value}</span>} />
+                      <Legend iconType="circle" iconSize={8} formatter={(value) => <span style={{ fontSize: "11px", color: "#64748b" }}>{value}</span>}/>
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
 
-                <div className="mt-2 space-y-3">
+                <div className="mt-2 space-y-2 sm:space-y-3">
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-slate-500">New Patients</span>
-                      <span className="text-xs font-bold text-blue-600">
+                      <span className="text-[10px] sm:text-xs text-slate-500">New Patients</span>
+                      <span className="text-[10px] sm:text-xs font-bold text-blue-600">
                         {totalAppt > 0 ? Math.round((newPatients / totalAppt) * 100) : 0}%
                       </span>
                     </div>
                     <div className="h-1.5 w-full rounded-full bg-blue-50 overflow-hidden">
-                      <div className="h-full rounded-full bg-blue-500 transition-all duration-700"
-                        style={{ width: `${totalAppt > 0 ? Math.round((newPatients / totalAppt) * 100) : 0}%` }} />
+                      <div className="h-full rounded-full bg-blue-500 transition-all duration-700" style={{ width: `${totalAppt > 0 ? Math.round((newPatients / totalAppt) * 100) : 0}%` }}/>
                     </div>
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-slate-500">Returning Patients</span>
-                      <span className="text-xs font-bold text-sky-500">{returnRate}%</span>
+                      <span className="text-[10px] sm:text-xs text-slate-500">Returning Patients</span>
+                      <span className="text-[10px] sm:text-xs font-bold text-sky-500">{returnRate}%</span>
                     </div>
                     <div className="h-1.5 w-full rounded-full bg-sky-50 overflow-hidden">
                       <div className="h-full rounded-full bg-sky-400 transition-all duration-700" style={{ width: `${returnRate}%` }} />
                     </div>
                   </div>
                 </div>
-
-                <div className="mt-4 rounded-xl border border-dashed border-blue-200 bg-blue-50/50 px-4 py-2.5 flex items-center justify-between">
-                  <p className="text-xs text-slate-500">
-                    {returnRate >= 40 ? "Strong patient loyalty — keep it up!" : returnRate >= 20 ? "Good retention, room to grow further." : "Focus on follow-ups to improve retention."}
+                <div className="mt-3 sm:mt-4 rounded-xl border border-dashed border-blue-200 bg-blue-50/50 px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between gap-2">
+                  <p className="text-[10px] sm:text-xs text-slate-500 min-w-0">
+                    {returnRate >= 40 ? "Strong patient loyalty — keep it up!" : returnRate >= 20
+                      ? "Good retention, room to grow further." : "Focus on follow-ups to improve retention."}
                   </p>
-                  <span className={`ml-3 shrink-0 rounded-lg px-2.5 py-1 text-xs font-semibold ${returnRate >= 40 ? "bg-emerald-100 text-emerald-700"
-                      : returnRate >= 20 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-600"}`}>
+                  <span className={`shrink-0 rounded-lg px-2 sm:px-2.5 py-1 text-[10px] sm:text-xs font-semibold ${
+                    returnRate >= 40 ? "bg-emerald-100 text-emerald-700" : returnRate >= 20
+                      ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-600"}`}>
                     {returnRate >= 40 ? "Excellent" : returnRate >= 20 ? "Good" : "Low"}
                   </span>
                 </div>

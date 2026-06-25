@@ -2,12 +2,13 @@ import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/tool
 import API from "../../api/axios";
 import type {EarningsState} from '../../types/admin'
 
-const initialState: EarningsState = {
+const initialState: EarningsState & { offset: number } = {
     data: null,
     loading: false,
     error: null,
     filter: "month",
     page: 1,
+    offset: 0,
 };
 
 export const fetchEarningsDashboard = createAsyncThunk("adminEarnings/fetchDashboard",
@@ -40,7 +41,7 @@ export const fetchEarningsDashboard = createAsyncThunk("adminEarnings/fetchDashb
                     clinicVisitCount: 0,
                 },
                 trendData: (d.revenueTrend ?? []).map((t: any) => ({
-                    label: t.month,
+                    label: t.label ?? t.month ?? t.day ?? t.week,
                     videoCall: Number(t.revenue),
                     clinicVisit: 0,
                 })),
@@ -78,9 +79,13 @@ const adminEarningsSlice = createSlice({
         setFilter(state, action: PayloadAction<"week" | "month" | "year">) {
             state.filter = action.payload;
             state.page = 1;
+            state.offset = 0;
         },
         setPage(state, action: PayloadAction<number>) {
             state.page = action.payload;
+        },
+        setOffset(state, action: PayloadAction<number>) {
+            state.offset = action.payload;
         },
     },
     extraReducers: (builder) => {
@@ -100,5 +105,5 @@ const adminEarningsSlice = createSlice({
     },
 });
 
-export const { setFilter, setPage } = adminEarningsSlice.actions;
+export const { setFilter, setPage, setOffset } = adminEarningsSlice.actions;
 export default adminEarningsSlice.reducer;

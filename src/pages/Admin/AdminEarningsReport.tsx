@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { FaCalendarAlt, FaChevronLeft, FaChevronRight, FaDownload, FaVideo, FaSpinner, FaUserMd, } from "react-icons/fa";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, } from "recharts";
 import { AdminSidebar } from "./AdminSidebar";
-import { fetchEarningsDashboard, setFilter, setPage, } from "../../store/slices/AdminEarningsSlice";
+import { fetchEarningsDashboard, setFilter, setPage, setOffset, } from "../../store/slices/AdminEarningsSlice";
 import type { RootState, AppDispatch } from "../../store/store";
 import type { RecentConsultation } from "../../types/admin";
 import usePageTitle from "../../hooks/usePageTitle";
@@ -12,6 +12,8 @@ import usePageTitle from "../../hooks/usePageTitle";
 const ROWS_PER_PAGE = 5;
 const FILTERS = ["week", "month", "year"] as const;
 type FilterType = "week" | "month" | "year";
+
+const CHUNK: Record<FilterType, number> = { week: 7, month: 30, year: 12 };
 
 const formatINR = (val: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(val);
 const formatDate = (date: string) => new Date(date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
@@ -39,7 +41,7 @@ export const AdminEarningsReport = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const tableRef = useRef<HTMLDivElement>(null);
-  const { data, loading, error, filter, page } = useSelector((state: RootState) => state.adminEarnings);
+  const { data, loading, error, filter, page, offset } = useSelector((state: RootState) => state.adminEarnings);
   const [tablePage, setTablePage] = useState(1);
 
   useEffect(() => {
@@ -53,6 +55,29 @@ export const AdminEarningsReport = () => {
   const handleFilterChange = (f: FilterType) => {
     dispatch(setFilter(f));
     dispatch(setPage(1));
+  };
+
+  const fullTrend = data?.trendData ?? [];
+  const chunkSize = CHUNK[filter];
+  const totalChunks = Math.max(1, Math.ceil(fullTrend.length / chunkSize));
+  const maxOffset = totalChunks - 1;
+
+  const windowedTrend = useMemo(() => {
+    const endIdx = fullTrend.length - offset * chunkSize;
+    const startIdx = Math.max(0, endIdx - chunkSize);
+    return fullTrend.slice(startIdx, endIdx);
+  }, [fullTrend, offset, chunkSize]);
+
+  const rangeLabel = windowedTrend.length > 0
+    ? `${windowedTrend[0].label} - ${windowedTrend[windowedTrend.length - 1].label}`
+    : "No data";
+
+  const handlePrevPeriod = () => {
+    if (offset < maxOffset) dispatch(setOffset(offset + 1));
+  };
+
+  const handleNextPeriod = () => {
+    if (offset > 0) dispatch(setOffset(offset - 1));
   };
 
   const allRows: RecentConsultation[] = (data?.recentConsultations?.rows ?? []).filter((r) => r.consultation_type === "video_call");
@@ -93,7 +118,7 @@ export const AdminEarningsReport = () => {
     doc.setTextColor(100, 116, 139);
     doc.text(`Report ID: ${receiptNo}`, 15, 58);
     doc.text(`Generated On: ${now}`, 15, 64);
-    doc.text(`Filter: ${filter.charAt(0).toUpperCase() + filter.slice(1)}`, 15, 70);
+    doc.text(`Filter: ${filter.charAt(0).toUpperCase() + filter.slice(1)} (${rangeLabel})`, 15, 70);
 
     let y = 84;
     const sectionTitle = (text: string) => {
@@ -189,6 +214,7 @@ export const AdminEarningsReport = () => {
             </button>
           </div>
         </div>
+
         {error && (
           <div className="mb-5 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm font-semibold text-red-600">
             {error}
@@ -208,19 +234,32 @@ export const AdminEarningsReport = () => {
               <StatCard label="Avg per Visit" value={formatINR(summary.avgPerConsultation)} change={summary.avgChange ?? 0} icon="📊" color="teal" />
             </div>
             <div className="mb-5 rounded-2xl bg-white p-4 sm:p-5 shadow-lg shadow-blue-100">
-              <div className="mb-4 flex items-start justify-between">
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <h2 className="text-xs sm:text-sm font-extrabold text-slate-800">Revenue Trend</h2>
                   <p className="mt-0.5 text-[11px] sm:text-xs text-slate-400">Video call earnings over time</p>
                 </div>
-                <div className="flex items-center gap-4 text-[11px] sm:text-xs text-slate-500">
-                  <span className="flex items-center gap-1.5">
-                    <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-sm bg-blue-600" /> Video Call
+                <div className="flex items-center gap-2">
+                  <button onClick={handlePrevPeriod} disabled={offset >= maxOffset}
+                    className="flex h-7 w-7 sm:h-8 sm:w-8 cursor-pointer items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 transition">
+                    <FaChevronLeft className="text-[10px] sm:text-xs" />
+                  </button>
+                  <span className="min-w-[100px] sm:min-w-[140px] text-center text-[11px] sm:text-xs font-extrabold text-slate-700 truncate">
+                    {rangeLabel}
                   </span>
+                  <button onClick={handleNextPeriod} disabled={offset === 0}
+                    className="flex h-7 w-7 sm:h-8 sm:w-8 cursor-pointer items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 transition">
+                    <FaChevronRight className="text-[10px] sm:text-xs" />
+                  </button>
+                  {offset > 0 && (
+                    <button onClick={() => dispatch(setOffset(0))} className="cursor-pointer rounded-lg bg-blue-50 px-2 sm:px-2.5 py-1.5 text-[10px] sm:text-[11px] font-extrabold text-blue-600 hover:bg-blue-100 transition whitespace-nowrap">
+                      Current
+                    </button>
+                  )}
                 </div>
               </div>
               <ResponsiveContainer width="100%" height={200}>
-                <AreaChart data={data.trendData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+                <AreaChart data={windowedTrend} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorVideo" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#2563eb" stopOpacity={0.15} />
@@ -228,7 +267,7 @@ export const AdminEarningsReport = () => {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                  <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} interval={0} angle={filter === "month" ? -45 : 0} textAnchor={filter === "month" ? "end" : "middle"} height={filter === "month" ? 40 : 24} />
                   <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} width={48}
                     tickFormatter={(v) => `₹${v >= 1000 ? (v / 1000).toFixed(0) + "k" : v}`} />
                   <Tooltip formatter={(value) => [formatINR(Number(value))]}

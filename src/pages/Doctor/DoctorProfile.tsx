@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
-import {
-  FaCamera, FaCalendarAlt, FaEnvelope, FaSave, FaStar, FaStethoscope, FaTimes,
-  FaUserMd, FaUsers, FaGraduationCap,
-} from "react-icons/fa";
+import {FaCamera, FaCalendarAlt, FaEnvelope, FaSave, FaStar, FaStethoscope, FaTimes,
+  FaUserMd, FaUsers, FaGraduationCap} from "react-icons/fa";
 import { MdWorkspacePremium, MdMedicalServices } from "react-icons/md";
 import toast from "react-hot-toast";
 import API, { IMAGE_BASE_URL } from "../../api/axios";
@@ -17,10 +15,7 @@ const useProfileImage = (raw: string) => {
     if (!raw) { setSrc(""); return; }
     if (raw.startsWith("blob:")) { setSrc(raw); return; }
 
-    const fullUrl = raw.startsWith("http")
-      ? raw.replace(/^http:\/\//, "https://")
-      : `${IMAGE_BASE_URL}/uploads/${raw}`;
-
+    const fullUrl = raw.startsWith("http") ? raw.replace(/^http:\/\//, "https://") : `${IMAGE_BASE_URL}/uploads/${raw}`;
     fetch(fullUrl, {
       headers: { "ngrok-skip-browser-warning": "true" },
     })
@@ -270,59 +265,59 @@ export const DoctorProfile = () => {
   const imageUrl = useProfileImage(profile.profile_picture);
 
   return (
-    <div className="min-h-screen bg-[#f0f4fb] lg:flex pt-20">
+    <div className="relative min-h-screen bg-[#f0f4fb] pt-16 sm:pt-20 lg:flex">
       <DoctorSidebar />
-      <main className="w-full flex-1 px-3 pt-6 pb-6 sm:px-4 lg:px-6 lg:py-6">
-        <div className="mb-5 flex flex-col gap-3 rounded-3xl bg-white p-4 shadow-lg shadow-blue-100 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <h1 className="text-xl font-extrabold text-slate-900 sm:text-2xl lg:text-3xl">
+      <main className="relative z-0 w-full flex-1 min-w-0 px-3 pt-4 pb-6 sm:px-4 sm:pt-6 lg:px-6 lg:py-6">
+        <div className="mb-4 flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-lg shadow-blue-100 sm:mb-5 sm:rounded-3xl sm:p-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-lg font-extrabold text-slate-900 sm:text-2xl lg:text-3xl">
               Doctor <span className="text-blue-600">Profile</span>
             </h1>
-            <p className="mt-2 text-sm text-slate-500 sm:text-base">
+            <p className="mt-1 text-xs text-slate-500 sm:mt-2 sm:text-base">
               View and update your professional information
             </p>
           </div>
 
           {!isEdit && (
-            <button onClick={() => setIsEdit(true)} className="w-full cursor-pointer rounded-2xl bg-blue-600 px-6 py-4 font-semibold text-white shadow-lg transition hover:bg-blue-700 sm:w-fit">
+            <button onClick={() => setIsEdit(true)} className="w-full cursor-pointer rounded-2xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-blue-700 sm:py-4 sm:text-base lg:w-fit">
               Update Profile
             </button>
           )}
         </div>
 
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-500 p-4 shadow-2xl sm:p-6 lg:p-7">
-          <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10" />
-          <div className="relative z-10 flex flex-col items-center gap-8 text-center lg:flex-row lg:text-left">
-            <div className="relative h-36 w-36 shrink-0 sm:h-44 sm:w-44">
+        <section className="relative rounded-2xl bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-500 p-4 shadow-2xl sm:rounded-3xl sm:p-6 lg:p-7">
+          <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/10 sm:-right-24 sm:-top-24 sm:h-72 sm:w-72" />
+          <div className="relative z-10 flex flex-col items-center gap-6 text-center sm:gap-8 lg:flex-row lg:text-left">
+            <div className="relative h-28 w-28 shrink-0 sm:h-36 sm:w-36 md:h-44 md:w-44">
               {imageUrl ? (
-                <img src={imageUrl} alt="Doctor" className="h-full w-full rounded-full border-[6px] border-white object-cover object-top shadow-2xl" />
+                <img src={imageUrl} alt="Doctor" className="h-full w-full rounded-full border-4 border-white object-cover object-top shadow-2xl sm:border-[6px]" />
               ) : (
                 <div className="flex h-full w-full items-center justify-center rounded-full bg-white shadow-2xl">
-                  <FaUserMd className="text-6xl text-blue-500" />
+                  <FaUserMd className="text-4xl text-blue-500 sm:text-6xl" />
                 </div>
               )}
 
               {isEdit && (
-                <label className="absolute bottom-2 right-2 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-white shadow-lg">
-                  <FaCamera className="text-blue-600" />
+                <label className="absolute bottom-1 right-1 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-white shadow-lg sm:bottom-2 sm:right-2 sm:h-11 sm:w-11">
+                  <FaCamera className="text-sm text-blue-600 sm:text-base" />
                   <input type="file" hidden accept="image/*" onChange={handleImage} />
                 </label>
               )}
             </div>
-            <div className="w-full flex-1 text-white">
-              <h2 className="text-2xl font-extrabold sm:text-3xl">
+            <div className="w-full min-w-0 flex-1 text-white">
+              <h2 className="break-words text-xl font-extrabold sm:text-2xl md:text-3xl">
                 Dr. {profile.name || "Doctor"}
               </h2>
-              <p className="mt-3 flex justify-center gap-2 text-lg font-semibold text-blue-100 sm:text-2xl lg:justify-start">
+              <p className="mt-2 flex flex-wrap items-center justify-center gap-2 text-sm font-semibold text-blue-100 sm:mt-3 sm:text-lg md:text-2xl lg:justify-start">
                 <MdMedicalServices />
                 {profile.specialization || "Specialist"}
               </p>
-              <div className="mt-5 flex justify-center gap-1 text-xl text-yellow-300 sm:text-2xl lg:justify-start">
+              <div className="mt-4 flex justify-center gap-1 text-lg text-yellow-300 sm:mt-5 sm:text-xl md:text-2xl lg:justify-start">
                 {[...Array(5)].map((_, index) => (
                   <FaStar key={index} />
                 ))}
               </div>
-              <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 sm:grid-cols-3 sm:gap-4">
                 <InfoCard icon={<FaCalendarAlt />} title="Appointments" value={String(profileStats.appointments)} />
                 <InfoCard icon={<MdWorkspacePremium />} title="Experience" value={`${profile.experience_years || 0}+ Years`} />
                 <InfoCard icon={<FaUsers />} title="Patients" value={String(profileStats.patients)} />
@@ -330,14 +325,14 @@ export const DoctorProfile = () => {
             </div>
           </div>
         </section>
-        <section className="mt-5 rounded-3xl bg-white shadow-xl shadow-blue-100">
-          <div className="border-b border-blue-100 bg-blue-50 px-4 py-4 sm:px-6">
-            <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">
+        <section className="mt-4 rounded-2xl bg-white shadow-xl shadow-blue-100 sm:mt-5 sm:rounded-3xl">
+          <div className="border-b border-blue-100 bg-blue-50 px-4 py-3 sm:px-6 sm:py-4">
+            <h2 className="text-lg font-bold text-slate-900 sm:text-2xl">
               Personal Information
             </h2>
           </div>
           <div className="space-y-5 p-4 sm:p-6">
-            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 xl:grid-cols-3">
               <InputField label="Full Name" value={profile.name} icon={<FaUserMd />} readOnly />
               <InputField label="Email Address" value={profile.email} icon={<FaEnvelope />} readOnly />
               <InputField label="Gender" value={profile.gender} readOnly />
@@ -357,18 +352,18 @@ export const DoctorProfile = () => {
                 icon={<FaGraduationCap />} readOnly={!isEdit} />
             </div>
             <div>
-              <label className="mb-3 block text-sm font-bold uppercase tracking-wide text-slate-500">
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500 sm:mb-3 sm:text-sm">
                 Bio
               </label>
               <textarea rows={5} name="bio" value={profile.bio} onChange={handleChange} readOnly={!isEdit}
-                className={`w-full resize-none rounded-2xl border p-4 text-base font-medium text-slate-800 outline-none transition sm:p-5 sm:text-lg ${isEdit ? "border-slate-300 bg-white focus:border-blue-600" : "border-blue-100 bg-blue-50"}`} />
+                className={`w-full resize-none rounded-xl border p-3 text-sm font-medium text-slate-800 outline-none transition sm:rounded-2xl sm:p-4 sm:text-base lg:p-5 lg:text-lg ${isEdit ? "border-slate-300 bg-white focus:border-blue-600" : "border-blue-100 bg-blue-50"}`} />
             </div>
             {isEdit && (
-              <div className="flex flex-col gap-3 border-t border-blue-100 pt-6 sm:flex-row sm:justify-end">
-                <button type="button" onClick={handleCancel} className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-300 px-8 py-3 font-semibold text-slate-700 hover:bg-slate-50">
+              <div className="flex flex-col gap-3 border-t border-blue-100 pt-5 sm:flex-row sm:justify-end sm:pt-6">
+                <button type="button" onClick={handleCancel} className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 sm:px-8 sm:text-base">
                   <FaTimes /> Cancel
                 </button>
-                <button type="button" onClick={handleSave} disabled={loading} className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-600 px-8 py-3 font-semibold text-white shadow-lg disabled:opacity-60">
+                <button type="button" onClick={handleSave} disabled={loading} className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg disabled:opacity-60 sm:px-8 sm:text-base">
                   <FaSave /> {loading ? "Saving..." : "Save Changes"}
                 </button>
               </div>
@@ -388,29 +383,29 @@ const SpecializationDropdown = ({ value, departments, disabled, isOpen, setIsOpe
   setIsOpen: (value: boolean) => void;
   onSelect: (value: string) => void;
 }) => (
-  <div className="relative">
-    <label className="mb-3 block text-sm font-bold uppercase tracking-wide text-slate-500">
+  <div className="relative min-w-0">
+    <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500 sm:mb-3 sm:text-sm">
       Specialization
     </label>
     <button type="button" disabled={disabled} onClick={() => setIsOpen(!isOpen)}
-      className={`flex h-14 w-full items-center justify-between rounded-2xl border px-4 text-left transition sm:h-16 ${disabled ? "cursor-not-allowed border-blue-100 bg-blue-50" : "border-slate-300 bg-white focus:border-blue-600"}`}>
-      <span className="flex min-w-0 items-center gap-3">
-        <MdMedicalServices className="shrink-0 text-lg text-blue-500" />
-        <span className="truncate text-base font-semibold text-slate-800">
+      className={`flex h-12 w-full items-center justify-between rounded-xl border px-3 text-left transition sm:h-14 sm:rounded-2xl sm:px-4 lg:h-16 ${disabled ? "cursor-not-allowed border-blue-100 bg-blue-50" : "border-slate-300 bg-white focus:border-blue-600"}`}>
+      <span className="flex min-w-0 items-center gap-2 sm:gap-3">
+        <MdMedicalServices className="shrink-0 text-base text-blue-500 sm:text-lg" />
+        <span className="truncate text-sm font-semibold text-slate-800 sm:text-base">
           {value || "Select Specialization"}
         </span>
       </span>
-      {!disabled && <span className={isOpen ? "rotate-180" : ""}>▼</span>}
+      {!disabled && <span className={`shrink-0 text-xs transition ${isOpen ? "rotate-180" : ""}`}>▼</span>}
     </button>
     {isOpen && !disabled && (
-      <div className="absolute left-0 top-[86px] z-50 w-full rounded-2xl border border-blue-100 bg-white shadow-2xl">
+      <div className="absolute left-0 top-[78px] z-50 w-full rounded-2xl border border-blue-100 bg-white shadow-2xl sm:top-[86px]">
         <div className="max-h-60 overflow-y-auto p-2">
           {departments.map((dept) => (
             <button key={dept.id} type="button" onClick={() => {
               onSelect(dept.name);
               setIsOpen(false);
             }}
-              className="w-full rounded-xl px-4 py-3 text-left font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700" >
+              className="w-full rounded-xl px-4 py-3 text-left text-sm font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 sm:text-base" >
               {dept.name}
             </button>
           ))}
@@ -425,28 +420,28 @@ const InfoCard = ({ icon, title, value, }: {
   title: string;
   value: string;
 }) => (
-  <div className="rounded-3xl border border-white/20 bg-white/10 p-4 backdrop-blur-md">
-    <div className="flex items-center justify-center gap-4 lg:justify-start">
-      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 text-xl text-white">
+  <div className="rounded-2xl border border-white/20 bg-white/10 p-3 backdrop-blur-md sm:rounded-3xl sm:p-4">
+    <div className="flex items-center justify-center gap-3 sm:gap-4 lg:justify-start">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-base text-white sm:h-11 sm:w-11 sm:rounded-2xl sm:text-xl">
         {icon}
       </div>
 
-      <div>
-        <p className="text-sm font-medium text-blue-100">{title}</p>
-        <h3 className="text-base font-extrabold text-white">{value}</h3>
+      <div className="min-w-0 text-left">
+        <p className="truncate text-xs font-medium text-blue-100 sm:text-sm">{title}</p>
+        <h3 className="truncate text-sm font-extrabold text-white sm:text-base">{value}</h3>
       </div>
     </div>
   </div>
 );
 
 const InputField = ({ label, icon, readOnly, ...props }: any) => (
-  <div>
-    <label className="mb-3 block text-sm font-bold uppercase tracking-wide text-slate-500">
+  <div className="min-w-0">
+    <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500 sm:mb-3 sm:text-sm">
       {label}
     </label>
-    <div className={`flex h-14 items-center rounded-2xl border px-4 transition sm:h-16 ${readOnly ? "border-blue-100 bg-blue-50" : "border-slate-300 bg-white focus-within:border-blue-600"}`}>
-      {icon && <span className="shrink-0 text-lg text-blue-500">{icon}</span>}
-      <input {...props} readOnly={readOnly} className="h-full min-w-0 flex-1 bg-transparent px-3 text-base font-semibold text-slate-800 outline-none" />
+    <div className={`flex h-12 items-center rounded-xl border px-3 transition sm:h-14 sm:rounded-2xl sm:px-4 lg:h-16 ${readOnly ? "border-blue-100 bg-blue-50" : "border-slate-300 bg-white focus-within:border-blue-600"}`}>
+      {icon && <span className="shrink-0 text-base text-blue-500 sm:text-lg">{icon}</span>}
+      <input {...props} readOnly={readOnly} className="h-full min-w-0 flex-1 bg-transparent px-2 text-sm font-semibold text-slate-800 outline-none sm:px-3 sm:text-base" />
     </div>
   </div>
 );

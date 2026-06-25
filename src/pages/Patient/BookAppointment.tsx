@@ -438,7 +438,7 @@ export const BookAppointment = () => {
                         const isBlocked = slotStatus === "blocked" || slotStatus === "pending_payment";
                         const isUnavailable = !isBooked && !isBlocked && (slotStatus === "unavailable" || slot.is_available === false);
                         const isDisabled = isBooked || isBlocked || isUnavailable;
-                        const label = isBooked ? "Booked" : isBlocked ? "Blocked" : isUnavailable ? "N/A" : "";
+                        const label = isBooked ? "Booked" : isBlocked ? "Blocked" : isUnavailable ? "Unavailable" : "";
                         return (
                           <div key={`${slot.start_time}-${slot.end_time}`} className="group relative" title={isDisabled ? label : "Available"}>
                             <button type="button" disabled={isDisabled} onClick={() => { if (!isDisabled) dispatch(setSelectedSlot(slot)); }}

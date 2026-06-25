@@ -262,7 +262,7 @@ export const MyAppointments = () => {
             <div className="mb-4 sm:mb-6 px-1">
               <div className="flex items-start sm:items-center justify-between flex-wrap gap-3">
                 <div>
-                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold leading-tight text-slate-900 tracking-tight">My Appointments</h1>
+                  <h1 className="text-xl sm:text-2xl sm:pt-20 lg:text-3xl font-extrabold leading-tight text-slate-900 tracking-tight">My Appointments</h1>
                   <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-slate-500">
                     Welcome back, <span className="font-bold text-blue-600">{authUser?.name || "Patient"}</span>. Here are your upcoming visits.
                   </p>

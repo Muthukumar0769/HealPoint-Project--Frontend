@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import API from "../../api/axios";
-import type {EarningsState} from '../../types/admin'
+import type { EarningsState } from '../../types/admin'
 
 const initialState: EarningsState & { offset: number } = {
     data: null,
@@ -21,6 +21,36 @@ export const fetchEarningsDashboard = createAsyncThunk("adminEarnings/fetchDashb
                 r.consultationType?.toLowerCase().includes("video")
             );
             const videoCallRevenue = videoCall.reduce((sum: number, r: any) => sum + r.amount, 0);
+
+            let trendData: { label: string; videoCall: number; clinicVisit: number }[] = [];
+
+            if (filter === "month") {
+                // Use revenueTrend from API — each entry has month label + revenue
+                trendData = (d.revenueTrend ?? []).map((t: any) => ({
+                    label: t.label ?? t.month ?? t.day ?? t.week,
+                    videoCall: Number(t.revenue),
+                    clinicVisit: 0,
+                }));
+            } else if (filter === "year") {
+                // Build yearly trend from recentConsultations appointment dates
+                const yearMap: Record<string, number> = {};
+                recentConsultations.forEach((r: any) => {
+                    const date = r.appointmentDate ?? r.appointment_date ?? "";
+                    if (!date) return;
+                    const year = new Date(date).getFullYear();
+                    if (isNaN(year)) return;
+                    const key = String(year);
+                    yearMap[key] = (yearMap[key] ?? 0) + (r.amount ?? 0);
+                });
+                trendData = Object.entries(yearMap)
+                    .sort(([a], [b]) => Number(a) - Number(b))
+                    .map(([year, revenue]) => ({
+                        label: year,
+                        videoCall: revenue,
+                        clinicVisit: 0,
+                    }));
+            }
+
             return {
                 summary: {
                     totalRevenue: d.summary.totalRevenue,
@@ -40,11 +70,7 @@ export const fetchEarningsDashboard = createAsyncThunk("adminEarnings/fetchDashb
                     videoCallCount: videoCall.length,
                     clinicVisitCount: 0,
                 },
-                trendData: (d.revenueTrend ?? []).map((t: any) => ({
-                    label: t.label ?? t.month ?? t.day ?? t.week,
-                    videoCall: Number(t.revenue),
-                    clinicVisit: 0,
-                })),
+                trendData,
                 topDoctors: [],
                 recentConsultations: {
                     rows: recentConsultations.map((r: any) => ({
@@ -76,7 +102,7 @@ const adminEarningsSlice = createSlice({
     name: "adminEarnings",
     initialState,
     reducers: {
-        setFilter(state, action: PayloadAction<"week" | "month" | "year">) {
+        setFilter(state, action: PayloadAction<"month" | "year">) {
             state.filter = action.payload;
             state.page = 1;
             state.offset = 0;

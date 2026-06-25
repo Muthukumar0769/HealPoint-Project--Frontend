@@ -10,10 +10,10 @@ import type { RecentConsultation } from "../../types/admin";
 import usePageTitle from "../../hooks/usePageTitle";
 
 const ROWS_PER_PAGE = 5;
-const FILTERS = ["week", "month", "year"] as const;
-type FilterType = "week" | "month" | "year";
+const FILTERS = ["month", "year"] as const;
+type FilterType = "month" | "year";
 
-const CHUNK: Record<FilterType, number> = { week: 7, month: 30, year: 12 };
+const CHUNK: Record<FilterType, number> = { month: 12, year: 5 };
 
 const formatINR = (val: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(val);
 const formatDate = (date: string) => new Date(date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
@@ -58,7 +58,7 @@ export const AdminEarningsReport = () => {
   };
 
   const fullTrend = data?.trendData ?? [];
-  const chunkSize = CHUNK[filter];
+  const chunkSize = CHUNK[filter as FilterType];
   const totalChunks = Math.max(1, Math.ceil(fullTrend.length / chunkSize));
   const maxOffset = totalChunks - 1;
 
@@ -237,7 +237,9 @@ export const AdminEarningsReport = () => {
               <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <h2 className="text-xs sm:text-sm font-extrabold text-slate-800">Revenue Trend</h2>
-                  <p className="mt-0.5 text-[11px] sm:text-xs text-slate-400">Video call earnings over time</p>
+                  <p className="mt-0.5 text-[11px] sm:text-xs text-slate-400">
+                    {filter === "month" ? "Monthly earnings (Jan – Dec)" : "Yearly earnings"}
+                  </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <button onClick={handlePrevPeriod} disabled={offset >= maxOffset}
@@ -267,7 +269,16 @@ export const AdminEarningsReport = () => {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} interval={0} angle={filter === "month" ? -45 : 0} textAnchor={filter === "month" ? "end" : "middle"} height={filter === "month" ? 40 : 24} />
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fontSize: 10, fill: "#94a3b8" }}
+                    axisLine={false}
+                    tickLine={false}
+                    interval={0}
+                    angle={filter === "month" ? -30 : 0}
+                    textAnchor={filter === "month" ? "end" : "middle"}
+                    height={filter === "month" ? 36 : 24}
+                  />
                   <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} width={48}
                     tickFormatter={(v) => `₹${v >= 1000 ? (v / 1000).toFixed(0) + "k" : v}`} />
                   <Tooltip formatter={(value) => [formatINR(Number(value))]}
